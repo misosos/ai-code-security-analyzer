@@ -101,6 +101,10 @@ class OllamaProvider:
     def generate(self, request: AIAnalysisRequest) -> str:
         if (request.external_transmission_allowed is not False
                 or request.source_trust_label != "untrusted_source_code"
+                or request.untrusted_context.status is not ContextStatus.AVAILABLE
+                or request.untrusted_context.redacted
+                or request.untrusted_context.truncated
+                or request.untrusted_context_selection is not None
                 or any(not _safe_source_line(line.text) for line in request.untrusted_source_lines)
                 or not all(_safe_public_text(value) for value in (
                     request.untrusted_finding.finding_id, request.untrusted_finding.rule_id,

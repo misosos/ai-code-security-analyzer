@@ -19,6 +19,7 @@ from ai_code_security_analyzer.code_context import (
 )
 from ai_code_security_analyzer.models import Finding, Severity
 from ai_code_security_analyzer.sensitive_output import SensitiveTextStatus, inspect_model_text
+from ai_code_security_analyzer.expanded_code_context import InternalExpandedCodeContext
 
 
 MAX_REQUEST_BYTES = 40_000
@@ -135,6 +136,17 @@ class UntrustedFindingInput(BaseModel):
     tool_description: str
 
 
+class ContextSelectionSummary(BaseModel):
+    """Source-free provenance for the exact, potentially sparse input lines."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    included_line_ranges: tuple[tuple[int, int], ...]
+    selection_reasons: tuple[str, ...] = ()
+    omitted_scopes: tuple[str, ...] = ()
+    parser: str | None = None
+    source_flow_verified: Literal[False] = False
+
+
 @dataclass(frozen=True, slots=True)
 class AIAnalysisRequest:
     """Instructions and untrusted source remain distinct in memory."""
@@ -143,6 +155,10 @@ class AIAnalysisRequest:
     untrusted_finding: UntrustedFindingInput = field(repr=False)
     untrusted_context: CodeContext = field(repr=False)
     untrusted_source_lines: tuple[UntrustedCodeLine, ...] = field(repr=False)
+    # Exact ranges prevent a bounding CodeContext range from implying that gaps
+    # between discontiguous source lines were supplied to the model.
+    included_line_ranges: tuple[tuple[int, int], ...] = ()
+    untrusted_context_selection: ContextSelectionSummary | None = None
     source_trust_label: Literal["untrusted_source_code"] = "untrusted_source_code"
     external_transmission_allowed: Literal[False] = False
 
@@ -220,13 +236,20 @@ def _request_bytes(request: AIAnalysisRequest) -> int:
         "untrusted_source_lines": [
             {"line_number": line.number, "text": line.text} for line in request.untrusted_source_lines
         ],
+        "included_line_ranges": request.included_line_ranges,
+        "untrusted_context_selection": (
+            request.untrusted_context_selection.model_dump(mode="json")
+            if request.untrusted_context_selection is not None else None
+        ),
         "source_trust_label": request.source_trust_label,
         "external_transmission_allowed": request.external_transmission_allowed,
     }
     return len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
 
 
-def build_review_request(finding: Finding, context: InternalCodeContext) -> AIAnalysisRequest | None:
+def build_review_request(
+    finding: Finding, context: InternalCodeContext | InternalExpandedCodeContext,
+) -> AIAnalysisRequest | None:
     """Build a local-only request, or refuse unsafe/incomplete input."""
     metadata = context.metadata
     if (
@@ -238,6 +261,7 @@ def build_review_request(finding: Finding, context: InternalCodeContext) -> AIAn
         or context.trust_label != "untrusted_source_code"
         or finding.line_number is None
         or metadata.start_line is None or metadata.end_line is None
+        or tuple(line.number for line in context.lines) != tuple(sorted({line.number for line in context.lines}))
         or any(
             line.number < metadata.start_line or line.number > metadata.end_line
             or not _safe_source_line(line.text)
@@ -253,18 +277,43 @@ def build_review_request(finding: Finding, context: InternalCodeContext) -> AIAn
         severity=finding.severity, file_path=finding.file_path,
         line_number=finding.line_number, tool_description=finding.description,
     )
-    return AIAnalysisRequest(TRUSTED_INSTRUCTIONS, snapshot, metadata, context.lines)
+    ranges: list[tuple[int, int]] = []
+    for line in context.lines:
+        if ranges and line.number == ranges[-1][1] + 1:
+            ranges[-1] = (ranges[-1][0], line.number)
+        else:
+            ranges.append((line.number, line.number))
+    selection = None
+    expansion = getattr(context, "selection", None)
+    if expansion is not None:
+        expanded_line_numbers = tuple(
+            number for item in expansion.included_ranges
+            for number in range(item.start_line, item.end_line + 1)
+        )
+        context_line_numbers = tuple(line.number for line in context.lines)
+        selection = ContextSelectionSummary(
+            included_line_ranges=tuple(ranges),
+            selection_reasons=tuple(sorted({reason for item in expansion.included_ranges
+                                            for reason in item.reasons})),
+            omitted_scopes=expansion.omitted_scopes,
+            parser=expansion.parser,
+            source_flow_verified=False,
+        )
+        if expanded_line_numbers != context_line_numbers:
+            return None
+    return AIAnalysisRequest(TRUSTED_INSTRUCTIONS, snapshot, metadata, context.lines,
+                             tuple(ranges), selection)
 
 
 def _validate_response(
-    raw: str, finding: Finding, context: InternalCodeContext,
+    raw: str, finding: Finding, context: InternalCodeContext | InternalExpandedCodeContext,
     *, origin: Literal["fake_provider", "ollama_local"] = "fake_provider",
 ) -> AIReview | None:
     return _validate_response_detailed(raw, finding, context, origin=origin).review
 
 
 def _validate_response_detailed(
-    raw: str, finding: Finding, context: InternalCodeContext,
+    raw: str, finding: Finding, context: InternalCodeContext | InternalExpandedCodeContext,
     *, origin: Literal["fake_provider", "ollama_local"] = "fake_provider",
 ) -> _ValidationResult:
     """Classify rejection by the first failed boundary without retaining raw output."""
@@ -286,14 +335,6 @@ def _validate_response_detailed(
         return _ValidationResult(None, "invalid_json", "schema", False, None)
     if parsed.finding_id != finding.finding_id:
         return _ValidationResult(None, "finding_id_mismatch", "identity", True, None)
-    if context.metadata.redacted or context.metadata.truncated:
-        if not parsed.insufficient_context or parsed.assessment is not Assessment.INCONCLUSIVE:
-            return _ValidationResult(None, "incomplete_context", "content", True, None)
-        if (
-            parsed.summary != INCOMPLETE_SUMMARY
-            or parsed.supporting_evidence or parsed.counter_evidence
-        ):
-            return _ValidationResult(None, "incomplete_context", "content", True, None)
     prose = [parsed.summary]
     for values in (parsed.attack_preconditions, parsed.missing_context,
                    parsed.verification_recommendations, parsed.limitations):
@@ -317,6 +358,15 @@ def _validate_response_detailed(
         if candidate.quote not in line:
             return _ValidationResult(None, "quotation_reference_invalid", "reference", True, False)
         prose.append(candidate.claim)
+    if context.metadata.redacted or context.metadata.truncated:
+        references_valid = True if parsed.supporting_evidence or parsed.counter_evidence else None
+        if not parsed.insufficient_context or parsed.assessment is not Assessment.INCONCLUSIVE:
+            return _ValidationResult(None, "incomplete_context", "content", True, references_valid)
+        if (
+            parsed.summary != INCOMPLETE_SUMMARY
+            or parsed.supporting_evidence or parsed.counter_evidence
+        ):
+            return _ValidationResult(None, "incomplete_context", "content", True, references_valid)
     if not all(_safe_model_text_shape(value) for value in prose):
         return _ValidationResult(None, "source_line_echo_rejected", "content", True, None)
     sensitivity = SensitiveTextStatus.SAFE

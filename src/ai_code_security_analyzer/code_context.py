@@ -175,6 +175,11 @@ def _read_regular_file(root: Path, parts: tuple[str, ...], limit: int) -> tuple[
             chunks.append(chunk)
             remaining -= len(chunk)
         data = b"".join(chunks)
+        after = os.fstat(file_descriptor)
+        before_signature = (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+        after_signature = (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns)
+        if before_signature != after_signature or len(data) != after.st_size:
+            return None, "file_changed_during_read"
         return (None, "file_too_large") if len(data) > limit else (data, None)
     except FileNotFoundError:
         return None, "file_not_found"
