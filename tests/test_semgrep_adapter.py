@@ -30,12 +30,12 @@ def finding_json() -> bytes:
     }).encode()
 
 
-def fake_semgrep(monkeypatch: pytest.MonkeyPatch, scan_output: bytes, *, exit_code: int = 0) -> list[list[str]]:
-    calls: list[list[str]] = []
+def fake_semgrep(monkeypatch: pytest.MonkeyPatch, scan_output: bytes, *, exit_code: int = 0) -> list[tuple[list[str], Path]]:
+    calls: list[tuple[list[str], Path]] = []
     monkeypatch.setattr(semgrep_adapter.shutil, "which", lambda _: "/trusted/semgrep")
 
     def run(args: list[str], cwd: Path, env: dict[str, str], timeout: int) -> semgrep_adapter._ProcessResult:
-        calls.append(args)
+        calls.append((args, cwd))
         assert "SYNTHETIC_SECRET" not in env
         if args[1:] == ["--version"]:
             return semgrep_adapter._ProcessResult(0, b"1.160.0\n")
@@ -58,9 +58,10 @@ def test_scan_uses_local_rules_and_sanitized_environment(paths: tuple[SemgrepAda
     assert scanned.semgrep_version == "1.160.0"
     assert len(scanned.findings) == 1
     assert scanned.findings[0].status.value == "unverified"
-    args = calls[-1]
+    args, cwd = calls[-1]
     assert args[1:7] == ["scan", "--json", "--metrics=off", "--disable-version-check", "--oss-only", "--no-autofix"]
-    assert args[-3:] == [str(rules), "--", str(target)]
+    assert args[-3:] == [rules.name, "--", str(target)]
+    assert cwd == rules.parent
     assert "auto" not in args
     assert "--autofix" not in args
 

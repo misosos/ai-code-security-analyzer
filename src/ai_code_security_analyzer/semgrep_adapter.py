@@ -172,9 +172,11 @@ class SemgrepAdapter:
                     return ScanResult(ScanStatus.EXECUTION_FAILED, issues=("required_option_unsupported",), semgrep_version=version)
                 args = [
                     executable, "scan", "--json", "--metrics=off", "--disable-version-check",
-                    "--oss-only", "--no-autofix", "--config", str(rules), "--", str(project),
+                    "--oss-only", "--no-autofix", "--config", rules.name, "--", str(project),
                 ]
-                completed = _run_process(args, project_root, env, timeout)
+                # A relative config name prevents Semgrep from embedding the local
+                # rules directory in check_id values exposed by public reports.
+                completed = _run_process(args, rules.parent, env, timeout)
             except _ProcessTimeout:
                 return ScanResult(ScanStatus.TIMED_OUT, issues=("semgrep_timeout",))
             except _OutputLimitExceeded:

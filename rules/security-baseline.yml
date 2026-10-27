@@ -1,0 +1,29 @@
+rules:
+  - id: baseline.javascript-dynamic-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Dynamic code evaluation requires review of input provenance and safer alternatives.
+    metadata:
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+
+  - id: baseline.react-dangerous-html
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Review HTML origin and sanitization before using dangerouslySetInnerHTML.
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+    pattern: '<$TAG ... dangerouslySetInnerHTML={{ __html: $HTML }} ... />'
+
+  - id: baseline.firestore-unconditional-write
+    languages: [regex]
+    paths:
+      include:
+        - "**/firestore.rules"
+    severity: ERROR
+    message: A Firestore write permission has an unconditional true condition; review its match scope.
+    metadata:
+      cwe: "CWE-284: Improper Access Control"
+    pattern-regex: '(?m)^[ \t]*allow[ \t]+(?:read[ \t]*,[ \t]*write|write|create|update|delete)[ \t]*:[ \t]*if[ \t]+true[ \t]*;'
