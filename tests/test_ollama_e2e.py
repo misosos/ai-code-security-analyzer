@@ -52,6 +52,9 @@ def test_real_model_synthetic_case(tmp_path, record_property, case, source, expe
     record_property("insufficient_context", str(outcome.review.insufficient_context) if outcome.review else "unavailable")
     record_property("support_count", len(outcome.review.supporting_evidence) if outcome.review else 0)
     record_property("counter_count", len(outcome.review.counter_evidence) if outcome.review else 0)
+    record_property("citation_count", (len(outcome.review.supporting_evidence)
+                                        + len(outcome.review.counter_evidence))
+                    if outcome.review else 0)
     record_property("missing_context_count", len(outcome.review.missing_context) if outcome.review else 0)
     record_property("issues", ",".join(outcome.issues))
     diagnostic = outcome.diagnostics
@@ -69,3 +72,6 @@ def test_real_model_synthetic_case(tmp_path, record_property, case, source, expe
                                   ReviewRunStatus.PROVIDER_FAILED)
         if outcome.status is ReviewRunStatus.PROVIDER_FAILED:
             assert outcome.issues == ("timeout",)
+    if outcome.review is not None and outcome.review.assessment.value == "inconclusive":
+        assert (outcome.review.supporting_evidence or outcome.review.counter_evidence
+                or outcome.review.missing_context)

@@ -49,7 +49,14 @@ def response(
         "supporting_evidence": [evidence] if assessment == "likely_true_positive" else [],
         "counter_evidence": [evidence] if assessment == "likely_false_positive" else [],
         "insufficient_context": insufficient_context,
+        "missing_context": ["Input provenance is not included in the supplied lines."]
+        if assessment == "inconclusive" else [],
     })
+
+
+def validation_code(target: Path, match: Finding, payload: dict) -> str | None:
+    context = extract_code_context(target, match)
+    return ai_review._validate_response_detailed(json.dumps(payload), match, context).code
 
 
 def test_valid_review_preserves_finding_and_discards_source_quote(tmp_path: Path) -> None:
@@ -216,6 +223,61 @@ def test_secret_bearing_model_output_and_code_echo_are_rejected(tmp_path: Path, 
     assert echoed.status is ReviewRunStatus.VALIDATION_FAILED
     captured = capsys.readouterr()
     assert marker not in captured.out + captured.err
+
+
+@pytest.mark.parametrize("text", [
+    "The password and token handling should be reviewed; no values are shown.",
+    "Secret rotation and API key storage are security concerns.",
+    "Authorization checks are not visible in this bounded context.",
+])
+def test_security_vocabulary_alone_is_safe_in_model_prose(tmp_path: Path, text: str) -> None:
+    payload = json.loads(response(assessment="inconclusive"))
+    payload["summary"] = text
+    outcome = run_fake_review(source(tmp_path), finding(), FakeProvider(json.dumps(payload)))
+    assert outcome.status is ReviewRunStatus.COMPLETED
+
+
+@pytest.mark.parametrize("text", [
+    "The returned token is SYNTHETIC_TOKEN_abcdef123456.",
+    "The API key is `sk-abcdefghijklmnopqrstuvwxyz012345`.",
+    "password = 'synthetic-password-value-9981'",
+    "-----BEGIN PRIVATE KEY----- synthetic-only -----END PRIVATE KEY-----",
+])
+def test_credential_shaped_model_output_is_rejected(tmp_path: Path, text: str) -> None:
+    payload = json.loads(response(assessment="inconclusive"))
+    payload["summary"] = text
+    outcome = run_fake_review(source(tmp_path), finding(), FakeProvider(json.dumps(payload)))
+    assert outcome.status is ReviewRunStatus.VALIDATION_FAILED
+    assert validation_code(tmp_path, finding(), payload) == "sensitive_content_rejected"
+    assert text not in repr(outcome)
+
+
+def test_ambiguous_opaque_value_fails_closed_without_echoing_value(tmp_path: Path) -> None:
+    value = "aB3dE5fG7hJ9kL2mN4pQ6rS8tU1vW3xY"
+    payload = json.loads(response(assessment="inconclusive"))
+    payload["summary"] = f"Observed value: {value}"
+    outcome = run_fake_review(source(tmp_path), finding(), FakeProvider(json.dumps(payload)))
+    assert outcome.status is ReviewRunStatus.VALIDATION_FAILED
+    assert validation_code(tmp_path, finding(), payload) == "sensitive_content_uncertain"
+    assert value not in repr(outcome)
+
+
+def test_unreferenced_inconclusive_requires_specific_missing_context(tmp_path: Path) -> None:
+    payload = json.loads(response(assessment="inconclusive"))
+    payload["missing_context"] = []
+    outcome = run_fake_review(source(tmp_path), finding(), FakeProvider(json.dumps(payload)))
+    assert outcome.status is ReviewRunStatus.VALIDATION_FAILED
+    assert validation_code(tmp_path, finding(), payload) == "inconclusive_without_reason"
+
+
+def test_cited_line_does_not_validate_semantic_claim(tmp_path: Path) -> None:
+    payload = json.loads(response())
+    payload["supporting_evidence"][0]["claim"] = "This line proves the value is sanitized."
+    outcome = run_fake_review(source(tmp_path), finding(), FakeProvider(json.dumps(payload)))
+    # Structural citation checks only prove quote and location membership.
+    assert outcome.status is ReviewRunStatus.COMPLETED
+    assert outcome.review is not None
+    assert outcome.diagnostics is None  # fake path exposes no detailed model diagnostics
 
 
 def test_injection_comments_stay_in_untrusted_request_only(tmp_path: Path) -> None:

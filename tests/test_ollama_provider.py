@@ -102,6 +102,7 @@ def test_local_structured_request_and_review(tmp_path, monkeypatch):
     assert payload["format"]["additionalProperties"] is False
     assert set(payload["format"]["required"]) == {
         "finding_id", "assessment", "summary", "insufficient_context",
+        "supporting_evidence", "counter_evidence", "missing_context",
     }
     assert set(payload["format"]["$defs"]["Assessment"]["enum"]) == {
         "likely_true_positive", "likely_false_positive", "inconclusive",
@@ -167,23 +168,35 @@ def test_transport_failures_are_safe(answer, issue, tmp_path):
     (valid_response(extra_field="unexpected"), "unexpected_response_field", "schema", False, None),
     (valid_response(summary="password = synthetic-secret"),
      "sensitive_content_rejected", "content", True, True),
+    (valid_response(summary="Token rotation and password validation need review."),
+     "", "complete", True, True),
+    (valid_response(assessment="inconclusive", supporting_evidence=[], counter_evidence=[],
+                    missing_context=["Input origin is not included."]),
+     "", "complete", True, None),
+    (valid_response(summary="Observed synthetic value SYNTHETIC_TOKEN_abcdef123456."),
+     "sensitive_content_rejected", "content", True, True),
+    (valid_response(summary="Observed opaque value aB3dE5fG7hJ9kL2mN4pQ6rS8tU1vW3xY"),
+     "sensitive_content_uncertain", "content", True, True),
     (valid_response(summary="const result = eval(input);"),
      "source_line_echo_rejected", "content", True, True),
     (json.dumps({"finding_id": "synthetic-id"}),
      "schema_validation_failed", "schema", False, None),
     (valid_response(supporting_evidence=[]),
-     "assessment_evidence_mismatch", "review_contract", True, True),
+     "assessment_evidence_mismatch", "review_contract", True, None),
     (valid_response(limitations=["x" * 301]),
      "prose_policy_violation", "content", True, None),
 ])
-def test_invalid_model_output_is_classified(
+def test_model_output_is_classified(
     content, issue, stage, schema_valid, references_valid, tmp_path,
 ):
     setup_answers(content)
     outcome = module.run_ollama_review(source(tmp_path), finding(), module.OllamaProvider("synthetic:1b"))
-    assert outcome.review is None
-    assert outcome.status in (ReviewRunStatus.VALIDATION_FAILED, ReviewRunStatus.PROVIDER_FAILED)
-    assert outcome.issues == (issue,)
+    if issue:
+        assert outcome.review is None
+        assert outcome.status in (ReviewRunStatus.VALIDATION_FAILED, ReviewRunStatus.PROVIDER_FAILED)
+        assert outcome.issues == (issue,)
+    else:
+        assert outcome.status is ReviewRunStatus.COMPLETED and outcome.review is not None
     assert outcome.diagnostics is not None
     assert (outcome.diagnostics.stage, outcome.diagnostics.schema_valid,
             outcome.diagnostics.references_valid) == (stage, schema_valid, references_valid)

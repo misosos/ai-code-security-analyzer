@@ -24,6 +24,8 @@ Phase 2B-2 전에 실제 모델 사용 여부와 제공자, 전송할 데이터�
 
 `OllamaProvider(model)`는 내부 호출 전용이다. 기존 `scan` CLI, 공개 JSON 보고서, `Finding` 및 `CodeContext` 계약은 변경하지 않는다. 실행 흐름은 `Finding → CodeContext → AIAnalysisRequest → OllamaProvider → 기존 Pydantic/근거 검증 → AIReview`이다. `origin=ollama_local`은 생성 경로만 표시하며 신뢰 또는 취약점 확정을 뜻하지 않는다. `AIReview`에는 공격 전제조건, 부족한 문맥, 추가 검증 권고, 분석 한계를 최대 5개씩 선택적으로 담는다. 각 항목은 공개 안전성 검사와 길이 제한을 통과해야 한다.
 
+Phase 2B-4는 민감정보 출력 검사와 근거 요구 조건을 정밀화했다. 검증 정책과 평가 결과는 [민감정보 및 근거 기반 평가](ai-review-evidence.md)에 기록한다.
+
 Provider는 표준 라이브러리 `http.client.HTTPConnection`으로 고정된 `127.0.0.1:11434`에 직접 연결한다. 환경 프록시를 사용하지 않고 리다이렉트는 거부한다. `/api/tags`에 정확한 이름, 양수의 로컬 크기, 64자리 digest가 있는 모델만 허용하며 `:cloud` 및 `remote_model` 표시는 거부한다. 이 목록 확인은 모델 파일의 진위 또는 서버 프로세스가 절대 외부와 통신하지 않는다는 증명이 아니다. 서버의 클라우드 기능을 운영 환경에서 꺼 두고, 외부 네트워크 차단은 호스트에서 별도로 제공해야 한다. 분석기에는 OS 수준 격리가 없다.
 
 신뢰된 분석 지침은 `system`, Finding·Semgrep 메시지·마스킹된 소스 줄은 `user` 메시지에 둔다. `stream=false`, `think=false`, `temperature=0`, Pydantic JSON schema `format`을 요청하며 모델 도구는 전달하지 않는다. 요청 40 KB, HTTP 응답 32 KB, 모델 내용 16 KB의 상한과 연결·추론 타임아웃을 적용한다. 원본 요청·응답 및 서버 예외는 로그와 `ReviewOutcome.issues`에 출력하지 않는다. 로컬 HTTP 과정에서도 소스는 신뢰할 수 없는 데이터이며 휴리스틱 마스킹은 비밀 전송 안전성을 증명하지 않는다. 운영·제3자 코드를 자동 전달하는 진입점은 없다.
