@@ -153,6 +153,28 @@ class ReviewOutcome:
     status: ReviewRunStatus
     review: AIReview | None = field(default=None, repr=False)
     issues: tuple[str, ...] = ()
+    diagnostics: "ReviewDiagnostics | None" = field(default=None, repr=False)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewDiagnostics:
+    """Fixed, source-free metadata for local evaluation; never a model transcript."""
+
+    stage: Literal["context", "request", "provider", "schema", "identity", "reference", "content", "review_contract", "complete"]
+    code: str | None = None
+    schema_valid: bool | None = None
+    references_valid: bool | None = None
+    request_bytes: int | None = None
+    response_bytes: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _ValidationResult:
+    review: AIReview | None
+    code: str | None
+    stage: Literal["schema", "identity", "reference", "content", "review_contract", "complete"]
+    schema_valid: bool
+    references_valid: bool | None
 
 
 def _safe_public_text(text: str) -> bool:
@@ -217,48 +239,70 @@ def _validate_response(
     raw: str, finding: Finding, context: InternalCodeContext,
     *, origin: Literal["fake_provider", "ollama_local"] = "fake_provider",
 ) -> AIReview | None:
+    return _validate_response_detailed(raw, finding, context, origin=origin).review
+
+
+def _validate_response_detailed(
+    raw: str, finding: Finding, context: InternalCodeContext,
+    *, origin: Literal["fake_provider", "ollama_local"] = "fake_provider",
+) -> _ValidationResult:
+    """Classify rejection by the first failed boundary without retaining raw output."""
     try:
         parsed = _ProviderResponse.model_validate_json(raw)
-    except (ValidationError, ValueError):
-        return None
+    except ValidationError as exc:
+        errors = exc.errors(include_input=False)
+        if any(item["type"] == "json_invalid" for item in errors):
+            code = "invalid_json"
+        elif any(item["type"] == "extra_forbidden" for item in errors):
+            code = "unexpected_response_field"
+        elif any(item["loc"] and item["loc"][0] == "assessment" and item["type"] != "missing"
+                 for item in errors):
+            code = "invalid_assessment"
+        else:
+            code = "schema_validation_failed"
+        return _ValidationResult(None, code, "schema", False, None)
+    except ValueError:
+        return _ValidationResult(None, "invalid_json", "schema", False, None)
     if parsed.finding_id != finding.finding_id:
-        return None
+        return _ValidationResult(None, "finding_id_mismatch", "identity", True, None)
     if context.metadata.redacted or context.metadata.truncated:
         if not parsed.insufficient_context or parsed.assessment is not Assessment.INCONCLUSIVE:
-            return None
+            return _ValidationResult(None, "incomplete_context", "content", True, None)
         if (
             parsed.summary != INCOMPLETE_SUMMARY
             or parsed.supporting_evidence or parsed.counter_evidence
         ):
-            return None
+            return _ValidationResult(None, "incomplete_context", "content", True, None)
     prose = [parsed.summary]
     for values in (parsed.attack_preconditions, parsed.missing_context,
                    parsed.verification_recommendations, parsed.limitations):
         if any(not isinstance(value, str) or not value or len(value) > 300 for value in values):
-            return None
+            return _ValidationResult(None, "prose_policy_violation", "content", True, None)
         prose.extend(values)
     lines = {line.number: line.text for line in context.lines}
     for candidate in (*parsed.supporting_evidence, *parsed.counter_evidence):
         if candidate.file_path != finding.file_path or candidate.file_path != context.metadata.file_path:
-            return None
+            return _ValidationResult(None, "file_reference_mismatch", "reference", True, False)
         line = lines.get(candidate.line_number)
         if line is None or line.startswith("[redacted:") or line.startswith("[line omitted:"):
-            return None
-        if candidate.quote not in line or not _safe_public_text(candidate.quote):
-            return None
+            return _ValidationResult(None, "line_reference_out_of_range", "reference", True, False)
+        if not _safe_public_text(candidate.quote):
+            return _ValidationResult(None, "sensitive_content_rejected", "content", True, False)
+        if candidate.quote not in line:
+            return _ValidationResult(None, "quotation_reference_invalid", "reference", True, False)
         prose.append(candidate.claim)
     if not all(_safe_public_text(value) for value in prose):
-        return None
+        return _ValidationResult(None, "sensitive_content_rejected", "content", True, True)
     if any(
         len(line) >= 6 and line in value
         for line in lines.values() if not line.startswith("[")
         for value in prose
     ):
-        return None
+        return _ValidationResult(None, "source_line_echo_rejected", "content", True, True)
     # Claims are model assertions. The exact quote is checked above and never
     # copied to the review; semantic truth still requires independent review.
     try:
-        return AIReview(
+        review = AIReview(
             finding_id=parsed.finding_id, assessment=parsed.assessment,
             summary=parsed.summary,
             supporting_evidence=tuple(ReviewEvidence.model_validate(item.model_dump(exclude={"quote"})) for item in parsed.supporting_evidence),
@@ -271,7 +315,13 @@ def _validate_response(
             origin=origin,
         )
     except ValidationError:
-        return None
+        code = ("assessment_evidence_mismatch" if (
+            parsed.assessment is Assessment.LIKELY_TRUE_POSITIVE and not parsed.supporting_evidence
+            or parsed.assessment is Assessment.LIKELY_FALSE_POSITIVE and not parsed.counter_evidence
+            or parsed.insufficient_context and parsed.assessment is not Assessment.INCONCLUSIVE
+        ) else "review_contract_failed")
+        return _ValidationResult(None, code, "review_contract", True, True)
+    return _ValidationResult(review, None, "complete", True, True)
 
 
 def run_fake_review(

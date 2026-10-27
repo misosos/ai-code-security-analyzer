@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from ai_code_security_analyzer.ai_review import ReviewRunStatus
+from ai_code_security_analyzer.code_context import ContextPolicy
 from ai_code_security_analyzer.models import Finding, FindingStatus, Severity
 from ai_code_security_analyzer import ollama_provider as module
 
@@ -98,10 +99,22 @@ def test_local_structured_request_and_review(tmp_path, monkeypatch):
     assert Connection.calls[1][1] == "/api/chat"
     assert payload["stream"] is False and payload["think"] is False
     assert payload["format"]["type"] == "object"
+    assert payload["format"]["additionalProperties"] is False
+    assert set(payload["format"]["required"]) == {
+        "finding_id", "assessment", "summary", "insufficient_context",
+    }
+    assert set(payload["format"]["$defs"]["Assessment"]["enum"]) == {
+        "likely_true_positive", "likely_false_positive", "inconclusive",
+    }
     assert payload["options"]["temperature"] == 0
     assert [message["role"] for message in payload["messages"]] == ["system", "user"]
     assert "tools" not in payload
     assert "eval(input)" not in json.dumps(result.review.model_dump(mode="json"))
+    assert result.diagnostics is not None
+    assert result.diagnostics.stage == "complete"
+    assert result.diagnostics.schema_valid is True
+    assert result.diagnostics.references_valid is True
+    assert result.diagnostics.request_bytes and result.diagnostics.response_bytes
 
 
 @pytest.mark.parametrize("name", ["synthetic:cloud", "https://example.com", "a\nHost: evil"])
@@ -138,23 +151,44 @@ def test_transport_failures_are_safe(answer, issue, tmp_path):
     assert result.review is None and result.issues == (issue,)
 
 
-@pytest.mark.parametrize("content", [
-    "not json", valid_response(assessment="confirmed"),
-    valid_response(finding_id="wrong"),
-    valid_response(supporting_evidence=[{"file_path": "other.ts", "line_number": 2,
+@pytest.mark.parametrize("content,issue,stage,schema_valid,references_valid", [
+    ("not json", "invalid_json", "provider", None, None),
+    (valid_response(assessment="confirmed"), "invalid_assessment", "schema", False, None),
+    (valid_response(finding_id="wrong"), "finding_id_mismatch", "identity", True, None),
+    (valid_response(supporting_evidence=[{"file_path": "other.ts", "line_number": 2,
                                           "quote": "eval(input)", "claim": "Claim"}]),
-    valid_response(supporting_evidence=[{"file_path": "app.ts", "line_number": 99,
+     "file_reference_mismatch", "reference", True, False),
+    (valid_response(supporting_evidence=[{"file_path": "app.ts", "line_number": 99,
                                           "quote": "eval(input)", "claim": "Claim"}]),
-    valid_response(supporting_evidence=[{"file_path": "app.ts", "line_number": 2,
+     "line_reference_out_of_range", "reference", True, False),
+    (valid_response(supporting_evidence=[{"file_path": "app.ts", "line_number": 2,
                                           "quote": "invented()", "claim": "Claim"}]),
-    valid_response(extra_field="unexpected"),
-    valid_response(summary="password = synthetic-secret"),
+     "quotation_reference_invalid", "reference", True, False),
+    (valid_response(extra_field="unexpected"), "unexpected_response_field", "schema", False, None),
+    (valid_response(summary="password = synthetic-secret"),
+     "sensitive_content_rejected", "content", True, True),
+    (valid_response(summary="const result = eval(input);"),
+     "source_line_echo_rejected", "content", True, True),
+    (json.dumps({"finding_id": "synthetic-id"}),
+     "schema_validation_failed", "schema", False, None),
+    (valid_response(supporting_evidence=[]),
+     "assessment_evidence_mismatch", "review_contract", True, True),
+    (valid_response(limitations=["x" * 301]),
+     "prose_policy_violation", "content", True, None),
 ])
-def test_invalid_model_output_is_rejected(content, tmp_path):
+def test_invalid_model_output_is_classified(
+    content, issue, stage, schema_valid, references_valid, tmp_path,
+):
     setup_answers(content)
     outcome = module.run_ollama_review(source(tmp_path), finding(), module.OllamaProvider("synthetic:1b"))
     assert outcome.review is None
     assert outcome.status in (ReviewRunStatus.VALIDATION_FAILED, ReviewRunStatus.PROVIDER_FAILED)
+    assert outcome.issues == (issue,)
+    assert outcome.diagnostics is not None
+    assert (outcome.diagnostics.stage, outcome.diagnostics.schema_valid,
+            outcome.diagnostics.references_valid) == (stage, schema_valid, references_valid)
+    assert outcome.diagnostics.request_bytes is not None
+    assert "synthetic-secret" not in repr(outcome)
 
 
 def test_tool_calls_rejected(tmp_path):
@@ -196,3 +230,27 @@ def test_redacted_context_stops_before_model_call(tmp_path):
                                       finding(), module.OllamaProvider("synthetic:1b"))
     assert result.status is ReviewRunStatus.INSUFFICIENT_CONTEXT
     assert Connection.calls == []
+
+
+def test_truncated_context_stops_before_model_call(tmp_path):
+    target = source(tmp_path, "before\nconst result = eval(input);\nafter\n")
+    result = module.run_ollama_review(target, finding(), module.OllamaProvider("synthetic:1b"),
+                                      ContextPolicy(surrounding_lines=2, max_lines=1))
+    assert result.status is ReviewRunStatus.INSUFFICIENT_CONTEXT
+    assert result.issues == ("incomplete_context",)
+    assert result.diagnostics is not None and result.diagnostics.stage == "context"
+    assert Connection.calls == []
+
+
+def test_provider_exception_code_cannot_leak_arbitrary_text(tmp_path, monkeypatch, capsys):
+    marker = "SYNTHETIC_TOKEN_912"
+
+    def raise_untrusted_code(self, request):
+        raise module.OllamaError(marker)
+
+    monkeypatch.setattr(module.OllamaProvider, "generate", raise_untrusted_code)
+    result = module.run_ollama_review(source(tmp_path), finding(), module.OllamaProvider("synthetic:1b"))
+    assert result.issues == ("provider_error",)
+    assert marker not in repr(result)
+    captured = capsys.readouterr()
+    assert marker not in captured.out + captured.err

@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Literal
 
 from ai_code_security_analyzer.ai_review import (
-    AIAnalysisRequest, MAX_REQUEST_BYTES, MAX_RESPONSE_BYTES, ReviewOutcome,
-    ReviewRunStatus, _ProviderResponse, _request_bytes, _validate_response,
+    AIAnalysisRequest, MAX_REQUEST_BYTES, MAX_RESPONSE_BYTES, ReviewDiagnostics, ReviewOutcome,
+    ReviewRunStatus, _ProviderResponse, _request_bytes, _validate_response_detailed,
     _safe_public_text, _safe_source_line, build_review_request,
 )
 from ai_code_security_analyzer.code_context import ContextPolicy, ContextStatus, extract_code_context
@@ -20,6 +20,11 @@ _HOST = "127.0.0.1"
 _PORT = 11434
 _MAX_ENVELOPE_BYTES = 32_000
 _MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,100}(?::[A-Za-z0-9][A-Za-z0-9._-]{0,25})?$")
+_SAFE_PROVIDER_CODES = frozenset({
+    "redirect_rejected", "local_server_error", "response_size_limit", "invalid_json",
+    "timeout", "server_unavailable", "invalid_local_inventory", "unsafe_request",
+    "model_unavailable", "request_size_limit", "invalid_response",
+})
 
 
 class OllamaError(Exception):
@@ -155,27 +160,46 @@ def run_ollama_review(
         return ReviewOutcome(ReviewRunStatus.REQUEST_REJECTED, issues=("unsupported_provider",))
     context = extract_code_context(target_root, finding, policy, end_line=end_line)
     if context.metadata.status is ContextStatus.UNAVAILABLE:
-        return ReviewOutcome(ReviewRunStatus.INSUFFICIENT_CONTEXT, issues=context.metadata.issues)
+        return ReviewOutcome(ReviewRunStatus.INSUFFICIENT_CONTEXT, issues=context.metadata.issues,
+                             diagnostics=ReviewDiagnostics("context", "incomplete_context"))
     if context.metadata.redacted or context.metadata.truncated:
-        return ReviewOutcome(ReviewRunStatus.INSUFFICIENT_CONTEXT, issues=("incomplete_context",))
+        return ReviewOutcome(ReviewRunStatus.INSUFFICIENT_CONTEXT, issues=("incomplete_context",),
+                             diagnostics=ReviewDiagnostics("context", "incomplete_context"))
     request = build_review_request(finding, context)
     if request is None:
-        return ReviewOutcome(ReviewRunStatus.REQUEST_REJECTED, issues=("unsafe_request",))
+        return ReviewOutcome(ReviewRunStatus.REQUEST_REJECTED, issues=("unsafe_request",),
+                             diagnostics=ReviewDiagnostics("request", "unsafe_request"))
     try:
         request_size = _request_bytes(request)
     except (UnicodeError, ValueError):
-        return ReviewOutcome(ReviewRunStatus.REQUEST_REJECTED, issues=("unsafe_request",))
+        return ReviewOutcome(ReviewRunStatus.REQUEST_REJECTED, issues=("unsafe_request",),
+                             diagnostics=ReviewDiagnostics("request", "unsafe_request"))
     if request_size > MAX_REQUEST_BYTES:
-        return ReviewOutcome(ReviewRunStatus.REQUEST_TOO_LARGE, issues=("request_size_limit",))
+        return ReviewOutcome(ReviewRunStatus.REQUEST_TOO_LARGE, issues=("request_size_limit",),
+                             diagnostics=ReviewDiagnostics("request", "request_size_limit",
+                                                           request_bytes=request_size))
     try:
         raw = provider.generate(request)
     except OllamaError as exc:
-        status = (ReviewRunStatus.RESPONSE_TOO_LARGE if exc.code == "response_size_limit"
+        code = exc.code if exc.code in _SAFE_PROVIDER_CODES else "provider_error"
+        status = (ReviewRunStatus.RESPONSE_TOO_LARGE if code == "response_size_limit"
                   else ReviewRunStatus.PROVIDER_FAILED)
-        return ReviewOutcome(status, issues=(exc.code,))
+        return ReviewOutcome(status, issues=(code,),
+                             diagnostics=ReviewDiagnostics("provider", code,
+                                                           request_bytes=request_size))
     except Exception:
-        return ReviewOutcome(ReviewRunStatus.PROVIDER_FAILED, issues=("provider_error",))
-    review = _validate_response(raw, finding, context, origin="ollama_local")
-    if review is None:
-        return ReviewOutcome(ReviewRunStatus.VALIDATION_FAILED, issues=("invalid_response",))
-    return ReviewOutcome(ReviewRunStatus.COMPLETED, review=review)
+        return ReviewOutcome(ReviewRunStatus.PROVIDER_FAILED, issues=("provider_error",),
+                             diagnostics=ReviewDiagnostics("provider", "provider_error",
+                                                           request_bytes=request_size))
+    response_size = len(raw.encode("utf-8"))
+    validation = _validate_response_detailed(raw, finding, context, origin="ollama_local")
+    diagnostics = ReviewDiagnostics(
+        validation.stage, validation.code, validation.schema_valid,
+        validation.references_valid, request_size, response_size,
+    )
+    if validation.review is None:
+        return ReviewOutcome(ReviewRunStatus.VALIDATION_FAILED,
+                             issues=(validation.code or "unknown_validation_error",),
+                             diagnostics=diagnostics)
+    return ReviewOutcome(ReviewRunStatus.COMPLETED, review=validation.review,
+                         diagnostics=diagnostics)
