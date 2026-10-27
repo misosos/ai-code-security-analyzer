@@ -156,6 +156,8 @@ def run_ollama_review(
     context = extract_code_context(target_root, finding, policy, end_line=end_line)
     if context.metadata.status is ContextStatus.UNAVAILABLE:
         return ReviewOutcome(ReviewRunStatus.INSUFFICIENT_CONTEXT, issues=context.metadata.issues)
+    if context.metadata.redacted or context.metadata.truncated:
+        return ReviewOutcome(ReviewRunStatus.INSUFFICIENT_CONTEXT, issues=("incomplete_context",))
     request = build_review_request(finding, context)
     if request is None:
         return ReviewOutcome(ReviewRunStatus.REQUEST_REJECTED, issues=("unsafe_request",))

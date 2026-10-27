@@ -190,8 +190,9 @@ def test_prompt_injection_stays_in_user_data(tmp_path):
     assert attack not in json.dumps(result.review.model_dump(mode="json"))
 
 
-def test_redacted_context_must_be_inconclusive(tmp_path):
+def test_redacted_context_stops_before_model_call(tmp_path):
     setup_answers(valid_response())
     result = module.run_ollama_review(source(tmp_path, "const token = 'synthetic-token';\nconst result = eval(input);\n"),
                                       finding(), module.OllamaProvider("synthetic:1b"))
-    assert result.status is ReviewRunStatus.VALIDATION_FAILED
+    assert result.status is ReviewRunStatus.INSUFFICIENT_CONTEXT
+    assert Connection.calls == []
