@@ -20,3 +20,5 @@ JSON 보고서의 `status`와 `completed`를 함께 확인한다. `completed=tru
 Semgrep은 로컬 규칙, 메트릭 비활성화, 임시 HOME으로 실행된다. CLI 자체는 OS 수준 네트워크 격리를 제공하지 않으므로 신뢰할 수 없는 저장소는 별도의 격리 환경에서 분석해야 한다. [기준 규칙의 범위와 한계](rules/README.md)를 참고한다.
 
 향후 AI 분석용 코드 문맥은 [내부 추출 계약](docs/code-context.md)에 따라 별도로 수집한다. 기존 `scan` 명령과 공개 JSON에는 코드 조각이 포함되지 않는다.
+
+실제 모델 호출 전 [AI 검토 계약과 Fake Provider 검증](docs/ai-review-contract.md)을 사용한다. AI 검토 결과는 기존 Finding의 확정 상태를 변경하지 않는다.
