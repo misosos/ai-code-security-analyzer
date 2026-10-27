@@ -1,0 +1,8 @@
+rules:
+  - id: example.typescript-eval
+    languages: [typescript]
+    severity: ERROR
+    message: Dynamic code evaluation candidate
+    metadata:
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+    pattern: eval(...)
