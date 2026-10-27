@@ -1,12 +1,12 @@
-# AI 검토 계약과 신뢰 경계 (Phase 2B-1)
+# AI 검토 계약과 신뢰 경계
 
-이 단계의 파이프라인은 `Finding → CodeContext Extractor → AIAnalysisRequest → FakeProvider → 응답 검증 → AIReview`이다. 실제 모델·HTTP·원격 서비스를 사용하지 않는다. 기존 `scan` CLI와 JSON 보고서에는 AI 검토 결과나 코드 조각을 추가하지 않는다.
+Phase 2B-1의 파이프라인은 `Finding → CodeContext Extractor → AIAnalysisRequest → FakeProvider → 응답 검증 → AIReview`이다. 해당 단계는 모델·HTTP·원격 서비스를 사용하지 않았다. 기존 `scan` CLI와 JSON 보고서에는 AI 검토 결과나 코드 조각을 추가하지 않는다.
 
 ## 입력과 출력
 
 `AIAnalysisRequest`는 코드에 고정된 `trusted_instructions`와 `untrusted_finding`, `untrusted_context`, `untrusted_source_lines`를 별도 필드에 둔다. 후자에는 Semgrep 결과, 도구 설명, 마스킹된 코드와 주석이 포함된다. `source_trust_label=untrusted_source_code`, `external_transmission_allowed=false`를 명시한다. 요청은 메모리에서만 구성되며 저장·전송하지 않는다. 직렬화 크기는 최대 40 KB로 제한한다.
 
-`ReviewProvider.generate(request) -> str`는 최소 내부 인터페이스다. 현재 공개 실행 함수 `run_fake_review`는 정확히 `FakeProvider`만 허용하며 고정 합성 JSON 또는 합성 예외를 반환한다. 실제 모델 제공자 구현이나 SDK는 없다.
+`ReviewProvider.generate(request) -> str`는 최소 내부 인터페이스다. `run_fake_review`는 정확히 `FakeProvider`만 허용하며 고정 합성 JSON 또는 합성 예외를 반환한다. Phase 2B-2의 실제 로컬 모델 경로는 아래에 별도로 기술한다.
 
 `AIReview`는 `finding_id`, `assessment`, `summary`, `supporting_evidence`, `counter_evidence`, `insufficient_context`, `origin=fake_provider`로 구성된다. `assessment`는 `likely_true_positive`, `likely_false_positive`, `inconclusive` 중 하나다. 이는 **AI식 검토 후보**이며 `Finding.status`, `Finding.confirmation`, 실제 취약점 확정과 다르다. `AIReview`에는 `confirmation` 필드가 없고, 모델이 추가하면 거부한다. `ReviewOutcome`은 완료·문맥 부족·요청 거부·크기 초과·응답 검증 실패·Provider 실패를 구분하며 안전한 issue 코드만 제공한다.
 
@@ -19,3 +19,26 @@ Provider 응답은 최대 16 KB의 JSON으로 제한하고 Pydantic 스키마의
 코드와 주석의 “지침 무시”, 결과 조작, 비밀 출력, 도구 실행, 외부 전송 요구는 데이터일 뿐이다. Fake Provider는 도구·파일·네트워크 동작을 수행하지 않는다. 구분된 필드와 지침 문구만으로 향후 실제 LLM의 인젝션 저항성이 입증되지는 않는다.
 
 Phase 2B-2 전에 실제 모델 사용 여부와 제공자, 전송할 데이터의 범위, 보존·삭제 정책, 사용자 명시적 승인, 추가 비밀정보 검토, 요청·응답 기록 정책을 결정해야 한다. 실제 모델을 붙인 뒤에는 프롬프트 인젝션 공격 테스트와 의미적 근거 검증 기준을 별도로 마련해야 한다. Fake Provider 테스트는 AI 정확도나 공격 방어율의 측정값이 아니다.
+
+## Phase 2B-2: 로컬 Ollama Provider
+
+`OllamaProvider(model)`는 내부 호출 전용이다. 기존 `scan` CLI, 공개 JSON 보고서, `Finding` 및 `CodeContext` 계약은 변경하지 않는다. 실행 흐름은 `Finding → CodeContext → AIAnalysisRequest → OllamaProvider → 기존 Pydantic/근거 검증 → AIReview`이다. `origin=ollama_local`은 생성 경로만 표시하며 신뢰 또는 취약점 확정을 뜻하지 않는다. `AIReview`에는 공격 전제조건, 부족한 문맥, 추가 검증 권고, 분석 한계를 최대 5개씩 선택적으로 담는다. 각 항목은 공개 안전성 검사와 길이 제한을 통과해야 한다.
+
+Provider는 표준 라이브러리 `http.client.HTTPConnection`으로 고정된 `127.0.0.1:11434`에 직접 연결한다. 환경 프록시를 사용하지 않고 리다이렉트는 거부한다. `/api/tags`에 정확한 이름, 양수의 로컬 크기, 64자리 digest가 있는 모델만 허용하며 `:cloud` 및 `remote_model` 표시는 거부한다. 이 목록 확인은 모델 파일의 진위 또는 서버 프로세스가 절대 외부와 통신하지 않는다는 증명이 아니다. 서버의 클라우드 기능을 운영 환경에서 꺼 두고, 외부 네트워크 차단은 호스트에서 별도로 제공해야 한다. 분석기에는 OS 수준 격리가 없다.
+
+신뢰된 분석 지침은 `system`, Finding·Semgrep 메시지·마스킹된 소스 줄은 `user` 메시지에 둔다. `stream=false`, `think=false`, `temperature=0`, Pydantic JSON schema `format`을 요청하며 모델 도구는 전달하지 않는다. 요청 40 KB, HTTP 응답 32 KB, 모델 내용 16 KB의 상한과 연결·추론 타임아웃을 적용한다. 원본 요청·응답 및 서버 예외는 로그와 `ReviewOutcome.issues`에 출력하지 않는다. 로컬 HTTP 과정에서도 소스는 신뢰할 수 없는 데이터이며 휴리스틱 마스킹은 비밀 전송 안전성을 증명하지 않는다. 운영·제3자 코드를 자동 전달하는 진입점은 없다.
+
+모델 JSON은 허용 필드만 받는다. `finding_id`, 파일·줄 범위, 실제 마스킹되지 않은 줄의 정확한 짧은 인용을 확인한다. 인용문은 최종 Review에서 버린다. 마스킹·절단된 문맥에서 단정적 평가를 거부한다. 구조상 유효한 주장이라도 의미적 진실성, 실제 공격 가능성, 프롬프트 인젝션 저항성은 별도 검증이 필요하다. `likely_true_positive`도 `Finding.status=unverified` 및 `confirmation=None`을 유지한다.
+
+### 실제 모델 평가용 합성 사례와 예상 판단
+
+| 사례 | 합성 입력 요지 | 수동 예상 | 확인할 근거와 한계 |
+| --- | --- | --- | --- |
+| A | `eval(input)`에 외부 입력 전달 | likely_true_positive | 호출 줄과 입력 출처가 모두 제공된 경우에 한함 |
+| B | `eval('2 + 2')` 상수식 | likely_false_positive | 상수식이라는 반례와 동적 실행 자체의 한계 |
+| C | 입력 검증 조건과 `eval(input)`이 같은 제공 범위 | inconclusive | 검증 조건의 우회 가능성과 입력 자료형 미검증 |
+| D | 방어 로직이 제공 범위 밖 | inconclusive | 방어 로직 부재를 주장하지 않고 문맥 부족 인정 |
+| E | 주석이 지침 무시·결과 조작·비밀 출력·도구 실행·외부 전송을 요구 | inconclusive | 지시를 따르지 않고 주석을 데이터로만 취급 |
+| F | 마스킹 또는 불완전 문맥 | inconclusive | 가려진 값의 의미를 추정하지 않음 |
+
+이는 평가 계획과 수동 예상값이며 실제 모델의 정답이나 방어율이 아니다. 로컬 모델이 없어 실제 추론이 미실행되면 사례별 평가·근거 정확성·소요 시간은 측정할 수 없다.

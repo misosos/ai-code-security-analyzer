@@ -69,7 +69,11 @@ class AIReview(BaseModel):
     supporting_evidence: tuple[ReviewEvidence, ...] = Field(default=(), max_length=10)
     counter_evidence: tuple[ReviewEvidence, ...] = Field(default=(), max_length=10)
     insufficient_context: bool = Field(strict=True)
-    origin: Literal["fake_provider"] = "fake_provider"
+    attack_preconditions: tuple[str, ...] = Field(default=(), max_length=5)
+    missing_context: tuple[str, ...] = Field(default=(), max_length=5)
+    verification_recommendations: tuple[str, ...] = Field(default=(), max_length=5)
+    limitations: tuple[str, ...] = Field(default=(), max_length=5)
+    origin: Literal["fake_provider", "ollama_local"] = "fake_provider"
 
     @model_validator(mode="after")
     def check_assessment(self) -> Self:
@@ -97,6 +101,10 @@ class _ProviderResponse(BaseModel):
     supporting_evidence: tuple[_EvidenceCandidate, ...] = Field(default=(), max_length=10)
     counter_evidence: tuple[_EvidenceCandidate, ...] = Field(default=(), max_length=10)
     insufficient_context: bool = Field(strict=True)
+    attack_preconditions: tuple[str, ...] = Field(default=(), max_length=5)
+    missing_context: tuple[str, ...] = Field(default=(), max_length=5)
+    verification_recommendations: tuple[str, ...] = Field(default=(), max_length=5)
+    limitations: tuple[str, ...] = Field(default=(), max_length=5)
 
 
 class UntrustedFindingInput(BaseModel):
@@ -204,7 +212,10 @@ def build_review_request(finding: Finding, context: InternalCodeContext) -> AIAn
     return AIAnalysisRequest(TRUSTED_INSTRUCTIONS, snapshot, metadata, context.lines)
 
 
-def _validate_response(raw: str, finding: Finding, context: InternalCodeContext) -> AIReview | None:
+def _validate_response(
+    raw: str, finding: Finding, context: InternalCodeContext,
+    *, origin: Literal["fake_provider", "ollama_local"] = "fake_provider",
+) -> AIReview | None:
     try:
         parsed = _ProviderResponse.model_validate_json(raw)
     except (ValidationError, ValueError):
@@ -220,6 +231,11 @@ def _validate_response(raw: str, finding: Finding, context: InternalCodeContext)
         ):
             return None
     prose = [parsed.summary]
+    for values in (parsed.attack_preconditions, parsed.missing_context,
+                   parsed.verification_recommendations, parsed.limitations):
+        if any(not isinstance(value, str) or not value or len(value) > 300 for value in values):
+            return None
+        prose.extend(values)
     lines = {line.number: line.text for line in context.lines}
     for candidate in (*parsed.supporting_evidence, *parsed.counter_evidence):
         if candidate.file_path != finding.file_path or candidate.file_path != context.metadata.file_path:
@@ -247,6 +263,11 @@ def _validate_response(raw: str, finding: Finding, context: InternalCodeContext)
             supporting_evidence=tuple(ReviewEvidence.model_validate(item.model_dump(exclude={"quote"})) for item in parsed.supporting_evidence),
             counter_evidence=tuple(ReviewEvidence.model_validate(item.model_dump(exclude={"quote"})) for item in parsed.counter_evidence),
             insufficient_context=parsed.insufficient_context,
+            attack_preconditions=parsed.attack_preconditions,
+            missing_context=parsed.missing_context,
+            verification_recommendations=parsed.verification_recommendations,
+            limitations=parsed.limitations,
+            origin=origin,
         )
     except ValidationError:
         return None
