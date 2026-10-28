@@ -59,8 +59,20 @@ _ISSUE_LABEL = {
 }
 _KIND_LABEL = {
     FindingKind.PATTERN: "일반 패턴",
-    FindingKind.TAINT: "taint 규칙",
+    FindingKind.TAINT: "taint 규칙 (정의된 입력 흐름을 검사하는 규칙)",
     FindingKind.UNCLASSIFIED: "분류되지 않음",
+}
+_SEVERITY_LABEL = {
+    Severity.CRITICAL: "critical",
+    Severity.HIGH: "high",
+    Severity.MEDIUM: "medium",
+    Severity.LOW: "low",
+    Severity.INFO: "info",
+}
+_FINDING_STATUS_LABEL = {
+    FindingStatus.UNVERIFIED: "미검증 후보 (취약점·오탐 모두 미확정)",
+    FindingStatus.CONFIRMED: "확인됨 (기존 Finding 기록; 이 화면에서 판정하지 않음)",
+    FindingStatus.FALSE_POSITIVE: "오탐 확인됨 (기존 Finding 기록; 이 화면에서 판정하지 않음)",
 }
 _CLAIM_TEXT = {
     ClaimType.MATCH_REPORTED: "Semgrep이 해당 규칙 매치를 보고했습니다.",
@@ -130,8 +142,12 @@ _REASON_LABEL = {
     EvidenceReason.SINK_ARGUMENT_LOCATION_EVIDENCE_UNAVAILABLE: (
         "Sink 인자 위치를 확인할 관찰 근거가 없습니다."
     ),
-    EvidenceReason.FLOW_TRACE_ABSENT: "구조화된 데이터 흐름 trace가 없습니다.",
-    EvidenceReason.FLOW_TRACE_EMPTY: "데이터 흐름 trace가 비어 있습니다.",
+    EvidenceReason.FLOW_TRACE_ABSENT: (
+        "구조화된 데이터 흐름 trace가 제공되지 않았습니다. 흐름이 없다는 뜻은 아닙니다."
+    ),
+    EvidenceReason.FLOW_TRACE_EMPTY: (
+        "데이터 흐름 trace가 비어 있습니다. 흐름이 없다는 뜻은 아닙니다."
+    ),
     EvidenceReason.FLOW_TRACE_UNSUPPORTED: "데이터 흐름 trace 형식을 지원하지 않습니다.",
     EvidenceReason.FLOW_TRACE_MALFORMED: "데이터 흐름 trace 구조가 올바르지 않습니다.",
     EvidenceReason.FLOW_TRACE_DETAILS_UNAVAILABLE: "검증 가능한 trace 단계 정보가 없습니다.",
@@ -351,8 +367,18 @@ def _render_card(
         f"요약: {headline}",
         f"Finding ID: {_safe_identifier(validated.finding_id if validated is not None else None)}",
         f"규칙 ID: {_safe_identifier(finding.rule_id)}",
-        f"심각도: {finding.severity.value if isinstance(finding.severity, Severity) else '알 수 없음'}",
-        f"Finding 상태: {finding.status.value if isinstance(finding.status, FindingStatus) else '알 수 없음'}",
+        "Semgrep 심각도 분류: "
+        + (
+            f"{_SEVERITY_LABEL[finding.severity]} (실제 악용 가능성 판정은 아님)"
+            if isinstance(finding.severity, Severity)
+            else "확인 불가"
+        ),
+        "검증 상태: "
+        + (
+            _FINDING_STATUS_LABEL[finding.status]
+            if isinstance(finding.status, FindingStatus)
+            else "확인 불가"
+        ),
         f"탐지 유형: {kind_label}",
     ]
     if _safe_relative_path(finding.file_path):
@@ -401,9 +427,17 @@ def _render_card(
         decision = _DECISION_LABEL.get(claim.decision, "판정 불가")
         lines.append(f"- 확인 항목: {text} [{decision}] {_reason_text(claim)}")
     unique_limitations = tuple(dict.fromkeys(validated.limitations))
-    if unique_limitations:
+    already_explained = {
+        reason
+        for claim in validated.restricted_claims
+        for reason in claim.reason_codes
+    }
+    remaining_limitations = tuple(
+        limitation for limitation in unique_limitations if limitation not in already_explained
+    )
+    if remaining_limitations:
         lines.append("근거의 해석 제한:")
-        for limitation in unique_limitations:
+        for limitation in remaining_limitations:
             lines.append(f"- {_REASON_LABEL.get(limitation, '추가 검토가 필요합니다.')}")
     lines.append("분석가 검토 항목:")
     for index, (title, description) in enumerate(_TASKS[validated.finding_kind], start=1):
@@ -441,7 +475,8 @@ def render_review(
             else "확인 불가"
         ),
         f"검토 대상: {len(scan.findings)}건 (취약점 확정 수가 아님)",
-        "심각도별 검토 대상: " + ", ".join(f"{severity.value} {counts[severity]}건" for severity in Severity),
+        "도구 심각도 분류별 검토 대상: "
+        + ", ".join(f"{_SEVERITY_LABEL[severity]} {counts[severity]}건" for severity in Severity),
         f"검사 진단 항목: {len(scan.issues)}건",
     ]
     if failed:
@@ -470,9 +505,6 @@ def render_review(
             "해석 제한: 이 도구는 OS 수준 네트워크 격리를 제공하지 않습니다.",
         ]
     )
-    if not scan.findings:
-        lines.append("검토 대상이 없습니다. 이는 대상 코드가 안전하다는 뜻은 아닙니다.")
-
     rendered_cards: list[str] = []
     consumer_failures = 0
     display_limit = min(len(findings), MAX_REVIEW_FINDINGS)
@@ -504,12 +536,17 @@ def render_review(
         lines.append(f"잘못된 Finding 형식으로 표시하지 않은 항목: {invalid_finding_count}건")
     if omitted:
         lines.append(f"출력 제한으로 표시하지 않은 검토 대상: {omitted}건")
+        lines.append(
+            "생략된 항목의 개별 검증 상태는 확인할 수 없으며 안전하다고 판단할 수 없습니다."
+        )
     output = "\n\n".join(lines)
     if len(output.encode("utf-8")) > MAX_REVIEW_OUTPUT_BYTES:
         return (
             "검토용 분석 결과\n"
-            f"검토 대상 {len(scan.findings)}건 중 출력 크기 제한으로 "
-            "상세를 표시하지 않았습니다.\n"
+            f"검토 대상: {len(scan.findings)}건\n"
+            "표시된 상세: 0건\n"
+            f"생략된 상세: {len(scan.findings)}건 (전체 보고서 바이트 제한)\n"
+            "요약 제한: 생략된 항목의 개별 검증 상태는 이 화면에서 확인할 수 없습니다.\n"
             "기존 text 또는 JSON 형식으로 전체 결과를 확인하세요."
         )
     return output

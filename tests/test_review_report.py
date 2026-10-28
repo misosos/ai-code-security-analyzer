@@ -323,6 +323,6 @@ def test_review_byte_limit_uses_explicit_summary_fallback(monkeypatch) -> None:
     scan = ScanResult(ScanStatus.COMPLETED, (finding,), (), 0, "1.182.1")
     monkeypatch.setattr(review, "MAX_REVIEW_OUTPUT_BYTES", 512)
     output = review.render_review(scan, ())
-    assert "출력 크기 제한으로 상세를 표시하지 않았습니다" in output
+    assert "생략된 상세: 1건 (전체 보고서 바이트 제한)" in output
     assert "기존 text 또는 JSON 형식" in output
     assert len(output.encode("utf-8")) <= 512

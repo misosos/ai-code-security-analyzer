@@ -6,7 +6,7 @@ Python 3.12와 uv로 실행하는 로컬 정적 분석 기반이다. 사용자�
 uv run python -m ai_code_security_analyzer scan --path /path/to/project --rules rules/security-baseline.yml --format json
 ```
 
-`--format`은 `text`(기본값), `json`, `review`를 지원한다. `review`는 Gate와 Evidence Consumer가 검증한 근거 및 제한을 보여주는 분석가용 화면이다. JSON을 새 파일에 저장하려면 `--format json --output /path/to/report.json`을 사용한다. 기존 파일은 덮어쓰지 않으며 review 출력은 파일에 저장할 수 없다. 규칙 파일은 분석 대상 디렉터리 밖에 있어야 하며 원격 규칙과 자동 다운로드는 지원하지 않는다. 자세한 내용은 [분석가 검토 화면 안내](docs/analyst-review-view.md)를 참고한다.
+`--format`은 `text`(기본값), `json`, `review`를 지원한다. `review`는 Gate와 Evidence Consumer가 검증한 근거 및 제한을 보여주는 분석가용 화면이다. JSON을 새 파일에 저장하려면 `--format json --output /path/to/report.json`을 사용한다. 기존 파일은 덮어쓰지 않으며 review 출력은 파일에 저장할 수 없다. 규칙 파일은 분석 대상 디렉터리 밖에 있어야 하며 원격 규칙과 자동 다운로드는 지원하지 않는다. 자세한 내용은 [분석가 검토 화면 안내](docs/analyst-review-view.md)와 [Phase 3C-2 평가 자료](docs/phase3c2-analyst-review-usability.md)를 참고한다.
 
 | 종료 코드 | 의미 |
 | --- | --- |
