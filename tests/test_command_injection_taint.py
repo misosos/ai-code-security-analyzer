@@ -34,6 +34,7 @@ EXPECTED_MATCH_LINES = {
     "P8_inline_require.ts": 2,
     "P9_commonjs_name_import.ts": 3,
     "E5_template_command.js": 3,
+    "E6_destructured_require.js": 3,
     "E9_alias_require.js": 3,
 }
 
@@ -143,8 +144,12 @@ def test_command_injection_taint_against_frozen_synthetic_labels(tmp_path: Path)
 
     # Exploratory observations are deliberately excluded from TP/FP/FN/TN.
     exploratory_hits = observed_cases & EXPLORATORY_CASES
-    assert exploratory_hits == {"E5_template_command.js", "E9_alias_require.js"}
-    assert len(result.findings) == 11
+    assert exploratory_hits == {
+        "E5_template_command.js",
+        "E6_destructured_require.js",
+        "E9_alias_require.js",
+    }
+    assert len(result.findings) == 12
     assert output.taint_evidence == ()  # New rule is not in the existing trusted evidence allowlist.
 
     representative = findings_by_case["P1_query_direct.js"][0]

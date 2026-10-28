@@ -94,3 +94,4 @@ jobs:
           tests/test_security_baseline.py
           tests/test_semgrep_taint_evaluation.py
           tests/test_command_injection_taint.py
+          tests/test_command_injection_hardening.py
