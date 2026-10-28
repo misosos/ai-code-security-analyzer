@@ -1,5 +1,6 @@
 """Optional real-model smoke test; only isolated synthetic source is submitted."""
 
+import os
 from time import perf_counter
 
 import pytest
@@ -7,6 +8,37 @@ import pytest
 from ai_code_security_analyzer.ai_review import ReviewRunStatus
 from ai_code_security_analyzer.models import Finding, FindingStatus, Severity
 from ai_code_security_analyzer.ollama_provider import OllamaError, OllamaProvider, local_environment, run_ollama_review
+
+
+_OLLAMA_OPT_IN = "AI_CODE_SECURITY_RUN_OLLAMA"
+
+
+def _require_ollama_opt_in() -> None:
+    if os.environ.get(_OLLAMA_OPT_IN) != "1":
+        pytest.skip(f"set {_OLLAMA_OPT_IN}=1 to run synthetic Ollama inference")
+
+
+def test_ollama_gate_is_exact_opt_in_and_precedes_server_probe(monkeypatch, tmp_path):
+    import sys
+
+    test_module = sys.modules[__name__]
+
+    def forbidden_server_probe():
+        pytest.fail("Ollama server was queried before opt-in")
+
+    monkeypatch.setattr(test_module, "local_environment", forbidden_server_probe)
+    for value in (None, "", "0", "true", "yes", " 1"):
+        if value is None:
+            monkeypatch.delenv(_OLLAMA_OPT_IN, raising=False)
+        else:
+            monkeypatch.setenv(_OLLAMA_OPT_IN, value)
+        with pytest.raises(pytest.skip.Exception, match="AI_CODE_SECURITY_RUN_OLLAMA=1"):
+            test_real_model_synthetic_case(
+                tmp_path, lambda *_args: None, "A", "synthetic input", "inconclusive"
+            )
+
+    monkeypatch.setenv(_OLLAMA_OPT_IN, "1")
+    _require_ollama_opt_in()
 
 
 @pytest.mark.parametrize("case,source,expected", [
@@ -24,6 +56,8 @@ from ai_code_security_analyzer.ollama_provider import OllamaError, OllamaProvide
     ("H", "const clean = DOMPurify.sanitize(userHtml);\nreturn <div dangerouslySetInnerHTML={{__html: clean}} />;\n", "inconclusive"),
 ], ids=["A", "B", "C", "D", "E", "F", "A2", "G", "H"])
 def test_real_model_synthetic_case(tmp_path, record_property, case, source, expected):
+    # This must remain before local_environment() and every provider operation.
+    _require_ollama_opt_in()
     try:
         _, models = local_environment()
     except OllamaError as exc:

@@ -43,12 +43,8 @@ jobs:
           uv run --locked python -m ai_code_security_analyzer --help > /dev/null
           uv run --locked python -m ai_code_security_analyzer scan --help > /dev/null
 
-      - name: Run Python regression suite without live Ollama smoke
-        # This legacy smoke module contacts any reachable local Ollama server
-        # without an opt-in variable; CI intentionally excludes real inference.
-        run: >-
-          uv run --locked python -m pytest -q -rs
-          --ignore=tests/test_ollama_e2e.py
+      - name: Run Python regression suite
+        run: uv run --locked python -m pytest -q -rs
 
   semgrep-integration:
     name: Semgrep 1.182.1 integration
