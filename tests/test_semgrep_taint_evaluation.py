@@ -12,6 +12,11 @@ from pathlib import Path
 import pytest
 
 from ai_code_security_analyzer.models import FindingStatus, Severity
+from ai_code_security_analyzer.evidence_sufficiency import (
+    ClaimDecision,
+    ClaimType,
+    evaluate_all_claims,
+)
 from ai_code_security_analyzer.semgrep_adapter import (
     MAX_OUTPUT_BYTES,
     SCAN_TIMEOUT_SECONDS,
@@ -333,10 +338,45 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
     assert all(item.source_location_status.value == "unknown" for item in taint_output.taint_evidence)
     assert all(item.sink_location_status.value == "unknown" for item in taint_output.taint_evidence)
     assert all(item.matched_file == findings_by_id[item.finding_id].file_path for item in taint_output.taint_evidence)
-    assert all(item.matched_start.line == findings_by_id[item.finding_id].line_number for item in taint_output.taint_evidence)
+    assert all(
+        item.matched_start.line == findings_by_id[item.finding_id].line_number
+        for item in taint_output.taint_evidence
+    )
     assert all(item.source_declaration_status.value == "available" for item in taint_output.taint_evidence)
     assert all(item.rules_file_sha256 for item in taint_output.taint_evidence)
     assert all(CANARY not in repr(item) for item in taint_output.taint_evidence)
+
+    for item in taint_output.taint_evidence:
+        finding = findings_by_id[item.finding_id]
+        gate = {
+            result.claim_type: result
+            for result in evaluate_all_claims(
+                finding,
+                evidence=item,
+                scan_result=taint,
+                rules_file=TAINT_RULE,
+                trusted_rules_directory=TRUSTED_RULES,
+            )
+        }
+        assert gate[ClaimType.MATCH_REPORTED].decision is ClaimDecision.SUPPORTED
+        assert gate[ClaimType.TAINT_RULE_MATCH_REPORTED].decision is ClaimDecision.SUPPORTED
+        assert gate[ClaimType.SOURCE_PATTERN_DECLARED].decision is ClaimDecision.SUPPORTED
+        assert gate[ClaimType.SINK_PATTERN_DECLARED].decision is ClaimDecision.SUPPORTED
+        assert gate[ClaimType.MATCH_LOCATION_OBSERVED].decision is ClaimDecision.SUPPORTED
+        assert gate[ClaimType.SOURCE_LOCATION_IDENTIFIED].decision is ClaimDecision.UNAVAILABLE
+        assert gate[ClaimType.SINK_ARGUMENT_LOCATION_IDENTIFIED].decision is ClaimDecision.UNAVAILABLE
+        assert gate[ClaimType.FLOW_TRACE_AVAILABLE].decision is ClaimDecision.UNAVAILABLE
+        assert gate[ClaimType.SANITIZER_MATCH_OBSERVED].decision is ClaimDecision.UNAVAILABLE
+        assert gate[ClaimType.SANITIZER_EFFECTIVENESS_VERIFIED].decision is ClaimDecision.UNSUPPORTED_CLAIM
+        assert gate[ClaimType.VULNERABILITY_CONFIRMED].decision is ClaimDecision.UNSUPPORTED_CLAIM
+        assert all(result.finding_id == finding.finding_id for result in gate.values())
+
+    for finding in baseline.findings:
+        pattern_gate = evaluate_all_claims(finding, scan_result=baseline)
+        pattern_results = {item.claim_type: item for item in pattern_gate}
+        assert pattern_results[ClaimType.MATCH_REPORTED].decision is ClaimDecision.SUPPORTED
+        assert pattern_results[ClaimType.TAINT_RULE_MATCH_REPORTED].decision is ClaimDecision.UNAVAILABLE
+        assert pattern_results[ClaimType.TAINT_RULE_MATCH_REPORTED].finding_id is None
 
     taint_plain = {
         path: (line, rule_id)
