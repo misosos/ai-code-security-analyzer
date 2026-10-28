@@ -55,6 +55,7 @@ def test_scan_help_and_missing_arguments() -> None:
     )
     assert help_result.returncode == 0
     assert "--path" in help_result.stdout and "--rules" in help_result.stdout
+    assert "review" in help_result.stdout
     assert missing.returncode == cli.EXIT_INVALID_INPUT
     assert missing.stdout == ""
 

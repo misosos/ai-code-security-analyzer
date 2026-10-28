@@ -12,6 +12,7 @@ from ai_code_security_analyzer.reporter import (
     validate_output_path,
     write_new_report,
 )
+from ai_code_security_analyzer.review import render_review
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
 
 
@@ -30,7 +31,12 @@ def _parser() -> argparse.ArgumentParser:
     scan = commands.add_parser("scan", help="scan a local directory with trusted local Semgrep rules")
     scan.add_argument("--path", required=True, type=Path, metavar="TARGET", help="local target directory")
     scan.add_argument("--rules", required=True, type=Path, metavar="RULE_FILE", help="trusted local YAML rules file")
-    scan.add_argument("--format", choices=("text", "json"), default="text", help="report format (default: text)")
+    scan.add_argument(
+        "--format",
+        choices=("text", "json", "review"),
+        default="text",
+        help="report format: text, json, or analyst review",
+    )
     scan.add_argument("--output", type=Path, metavar="FILE", help="create a new JSON report file")
     return parser
 
@@ -65,7 +71,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("error: invalid local target, rules, or output path", file=sys.stderr)
         return EXIT_INVALID_INPUT
     try:
-        scanned = adapter.scan(target, rules)
+        scan_output = (
+            adapter._scan_with_evidence(target, rules)
+            if args.format == "review"
+            else None
+        )
+        scanned = scan_output.result if scan_output is not None else adapter.scan(target, rules)
     except ValueError:
         print("error: invalid local target or rules", file=sys.stderr)
         return EXIT_INVALID_INPUT
@@ -73,7 +84,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("error: scan could not be started", file=sys.stderr)
         return EXIT_FAILED
 
-    if args.format == "json":
+    if args.format == "review":
+        print(
+            render_review(
+                scanned,
+                scan_output.taint_evidence if scan_output is not None else (),
+                rules_file=rules,
+                trusted_rules_directory=adapter.trusted_rules_directory,
+            )
+        )
+    elif args.format == "json":
         report = render_json(build_json_report(scanned, target, rules))
         if args.output is not None:
             try:

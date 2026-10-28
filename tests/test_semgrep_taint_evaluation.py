@@ -25,6 +25,7 @@ from ai_code_security_analyzer.evidence_summary import (
     validate_evidence_summary,
 )
 from ai_code_security_analyzer.evidence_consumer import EvidenceConsumerError, consume_evidence_summary
+from ai_code_security_analyzer.review import render_review
 from ai_code_security_analyzer.semgrep_adapter import (
     MAX_OUTPUT_BYTES,
     SCAN_TIMEOUT_SECONDS,
@@ -334,7 +335,8 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
     adapter = SemgrepAdapter(TRUSTED_RULES)
     taint_output = adapter._scan_with_evidence(target, TAINT_RULE)
     taint = taint_output.result
-    baseline = adapter.scan(target, BASELINE_RULE)
+    baseline_output = adapter._scan_with_evidence(target, BASELINE_RULE)
+    baseline = baseline_output.result
     assert taint.status is baseline.status is ScanStatus.COMPLETED
     assert taint.semgrep_version == baseline.semgrep_version == REQUIRED_VERSION
     assert taint.issues == baseline.issues == ()
@@ -353,6 +355,31 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
     assert all(item.source_declaration_status.value == "available" for item in taint_output.taint_evidence)
     assert all(item.rules_file_sha256 for item in taint_output.taint_evidence)
     assert all(CANARY not in repr(item) for item in taint_output.taint_evidence)
+
+    taint_review = render_review(
+        taint,
+        taint_output.taint_evidence,
+        rules_file=TAINT_RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    baseline_review = render_review(
+        baseline,
+        baseline_output.taint_evidence,
+        rules_file=BASELINE_RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    assert "검토 대상: 13건" in taint_review
+    assert taint_review.count("근거 검증: 통과") == 13
+    assert taint_review.count("Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다.") == 13
+    assert taint_review.count("전체 Source→Sink 경로는 증명되지 않았습니다.") == 13
+    assert "검토 대상: 11건" in baseline_review
+    assert baseline_review.count("근거 검증: 통과") == 11
+    assert "탐지 유형: 일반 패턴" in baseline_review
+    assert "확인 항목: 신뢰된 taint 규칙 매치 보고 [현재 자료에서 확인 불가]" in baseline_review
+    assert CANARY not in taint_review
+    assert CANARY not in baseline_review
+    assert all(finding.status is FindingStatus.UNVERIFIED for finding in (*taint.findings, *baseline.findings))
+    assert all(finding.confirmation is None for finding in (*taint.findings, *baseline.findings))
 
     for item in taint_output.taint_evidence:
         finding = findings_by_id[item.finding_id]
