@@ -17,6 +17,13 @@ from ai_code_security_analyzer.evidence_sufficiency import (
     ClaimType,
     evaluate_all_claims,
 )
+from ai_code_security_analyzer.evidence_summary import (
+    FindingKind,
+    RuleDeclarationStatus,
+    SummaryAssociationStatus,
+    build_evidence_summary,
+    validate_evidence_summary,
+)
 from ai_code_security_analyzer.semgrep_adapter import (
     MAX_OUTPUT_BYTES,
     SCAN_TIMEOUT_SECONDS,
@@ -370,6 +377,25 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
         assert gate[ClaimType.SANITIZER_EFFECTIVENESS_VERIFIED].decision is ClaimDecision.UNSUPPORTED_CLAIM
         assert gate[ClaimType.VULNERABILITY_CONFIRMED].decision is ClaimDecision.UNSUPPORTED_CLAIM
         assert all(result.finding_id == finding.finding_id for result in gate.values())
+        summary = build_evidence_summary(
+            finding,
+            evidence=item,
+            scan_result=taint,
+            rules_file=TAINT_RULE,
+            trusted_rules_directory=TRUSTED_RULES,
+        )
+        assert summary.finding_kind is FindingKind.TAINT
+        assert summary.trusted_rule_declaration_status is RuleDeclarationStatus.VERIFIED
+        assert summary.association_status is SummaryAssociationStatus.EXACT
+        assert validate_evidence_summary(
+            summary,
+            finding,
+            evidence=item,
+            scan_result=taint,
+            rules_file=TAINT_RULE,
+            trusted_rules_directory=TRUSTED_RULES,
+        ) == summary
+        assert CANARY not in summary.model_dump_json()
 
     for finding in baseline.findings:
         pattern_gate = evaluate_all_claims(finding, scan_result=baseline)
@@ -377,6 +403,12 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
         assert pattern_results[ClaimType.MATCH_REPORTED].decision is ClaimDecision.SUPPORTED
         assert pattern_results[ClaimType.TAINT_RULE_MATCH_REPORTED].decision is ClaimDecision.UNAVAILABLE
         assert pattern_results[ClaimType.TAINT_RULE_MATCH_REPORTED].finding_id is None
+        summary = build_evidence_summary(finding, scan_result=baseline)
+        assert summary.finding_kind is FindingKind.PATTERN
+        assert summary.trusted_rule_declaration_status is RuleDeclarationStatus.NOT_APPLICABLE
+        assert summary.association_status is SummaryAssociationStatus.NOT_APPLICABLE
+        assert validate_evidence_summary(summary, finding, scan_result=baseline) == summary
+        assert CANARY not in summary.model_dump_json()
 
     taint_plain = {
         path: (line, rule_id)
