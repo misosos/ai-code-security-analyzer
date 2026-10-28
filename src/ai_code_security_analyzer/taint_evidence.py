@@ -17,20 +17,63 @@ from ai_code_security_analyzer.models import Finding
 from ai_code_security_analyzer.semgrep_parser import _finding_id
 
 
-_EXPECTED_RULE_FILE = "experimental/javascript-eval-taint.yml"
-_EXPECTED_RULES_SHA256 = "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e"
 _MAX_RULE_FILE_BYTES = 256_000
-_RULE_DECLARATIONS: dict[str, tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]] = {
-    "experimental.javascript-eval-taint": (
+
+
+@dataclass(frozen=True)
+class _TrustedRuleDeclaration:
+    """Reviewed declaration tied to one exact local file and content digest.
+
+    Pattern strings are normalized descriptions of the declarations bound by
+    the file hash. They are not observations of code locations or Semgrep
+    result snippets.
+    """
+
+    rules_file_id: str
+    sha256: str
+    source_patterns: tuple[str, ...]
+    sink_patterns: tuple[str, ...]
+    sanitizer_patterns: tuple[str, ...]
+
+
+_TRUSTED_RULES: dict[str, _TrustedRuleDeclaration] = {
+    "experimental.javascript-eval-taint": _TrustedRuleDeclaration(
+        "experimental/javascript-eval-taint.yml",
+        "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e",
         ("$REQ.query.code", "$REQ.body.code"),
         ("eval($CODE)",),
         (),
     ),
-    "experimental.javascript-eval-taint-with-synthetic-sanitizer": (
+    "experimental.javascript-eval-taint-with-synthetic-sanitizer": _TrustedRuleDeclaration(
+        "experimental/javascript-eval-taint.yml",
+        "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e",
         ("$REQ.query.code", "$REQ.body.code"),
         ("eval($CODE)",),
         ("syntheticSafe($VALUE)",),
     ),
+    "experimental.javascript-command-injection-taint": _TrustedRuleDeclaration(
+        "experimental/javascript-command-injection-taint.yml",
+        "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783",
+        ("req.query.cmd", "req.body.cmd"),
+        (
+            "child_process.exec($CMD, ...) / child_process.execSync($CMD, ...); "
+            "first argument focused; require('child_process'|'node:child_process') "
+            "or namespace import binding; function-local child_process shadowing excluded",
+            "exec($CMD, ...) / runCommand($CMD, ...) / execSync($CMD, ...); "
+            "first argument focused; named imports from node:child_process; "
+            "function-local binding shadowing excluded",
+            "exec($CMD, ...) / runCommand($CMD, ...) / execSync($CMD, ...); "
+            "first argument focused; destructured require binding from "
+            "child_process/node:child_process; function-local binding shadowing excluded",
+            "require('child_process'|'node:child_process').exec($CMD, ...) / "
+            "execSync($CMD, ...); first argument focused",
+        ),
+        (),
+    ),
+}
+_RULE_DECLARATIONS = {
+    rule_id: (entry.source_patterns, entry.sink_patterns, entry.sanitizer_patterns)
+    for rule_id, entry in _TRUSTED_RULES.items()
 }
 _VERSION_RE = re.compile(r"\A\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?\Z")
 
@@ -159,7 +202,7 @@ def _trusted_declaration(
     rules_file: Path | None,
     trusted_rules_directory: Path | None,
 ) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], str | None, str | None, EvidenceState]:
-    declaration = _RULE_DECLARATIONS.get(rule_id)
+    declaration = _TRUSTED_RULES.get(rule_id)
     if declaration is None or rules_file is None or trusted_rules_directory is None:
         return (), (), (), None, None, EvidenceState.UNAVAILABLE
     try:
@@ -167,7 +210,7 @@ def _trusted_declaration(
         resolved_file = rules_file.resolve(strict=True)
         relative = resolved_file.relative_to(trusted_root).as_posix()
         if (
-            relative != _EXPECTED_RULE_FILE
+            relative != declaration.rules_file_id
             or not resolved_file.is_file()
             or resolved_file.stat().st_size > _MAX_RULE_FILE_BYTES
         ):
@@ -179,9 +222,16 @@ def _trusted_declaration(
         digest = hashlib.sha256(contents).hexdigest()
     except (OSError, ValueError, RuntimeError):
         return (), (), (), None, None, EvidenceState.UNAVAILABLE
-    if digest != _EXPECTED_RULES_SHA256:
+    if digest != declaration.sha256:
         return (), (), (), relative, digest, EvidenceState.UNAVAILABLE
-    return (*declaration, relative, digest, EvidenceState.AVAILABLE)
+    return (
+        declaration.source_patterns,
+        declaration.sink_patterns,
+        declaration.sanitizer_patterns,
+        relative,
+        digest,
+        EvidenceState.AVAILABLE,
+    )
 
 
 def build_taint_evidence(
@@ -220,7 +270,7 @@ def build_taint_evidence(
         if not isinstance(item, dict):
             continue
         rule_id = item.get("check_id")
-        if not isinstance(rule_id, str) or rule_id not in _RULE_DECLARATIONS:
+        if not isinstance(rule_id, str) or rule_id not in _TRUSTED_RULES:
             continue
         extra = item.get("extra")
         extra = extra if isinstance(extra, dict) else {}

@@ -96,8 +96,7 @@ X8 complex template, X9 conditional branch, X10 multiple sinks가 관찰됐다. 
 ## 근거 계약, CLI 및 정보보호
 
 - 규칙 ID `experimental.javascript-command-injection-taint` 유지.
-- 신규 규칙은 기존 TaintEvidence 신뢰 목록과 SHA allowlist에 편입되지 않았다. `_scan_with_evidence`의 TaintEvidence는 비어 있다.
-- Gate/Consumer/Review는 새 규칙을 trusted taint claim으로 승인하지 않고 일반 pattern Finding으로 처리한다. Review와 Markdown은 검증된 taint claim 문구를 출력하지 않는다.
+- Phase 4A-2 평가 시점에는 신규 규칙이 기존 TaintEvidence 신뢰 목록과 SHA allowlist에 편입되지 않았다. 당시 Gate/Consumer/Review는 일반 pattern으로 처리했다. Phase 4A-3에서 별도 검증을 거쳐 내부 신뢰 레지스트리에 편입했으며, 현재 동작은 `docs/phase4a3-command-injection-evidence.md`에 기록한다.
 - Finding ID, 상대 경로, 위치, severity `high`, CWE-78을 확인했다. Finding은 모두 `unverified`, confirmation 없음이다.
 - 기존 CLI text/json/review/review-md 및 공개 JSON 계약은 변경하지 않았다.
 - 합성 canary를 비매칭 코드 주석에 넣고 Finding/Review/Markdown 출력에 나타나지 않는지 확인했다. 원본 코드·raw JSON·자유 형식 Semgrep 메시지는 출력 모델에 복사하지 않는다.
@@ -115,4 +114,4 @@ X8 complex template, X9 conditional branch, X10 multiple sinks가 관찰됐다. 
 - CWE-78 및 taint rule match는 검토 후보이지 공격 성공 또는 취약점 확정이 아니다.
 - 외부 Registry/Cloud를 사용하지 않았지만 OS 수준 네트워크 격리는 보장되지 않는다.
 
-4A-3에서 trusted TaintEvidence allowlist 편입을 검토하려면 규칙 hash와 provenance, 실제 Semgrep 결과와 Evidence 연결, Pattern에서 trusted taint 분류로의 전환을 별도 검증해야 한다. Source 위치와 trace 부재를 계속 표시하고 Finding `unverified`를 유지해야 한다. 이번 결과만으로 baseline 또는 신뢰 근거로 자동 승격하지 않는다.
+Phase 4A-2 당시 다음 단계 권고는 trusted TaintEvidence allowlist 편입 전 hash/provenance, 실제 Semgrep 결과와 Evidence 연결, 분류 전환을 별도 검증하는 것이었다. 그 검증은 Phase 4A-3에서 수행했으며 Source 위치와 trace 부재, Finding `unverified` 상태를 계속 유지한다. 규칙은 현재도 baseline에 편입되지 않았다.

@@ -4,17 +4,23 @@ from __future__ import annotations
 
 import os
 import shutil
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from ai_code_security_analyzer.evidence_consumer import consume_evidence_summary
-from ai_code_security_analyzer.evidence_sufficiency import ClaimType
+from ai_code_security_analyzer.evidence_consumer import EvidenceConsumerError, consume_evidence_summary
+from ai_code_security_analyzer.evidence_sufficiency import ClaimDecision, ClaimType, EvidenceReason
 from ai_code_security_analyzer.evidence_summary import FindingKind, build_evidence_summary
 from ai_code_security_analyzer.markdown_report import render_markdown_review
 from ai_code_security_analyzer.models import FindingStatus, Severity
 from ai_code_security_analyzer.review import render_review
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
+from ai_code_security_analyzer.taint_evidence import (
+    AssociationStatus,
+    EvidenceState,
+    TraceStatus,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -148,7 +154,27 @@ def test_expanded_import_forms_and_hard_negatives(tmp_path: Path) -> None:
     }
     assert len(findings_by_case["X10_multiple_sinks.js"]) == 1
     assert len(result.findings) == 12
-    assert output.taint_evidence == ()
+    assert len(output.taint_evidence) == len(result.findings)
+    evidence_by_id = {item.finding_id: item for item in output.taint_evidence}
+    assert len(evidence_by_id) == len(output.taint_evidence)
+    for finding in result.findings:
+        item = evidence_by_id[finding.finding_id]
+        assert item.association_status is AssociationStatus.EXACT
+        assert item.rule_id == finding.rule_id == RULE_ID
+        assert item.matched_file == finding.file_path
+        assert item.matched_start is not None and item.matched_start.line == finding.line_number
+        assert item.rules_file_id == "experimental/javascript-command-injection-taint.yml"
+        assert item.rules_file_sha256 == "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783"
+        assert item.source_patterns_declared == ("req.query.cmd", "req.body.cmd")
+        assert item.sink_patterns_declared
+        assert item.sanitizer_patterns_declared == ()
+        assert item.source_declaration_status is EvidenceState.AVAILABLE
+        assert item.sink_declaration_status is EvidenceState.AVAILABLE
+        assert item.sanitizer_declaration_status is EvidenceState.AVAILABLE
+        assert item.source_location is None and item.source_location_status is EvidenceState.UNKNOWN
+        assert item.sink_location is None and item.sink_location_status is EvidenceState.UNKNOWN
+        assert item.flow_trace_status is TraceStatus.ABSENT
+        assert item.sanitizer_match_status is EvidenceState.UNKNOWN
 
     # A second run checks stable Finding identity/location for this fixture set.
     repeated = adapter.scan(target, RULE)
@@ -159,11 +185,67 @@ def test_expanded_import_forms_and_hard_negatives(tmp_path: Path) -> None:
     assert second_signature == first_signature
 
     representative = findings_by_case["P10_named_import.ts"][0]
-    summary = build_evidence_summary(representative, scan_result=result)
-    consumed = consume_evidence_summary(summary, representative, scan_result=result)
-    assert consumed.finding_kind is FindingKind.PATTERN
-    assert consumed.supports(ClaimType.MATCH_REPORTED)
-    assert not consumed.supports(ClaimType.TAINT_RULE_MATCH_REPORTED)
+    representative_evidence = evidence_by_id[representative.finding_id]
+    summary = build_evidence_summary(
+        representative,
+        evidence=representative_evidence,
+        scan_result=result,
+        rules_file=RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    consumed = consume_evidence_summary(
+        summary,
+        representative,
+        evidence=representative_evidence,
+        scan_result=result,
+        rules_file=RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    assert consumed.finding_kind is FindingKind.TAINT
+    supported = {
+        ClaimType.MATCH_REPORTED,
+        ClaimType.TAINT_RULE_MATCH_REPORTED,
+        ClaimType.SOURCE_PATTERN_DECLARED,
+        ClaimType.SINK_PATTERN_DECLARED,
+        ClaimType.MATCH_LOCATION_OBSERVED,
+    }
+    assert set(consumed.allowed_claim_types) == supported
+    restricted = {
+        ClaimType.SOURCE_LOCATION_IDENTIFIED: (ClaimDecision.UNAVAILABLE, EvidenceReason.SOURCE_LOCATION_UNKNOWN),
+        ClaimType.SINK_ARGUMENT_LOCATION_IDENTIFIED: (
+            ClaimDecision.UNAVAILABLE,
+            EvidenceReason.SINK_ARGUMENT_LOCATION_UNKNOWN,
+        ),
+        ClaimType.FLOW_TRACE_AVAILABLE: (ClaimDecision.UNAVAILABLE, EvidenceReason.FLOW_TRACE_ABSENT),
+        ClaimType.SANITIZER_MATCH_OBSERVED: (
+            ClaimDecision.UNAVAILABLE,
+            EvidenceReason.SANITIZER_PATTERN_NOT_DECLARED,
+        ),
+        ClaimType.SANITIZER_EFFECTIVENESS_VERIFIED: (
+            ClaimDecision.UNSUPPORTED_CLAIM,
+            EvidenceReason.SANITIZER_EFFECTIVENESS_NOT_VERIFIED,
+        ),
+        ClaimType.VULNERABILITY_CONFIRMED: (
+            ClaimDecision.UNSUPPORTED_CLAIM,
+            EvidenceReason.INDEPENDENT_CONFIRMATION_REQUIRED,
+        ),
+    }
+    assert set(consumed.allowed_claim_types) | {item.claim_type for item in consumed.restricted_claims} == set(ClaimType)
+    for claim_type, (decision, reason) in restricted.items():
+        assert not consumed.supports(claim_type)
+        assert consumed.decision_for(claim_type) is decision
+        assert reason in consumed.reasons_for(claim_type)
+    assert representative.status is FindingStatus.UNVERIFIED
+    assert representative.confirmation is None
+    with pytest.raises(EvidenceConsumerError, match="^evidence_consumer_rejected$"):
+        consume_evidence_summary(
+            summary,
+            representative,
+            evidence=replace(representative_evidence, rules_file_sha256="0" * 64),
+            scan_result=result,
+            rules_file=RULE,
+            trusted_rules_directory=TRUSTED_RULES,
+        )
     review = render_review(result, output.taint_evidence, rules_file=RULE, trusted_rules_directory=TRUSTED_RULES)
     markdown = render_markdown_review(
         result,
@@ -171,9 +253,19 @@ def test_expanded_import_forms_and_hard_negatives(tmp_path: Path) -> None:
         rules_file=RULE,
         trusted_rules_directory=TRUSTED_RULES,
     )
-    assert "탐지 유형: 일반 패턴" in review
-    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." not in review
-    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." not in markdown
+    assert "탐지 유형: taint 규칙" in review
+    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." in review
+    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." in markdown
+    for statement in (
+        "신뢰된 규칙에 Source 패턴이 선언되어 있습니다.",
+        "신뢰된 규칙에 Sink 패턴이 선언되어 있습니다.",
+        "Semgrep 결과의 매치 위치가 확인됐습니다. Sink 인자 위치라는 뜻은 아닙니다.",
+    ):
+        assert statement in review
+        assert statement in markdown
+    assert "실제 Source 위치 정보가 제공되지 않았습니다." in review
+    assert "실제 Source 위치 식별" in review
+    assert "전체 데이터 흐름 경로 제공" in markdown
     assert CANARY not in review and CANARY not in markdown
 
 

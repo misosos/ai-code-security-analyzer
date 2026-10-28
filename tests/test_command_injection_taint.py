@@ -150,17 +150,31 @@ def test_command_injection_taint_against_frozen_synthetic_labels(tmp_path: Path)
         "E9_alias_require.js",
     }
     assert len(result.findings) == 12
-    assert output.taint_evidence == ()  # New rule is not in the existing trusted evidence allowlist.
+    assert len(output.taint_evidence) == len(result.findings)
 
     representative = findings_by_case["P1_query_direct.js"][0]
-    summary = build_evidence_summary(representative, scan_result=result)
-    consumed = consume_evidence_summary(summary, representative, scan_result=result)
-    assert consumed.finding_kind is FindingKind.PATTERN
+    evidence = next(item for item in output.taint_evidence if item.finding_id == representative.finding_id)
+    summary = build_evidence_summary(
+        representative,
+        evidence=evidence,
+        scan_result=result,
+        rules_file=RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    consumed = consume_evidence_summary(
+        summary,
+        representative,
+        evidence=evidence,
+        scan_result=result,
+        rules_file=RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    assert consumed.finding_kind is FindingKind.TAINT
     assert consumed.supports(ClaimType.MATCH_REPORTED)
-    assert not consumed.supports(ClaimType.TAINT_RULE_MATCH_REPORTED)
+    assert consumed.supports(ClaimType.TAINT_RULE_MATCH_REPORTED)
     review = render_review(result, output.taint_evidence, rules_file=RULE, trusted_rules_directory=TRUSTED_RULES)
-    assert "탐지 유형: 일반 패턴" in review
-    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." not in review
+    assert "탐지 유형: taint 규칙" in review
+    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." in review
 
 
 def test_fixture_labels_cover_documented_case_set() -> None:

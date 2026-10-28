@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RULES = ROOT / "rules"
 RULE_FILE = RULES / "experimental" / "javascript-eval-taint.yml"
 RULE_ID = "experimental.javascript-eval-taint"
+COMMAND_RULE_FILE = RULES / "experimental" / "javascript-command-injection-taint.yml"
+COMMAND_RULE_ID = "experimental.javascript-command-injection-taint"
 
 
 def raw_result(**updates: object) -> dict[str, object]:
@@ -143,6 +145,55 @@ def test_source_sink_and_trace_are_never_inferred_from_match(tmp_path: Path) -> 
     assert item.flow_trace_status is TraceStatus.ABSENT
     assert item.matched_start is not None
     assert item.matched_start != item.sink_location
+
+
+def test_rule_registry_binds_command_rule_to_reviewed_path_hash_and_declarations(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.taint_evidence import _trusted_declaration
+
+    sources, sinks, sanitizers, file_id, digest, status = _trusted_declaration(
+        COMMAND_RULE_ID, COMMAND_RULE_FILE, RULES
+    )
+    assert status is EvidenceState.AVAILABLE
+    assert file_id == "experimental/javascript-command-injection-taint.yml"
+    assert digest == "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783"
+    assert sources == ("req.query.cmd", "req.body.cmd")
+    assert len(sinks) == 4
+    assert all("first argument focused" in pattern for pattern in sinks)
+    assert any("named imports" in pattern for pattern in sinks)
+    assert any("destructured require" in pattern for pattern in sinks)
+    assert sanitizers == ()
+    rule_text = COMMAND_RULE_FILE.read_text(encoding="utf-8")
+    assert f"id: {COMMAND_RULE_ID}" in rule_text
+    assert "pattern: req.query.cmd" in rule_text
+    assert "pattern: req.body.cmd" in rule_text
+    assert "focus-metavariable: $CMD" in rule_text
+    assert "pattern-sanitizers:" not in rule_text
+
+    # Same rule ID at another path and another rule ID at this path are denied.
+    assert _trusted_declaration(COMMAND_RULE_ID, RULE_FILE, RULES)[-1] is EvidenceState.UNAVAILABLE
+    assert _trusted_declaration(RULE_ID, COMMAND_RULE_FILE, RULES)[-1] is EvidenceState.UNAVAILABLE
+
+    changed_root = tmp_path / "rules"
+    (changed_root / "experimental").mkdir(parents=True)
+    changed_file = changed_root / "experimental" / "javascript-command-injection-taint.yml"
+    shutil.copyfile(COMMAND_RULE_FILE, changed_file)
+    changed_file.write_bytes(changed_file.read_bytes() + b"# modified\n")
+    changed = _trusted_declaration(COMMAND_RULE_ID, changed_file, changed_root)
+    assert changed[-1] is EvidenceState.UNAVAILABLE
+    assert changed[3] == "experimental/javascript-command-injection-taint.yml"
+    assert changed[4] != digest
+
+
+def test_command_rule_symlink_outside_trusted_directory_is_rejected(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.taint_evidence import _trusted_declaration
+
+    trusted_root = tmp_path / "trusted"
+    (trusted_root / "experimental").mkdir(parents=True)
+    link = trusted_root / "experimental" / "javascript-command-injection-taint.yml"
+    link.symlink_to(COMMAND_RULE_FILE)
+    result = _trusted_declaration(COMMAND_RULE_ID, link, trusted_root)
+    assert result[-1] is EvidenceState.UNAVAILABLE
+    assert result[3] is None
 
 
 def test_trace_shapes_are_not_retained_or_promoted_to_available(tmp_path: Path) -> None:
