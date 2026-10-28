@@ -28,3 +28,11 @@ Semgrep은 로컬 규칙, 메트릭 비활성화, 임시 HOME으로 실행된다
 향후 AI 분석용 코드 문맥은 [내부 추출 계약](docs/code-context.md)에 따라 별도로 수집한다. 기존 `scan` 명령과 공개 JSON에는 코드 조각이 포함되지 않는다.
 
 실제 모델 호출 전 [AI 검토 계약과 Fake Provider 검증](docs/ai-review-contract.md)을 사용한다. AI 검토 결과는 기존 Finding의 확정 상태를 변경하지 않는다.
+
+로컬 React UI 연결을 위한 FastAPI 백엔드는 명시적으로 등록한 프로젝트만 검사한다. 토큰과 target을 설정한 뒤 loopback에서 실행한다. 자세한 인증·Origin·규칙 프로필·응답 제한은 [로컬 API 안내](docs/phase5a-local-api.md)를 참고한다.
+
+```sh
+AI_CODE_SECURITY_TARGET=/path/to/project \
+AI_CODE_SECURITY_API_TOKEN='<at-least-43-url-safe-random-characters>' \
+uv run python -m ai_code_security_analyzer.api
+```

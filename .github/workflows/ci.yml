@@ -42,6 +42,7 @@ jobs:
         run: |
           uv run --locked python -m ai_code_security_analyzer --help > /dev/null
           uv run --locked python -m ai_code_security_analyzer scan --help > /dev/null
+          uv run --locked python -m ai_code_security_analyzer.api --help > /dev/null
 
       - name: Run Python regression suite
         run: uv run --locked python -m pytest -q -rs
@@ -95,3 +96,4 @@ jobs:
           tests/test_semgrep_taint_evaluation.py
           tests/test_command_injection_taint.py
           tests/test_command_injection_hardening.py
+          tests/test_api_semgrep_e2e.py
