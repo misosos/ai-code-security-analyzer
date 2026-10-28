@@ -24,7 +24,7 @@ from ai_code_security_analyzer.evidence_summary import (
     build_evidence_summary,
     validate_evidence_summary,
 )
-from ai_code_security_analyzer.evidence_consumer import consume_evidence_summary
+from ai_code_security_analyzer.evidence_consumer import EvidenceConsumerError, consume_evidence_summary
 from ai_code_security_analyzer.semgrep_adapter import (
     MAX_OUTPUT_BYTES,
     SCAN_TIMEOUT_SECONDS,
@@ -411,6 +411,17 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
         assert not consumed.supports(ClaimType.VULNERABILITY_CONFIRMED)
         assert CANARY not in summary.model_dump_json()
         assert CANARY not in consumed.model_dump_json()
+        if item is taint_output.taint_evidence[0]:
+            changed_finding = finding.model_copy(update={"title": "synthetic altered finding"})
+            with pytest.raises(EvidenceConsumerError):
+                consume_evidence_summary(
+                    summary,
+                    changed_finding,
+                    evidence=item,
+                    scan_result=taint,
+                    rules_file=TAINT_RULE,
+                    trusted_rules_directory=TRUSTED_RULES,
+                )
 
     for finding in baseline.findings:
         pattern_gate = evaluate_all_claims(finding, scan_result=baseline)
