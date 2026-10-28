@@ -1,0 +1,28 @@
+rules:
+  - id: experimental.javascript-eval-taint
+    languages: [javascript, typescript]
+    mode: taint
+    severity: ERROR
+    message: A modeled request field may flow to eval; review the source, flow, and runtime conditions.
+    metadata:
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+    pattern-sources:
+      - pattern: $REQ.query.code
+      - pattern: $REQ.body.code
+    pattern-sinks:
+      - pattern: eval($CODE)
+
+  - id: experimental.javascript-eval-taint-with-synthetic-sanitizer
+    languages: [javascript, typescript]
+    mode: taint
+    severity: ERROR
+    message: A modeled request field may flow to eval unless the explicitly modeled synthetic sanitizer is applied.
+    metadata:
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+    pattern-sources:
+      - pattern: $REQ.query.code
+      - pattern: $REQ.body.code
+    pattern-sinks:
+      - pattern: eval($CODE)
+    pattern-sanitizers:
+      - pattern: syntheticSafe($VALUE)

@@ -84,6 +84,7 @@ jobs:
 
       - name: Run real local-rule integration tests
         env:
+          SEMGREP_REQUIRED: '1'
           SEMGREP_SEND_METRICS: 'off'
           SEMGREP_ENABLE_VERSION_CHECK: '0'
         run: >-
@@ -91,3 +92,4 @@ jobs:
           tests/test_semgrep_integration.py
           tests/test_scan_e2e.py
           tests/test_security_baseline.py
+          tests/test_semgrep_taint_evaluation.py

@@ -18,6 +18,12 @@ Firestore의 공개 읽기(`allow read: if true;`)는 사용 사례에 따라 �
 
 합성 평가 픽스처는 `tests/fixtures/security_baseline/{positive,negative}/`에 있으며 `tests/test_security_baseline.py`에 파일별 기대 규칙 ID·줄·심각도·CWE를 명시한다. 테스트는 픽스처를 임시 디렉터리에 복사한 뒤 실제 Semgrep CLI와 기존 분석기 CLI 전체 경로로 검사한다. 테스트용 코드와 규칙은 탐지 범위 확인용이며 실서비스 취약점의 재현 사례가 아니다.
 
+## 실험용 OSS taint 규칙
+
+`experimental/javascript-eval-taint.yml`은 baseline에 포함되지 않는 PoC 규칙 두 개다. `experimental.javascript-eval-taint`는 `req.query.code` 및 `req.body.code`를 source, `eval`의 첫 인자를 sink로 모델링한다. 두 번째 규칙은 같은 모델에 합성 함수 `syntheticSafe(...)`를 sanitizer로 추가한다. 이는 규칙에서 이름 붙인 패턴을 신뢰한다고 가정한 실험일 뿐, 해당 함수가 실제 안전한 정제 함수라는 검증이 아니다. 다른 함수명, 검증 로직 또는 부분 조건문은 sanitizer로 인정하지 않는다.
+
+Semgrep OSS taint 분석은 지정 source→sink 관계를 같은 함수 내 변수 할당을 따라 추적하는지 확인하는 범위다. 함수 간·파일 간 흐름은 이 평가에서 지원 보장으로 간주하지 않는다. 요청 객체의 `query`/`body` 필드 패턴은 데이터 source 정의일 뿐, 실제 사용자 도달성이나 런타임 framework 동작을 입증하지 않는다. 재현 평가와 제한은 `docs/phase3a-taint-evaluation.md` 및 `tests/fixtures/semgrep_taint/`를 참고한다.
+
 Semgrep 1.182.1은 Git 작업 트리에서 기본적으로 추적되지 않은 파일을 검사 대상에서 제외할 수 있다. 따라서 검사 결과 0건을 모든 파일을 검사했다는 뜻으로 해석하지 말고 보고서의 검사 상태와 대상 범위를 함께 확인한다.
 
 ## 이후 검토할 유형
