@@ -56,6 +56,7 @@ def test_scan_help_and_missing_arguments() -> None:
     assert help_result.returncode == 0
     assert "--path" in help_result.stdout and "--rules" in help_result.stdout
     assert "review" in help_result.stdout
+    assert "review-md" in help_result.stdout
     assert missing.returncode == cli.EXIT_INVALID_INPUT
     assert missing.stdout == ""
 
@@ -211,3 +212,92 @@ def test_output_race_reports_failure_without_traceback(
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "synthetic race" not in captured.err
+
+
+def test_markdown_output_is_opt_in_and_uses_single_evidence_scan(
+    inputs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str], tmp_path: Path,
+) -> None:
+    target, rules = inputs
+    output = tmp_path / "review.md"
+    scan = ScanResult(ScanStatus.COMPLETED, (finding(),), (), 0, "1.182.1")
+    calls = []
+
+    def scan_with_evidence(self, passed_target, passed_rules):
+        from ai_code_security_analyzer.semgrep_adapter import _ScanOutput
+        calls.append((passed_target, passed_rules))
+        return _ScanOutput(scan)
+
+    monkeypatch.setattr(cli.SemgrepAdapter, "_scan_with_evidence", scan_with_evidence)
+    monkeypatch.setattr(cli.SemgrepAdapter, "scan", lambda *_args: pytest.fail("must not scan twice"))
+    status = cli.main(argv(target, rules, "--format", "review-md", "--output", str(output)))
+    captured = capsys.readouterr()
+    assert status == cli.EXIT_COMPLETE
+    assert len(calls) == 1
+    assert captured.out == ""
+    assert captured.err == ""
+    assert output.read_text().startswith("# AI Code Security Analyzer — Analyst Review Report")
+    assert os.stat(output).st_mode & 0o777 == 0o600
+
+
+def test_markdown_stdout_and_existing_formats_keep_output_policy(
+    inputs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str], tmp_path: Path,
+) -> None:
+    target, rules = inputs
+    scan = ScanResult(ScanStatus.COMPLETED, (), (), 0, "1.182.1")
+    mock_scan(monkeypatch, scan)
+    from ai_code_security_analyzer.semgrep_adapter import _ScanOutput
+    monkeypatch.setattr(cli.SemgrepAdapter, "_scan_with_evidence", lambda *_args, **_kwargs: _ScanOutput(scan))
+    assert cli.main(argv(target, rules, "--format", "review-md")) == cli.EXIT_COMPLETE
+    assert capsys.readouterr().out.startswith("# AI Code Security Analyzer — Analyst Review Report")
+    for format_name in ("text", "review"):
+        assert cli.main(argv(target, rules, "--format", format_name, "--output", str(tmp_path / "bad"))) == cli.EXIT_INVALID_INPUT
+    assert "requires --format json or review-md" in capsys.readouterr().err
+
+
+def test_markdown_output_rejects_existing_and_input_tree_paths(
+    inputs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str], tmp_path: Path,
+) -> None:
+    target, rules = inputs
+    mock_scan(monkeypatch, ScanResult(ScanStatus.COMPLETED))
+    existing = tmp_path / "existing.md"
+    existing.write_text("keep")
+    link = tmp_path / "report-link.md"
+    link.symlink_to(existing)
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(tmp_path, target_is_directory=True)
+    for output in (
+        existing,
+        link,
+        linked_parent / "new.md",
+        target / "inside.md",
+        rules.parent / "inside.md",
+    ):
+        result = cli.main(argv(target, rules, "--format", "review-md", "--output", str(output)))
+        assert result == cli.EXIT_INVALID_INPUT
+    assert existing.read_text() == "keep"
+    assert capsys.readouterr().out == ""
+
+
+def test_markdown_output_failure_is_generic_and_does_not_leak_path(
+    inputs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str], tmp_path: Path,
+) -> None:
+    target, rules = inputs
+    scan = ScanResult(ScanStatus.COMPLETED, (), (), 0, "1.182.1")
+    from ai_code_security_analyzer.semgrep_adapter import _ScanOutput
+    monkeypatch.setattr(cli.SemgrepAdapter, "_scan_with_evidence", lambda *_args, **_kwargs: _ScanOutput(scan))
+
+    def fail_write(*_args: object, **_kwargs: object) -> None:
+        raise OSError(f"synthetic path failure {tmp_path}")
+
+    monkeypatch.setattr(cli, "write_new_report", fail_write)
+    output = tmp_path / "secret-path.md"
+    result = cli.main(argv(target, rules, "--format", "review-md", "--output", str(output)))
+    captured = capsys.readouterr()
+    assert result == cli.EXIT_FAILED
+    assert captured.out == ""
+    assert "secret-path.md" not in captured.err
+    assert "synthetic path failure" not in captured.err

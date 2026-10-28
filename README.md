@@ -6,7 +6,13 @@ Python 3.12와 uv로 실행하는 로컬 정적 분석 기반이다. 사용자�
 uv run python -m ai_code_security_analyzer scan --path /path/to/project --rules rules/security-baseline.yml --format json
 ```
 
-`--format`은 `text`(기본값), `json`, `review`를 지원한다. `review`는 Gate와 Evidence Consumer가 검증한 근거 및 제한을 보여주는 분석가용 화면이다. JSON을 새 파일에 저장하려면 `--format json --output /path/to/report.json`을 사용한다. 기존 파일은 덮어쓰지 않으며 review 출력은 파일에 저장할 수 없다. 규칙 파일은 분석 대상 디렉터리 밖에 있어야 하며 원격 규칙과 자동 다운로드는 지원하지 않는다. 자세한 내용은 [분석가 검토 화면 안내](docs/analyst-review-view.md)와 [Phase 3C-2 평가 자료](docs/phase3c2-analyst-review-usability.md)를 참고한다.
+`--format`은 `text`(기본값), `json`, `review`, `review-md`를 지원한다. `review`와 `review-md`는 Gate와 Evidence Consumer가 검증한 근거 및 제한을 보여주는 분석가용 출력이다. Markdown 파일은 다음처럼 명시적으로 새 파일로 저장할 수 있다. 기존 파일은 덮어쓰지 않는다.
+
+```sh
+uv run python -m ai_code_security_analyzer scan --path /path/to/project --rules rules/security-baseline.yml --format review-md --output review-report.md
+```
+
+`--output`은 JSON과 Markdown review에만 허용되며 일반 text/review는 파일로 저장하지 않는다. 보고서는 코드 조각을 포함하지 않지만 저장소 경로와 규칙 ID가 나타날 수 있으므로 외부 공유 전에 직접 검토해야 한다. 자세한 내용은 [분석가 검토 화면 안내](docs/analyst-review-view.md), [Markdown 보고서 안내](docs/phase3c4-markdown-review-report.md), [Phase 3C-2 평가 자료](docs/phase3c2-analyst-review-usability.md)를 참고한다.
 
 | 종료 코드 | 의미 |
 | --- | --- |

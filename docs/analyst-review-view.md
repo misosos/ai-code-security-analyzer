@@ -11,7 +11,9 @@ uv run python -m ai_code_security_analyzer scan \
   --format review
 ```
 
-기존 `text`와 `json` 형식은 유지됩니다. `--output`은 JSON 전용이며 review 파일 저장은 지원하지 않습니다. review를 선택하면 Adapter의 내부 결과 경로에서 Finding과 TaintEvidence를 함께 받아 Semgrep을 한 번 실행합니다.
+기존 `text`와 `json` 형식은 유지됩니다. `--output`은 JSON과 명시적 `review-md`에만 허용되며 `text`와 일반 `review` 파일 저장은 지원하지 않습니다. review 형식을 선택하면 Adapter의 내부 결과 경로에서 Finding과 TaintEvidence를 함께 받아 Semgrep을 한 번 실행합니다.
+
+별도 Markdown 검토 문서가 필요하면 `--format review-md`를 선택할 수 있습니다. Markdown 파일 저장은 명시한 새 `--output` 경로에서만 가능합니다. 저장 제한과 Markdown escape 정책은 [Markdown Analyst Report 안내](phase3c4-markdown-review-report.md)를 참고하세요.
 
 예시 형식(내용은 합성 예시):
 

@@ -12,6 +12,7 @@ from ai_code_security_analyzer.reporter import (
     validate_output_path,
     write_new_report,
 )
+from ai_code_security_analyzer.markdown_report import render_markdown_review
 from ai_code_security_analyzer.review import render_review
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
 
@@ -33,11 +34,11 @@ def _parser() -> argparse.ArgumentParser:
     scan.add_argument("--rules", required=True, type=Path, metavar="RULE_FILE", help="trusted local YAML rules file")
     scan.add_argument(
         "--format",
-        choices=("text", "json", "review"),
+        choices=("text", "json", "review", "review-md"),
         default="text",
-        help="report format: text, json, or analyst review",
+        help="report format: text, json, analyst review, or Markdown analyst review",
     )
-    scan.add_argument("--output", type=Path, metavar="FILE", help="create a new JSON report file")
+    scan.add_argument("--output", type=Path, metavar="FILE", help="create a new JSON or Markdown review report file")
     return parser
 
 
@@ -54,8 +55,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command != "scan":
         return EXIT_INVALID_INPUT
 
-    if args.output is not None and args.format != "json":
-        print("error: --output requires --format json", file=sys.stderr)
+    if args.output is not None and args.format not in {"json", "review-md"}:
+        print("error: --output requires --format json or review-md", file=sys.stderr)
         return EXIT_INVALID_INPUT
     try:
         target = args.path.resolve()
@@ -71,11 +72,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("error: invalid local target, rules, or output path", file=sys.stderr)
         return EXIT_INVALID_INPUT
     try:
-        scan_output = (
-            adapter._scan_with_evidence(target, rules)
-            if args.format == "review"
-            else None
-        )
+        scan_output = adapter._scan_with_evidence(target, rules) if args.format in {"review", "review-md"} else None
         scanned = scan_output.result if scan_output is not None else adapter.scan(target, rules)
     except ValueError:
         print("error: invalid local target or rules", file=sys.stderr)
@@ -93,6 +90,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                 trusted_rules_directory=adapter.trusted_rules_directory,
             )
         )
+    elif args.format == "review-md":
+        report = render_markdown_review(
+            scanned,
+            scan_output.taint_evidence if scan_output is not None else (),
+            rules_file=rules,
+            trusted_rules_directory=adapter.trusted_rules_directory,
+        )
+        if args.output is not None:
+            try:
+                write_new_report(args.output, report, target, rules.parent)
+            except (OSError, ValueError):
+                print("error: could not create Markdown review report", file=sys.stderr)
+                return EXIT_FAILED
+        else:
+            print(report)
     elif args.format == "json":
         report = render_json(build_json_report(scanned, target, rules))
         if args.output is not None:

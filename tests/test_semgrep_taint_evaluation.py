@@ -26,6 +26,7 @@ from ai_code_security_analyzer.evidence_summary import (
 )
 from ai_code_security_analyzer.evidence_consumer import EvidenceConsumerError, consume_evidence_summary
 from ai_code_security_analyzer.review import render_review
+from ai_code_security_analyzer.markdown_report import render_markdown_review
 from ai_code_security_analyzer.semgrep_adapter import (
     MAX_OUTPUT_BYTES,
     SCAN_TIMEOUT_SECONDS,
@@ -368,6 +369,18 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
         rules_file=BASELINE_RULE,
         trusted_rules_directory=TRUSTED_RULES,
     )
+    taint_markdown = render_markdown_review(
+        taint,
+        taint_output.taint_evidence,
+        rules_file=TAINT_RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
+    baseline_markdown = render_markdown_review(
+        baseline,
+        baseline_output.taint_evidence,
+        rules_file=BASELINE_RULE,
+        trusted_rules_directory=TRUSTED_RULES,
+    )
     assert "검토 대상: 13건" in taint_review
     assert taint_review.count("근거 검증: 통과") == 13
     assert taint_review.count("Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다.") == 13
@@ -376,6 +389,13 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
     assert baseline_review.count("근거 검증: 통과") == 11
     assert "탐지 유형: 일반 패턴" in baseline_review
     assert "확인 항목: 신뢰된 taint 규칙 매치 보고 [현재 자료에서 확인 불가]" in baseline_review
+    assert taint_markdown.count("Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다.") == 13
+    assert baseline_markdown.count("Semgrep이 해당 규칙 매치를 보고했습니다.") == 11
+    assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." not in baseline_markdown
+    assert baseline_markdown.count("신뢰된 taint 규칙 매치 보고") == 11
+    assert taint_markdown.count("Source→Sink 경로는 증명되지 않았습니다.") == 13
+    assert CANARY not in taint_markdown
+    assert CANARY not in baseline_markdown
     assert CANARY not in taint_review
     assert CANARY not in baseline_review
     assert all(finding.status is FindingStatus.UNVERIFIED for finding in (*taint.findings, *baseline.findings))
