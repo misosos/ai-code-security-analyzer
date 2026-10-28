@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -121,6 +122,184 @@ def _raw_taint_json(
     if not isinstance(value, dict):
         pytest.fail("taint_semgrep_json_invalid")
     return value
+
+
+def _raw_taint_sarif(
+    executable: str, target: Path, *, dataflow_traces: bool = False
+) -> dict[str, object]:
+    """Run bounded local SARIF evaluation; callers must not persist or print it."""
+    with tempfile.TemporaryDirectory(prefix="semgrep-taint-sarif-home-") as home_value:
+        home = Path(home_value)
+        env = {
+            "PATH": os.environ.get("PATH", os.defpath),
+            "HOME": str(home),
+            "XDG_CACHE_HOME": str(home),
+            "SEMGREP_SEND_METRICS": "off",
+            "SEMGREP_ENABLE_VERSION_CHECK": "0",
+        }
+        args = [
+            executable, "scan", "--sarif", "--metrics=off", "--disable-version-check",
+            "--oss-only", "--no-autofix", "--config", TAINT_RULE.name,
+        ]
+        if dataflow_traces:
+            args.append("--dataflow-traces")
+        args.extend(["--", str(target)])
+        process = _run_process(args, TAINT_RULE.parent, env, SCAN_TIMEOUT_SECONDS)
+    if process.exit_code != 0 or len(process.stdout) > MAX_OUTPUT_BYTES:
+        pytest.fail("taint_semgrep_sarif_execution_failed")
+    try:
+        value = json.loads(process.stdout)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        pytest.fail("taint_semgrep_sarif_invalid")
+    if not isinstance(value, dict):
+        pytest.fail("taint_semgrep_sarif_invalid")
+    return value
+
+
+def _sarif_result_signatures(document: dict[str, object], target: Path) -> tuple[Counter, Counter]:
+    """Return validated match signatures and codeFlows presence, without text."""
+    signatures: Counter = Counter()
+    flow_states: Counter = Counter()
+    runs = document.get("runs")
+    if not isinstance(runs, list):
+        return signatures, flow_states
+    root = target.resolve()
+    for run in runs:
+        results = run.get("results") if isinstance(run, dict) else None
+        if not isinstance(results, list):
+            continue
+        for result in results:
+            if not isinstance(result, dict):
+                continue
+            flows = result.get("codeFlows", "__absent__")
+            if flows == "__absent__":
+                flow_states["absent"] += 1
+            elif isinstance(flows, list):
+                flow_states["empty" if not flows else "present"] += 1
+            else:
+                flow_states["malformed"] += 1
+
+            locations = result.get("locations")
+            if not isinstance(locations, list) or len(locations) != 1:
+                continue
+            location = locations[0]
+            physical = location.get("physicalLocation") if isinstance(location, dict) else None
+            artifact = physical.get("artifactLocation") if isinstance(physical, dict) else None
+            region = physical.get("region") if isinstance(physical, dict) else None
+            uri = artifact.get("uri") if isinstance(artifact, dict) else None
+            if not isinstance(uri, str) or not uri or "://" in uri or uri.startswith(("file:", "data:")):
+                continue
+            try:
+                artifact_path = Path(uri)
+                if not artifact_path.is_absolute() or ".." in artifact_path.parts:
+                    continue
+                relative = artifact_path.resolve().relative_to(root).as_posix()
+            except (OSError, ValueError, RuntimeError):
+                continue
+            if not isinstance(region, dict):
+                continue
+            coordinates = tuple(region.get(key) for key in ("startLine", "startColumn", "endLine", "endColumn"))
+            if not all(type(value) is int and value > 0 for value in coordinates):
+                continue
+            rule_id = result.get("ruleId")
+            if not isinstance(rule_id, str) or not rule_id:
+                continue
+            signatures[(rule_id, relative, *coordinates)] += 1
+    return signatures, flow_states
+
+
+def _json_result_signatures(document: dict[str, object], target: Path) -> Counter:
+    signatures: Counter = Counter()
+    results = document.get("results")
+    if not isinstance(results, list):
+        return signatures
+    root = target.resolve()
+    for result in results:
+        if not isinstance(result, dict):
+            continue
+        raw_path = result.get("path")
+        if not isinstance(raw_path, str) or not raw_path or "://" in raw_path:
+            continue
+        try:
+            raw = Path(raw_path)
+            if raw.is_absolute():
+                relative = raw.resolve().relative_to(root).as_posix()
+            else:
+                relative = (root / raw).resolve().relative_to(root).as_posix()
+        except (OSError, ValueError, RuntimeError):
+            continue
+        start = result.get("start")
+        end = result.get("end")
+        if not isinstance(start, dict) or not isinstance(end, dict):
+            continue
+        coordinates = (start.get("line"), start.get("col"), end.get("line"), end.get("col"))
+        if not all(type(value) is int and value > 0 for value in coordinates):
+            continue
+        rule_id = result.get("check_id")
+        if isinstance(rule_id, str) and rule_id:
+            signatures[(rule_id, relative, *coordinates)] += 1
+    return signatures
+
+
+def test_sarif_codeflow_field_presence_is_not_conflated() -> None:
+    # Synthetic shape checks only; these do not claim Semgrep emits these forms.
+    def state(result: dict[str, object]) -> Counter:
+        document = {"runs": [{"results": [result]}]}
+        return _sarif_result_signatures(document, Path.cwd())[1]
+
+    assert state({}) == Counter({"absent": 1})
+    assert state({"codeFlows": []}) == Counter({"empty": 1})
+    assert state({"codeFlows": [{"threadFlows": []}]}) == Counter({"present": 1})
+    assert state({"codeFlows": {"unexpected": True}}) == Counter({"malformed": 1})
+
+
+def test_oss_sarif_taint_results_match_json_without_dataflow_trace(tmp_path: Path) -> None:
+    executable = _require_semgrep()
+    target = tmp_path / "synthetic-target"
+    _copy_fixtures(target)
+
+    json_document = _raw_taint_json(executable, target)
+    sarif_document = _raw_taint_sarif(executable, target)
+    trace_document = _raw_taint_sarif(executable, target, dataflow_traces=True)
+
+    json_signatures = _json_result_signatures(json_document, target)
+    findings = parse_semgrep_json(json.dumps(json_document).encode(), target).findings
+    finding_signatures = Counter(
+        (finding.rule_id, finding.file_path, finding.line_number)
+        for finding in findings
+    )
+    assert json_document.get("version") == REQUIRED_VERSION
+    assert json_document.get("engine_requested") == "OSS"
+    assert len(json_signatures) == len(findings) == 13
+    assert Counter((rule, path, line) for rule, path, line, *_ in json_signatures.elements()) == finding_signatures
+
+    for document in (sarif_document, trace_document):
+        assert document.get("version") == "2.1.0"
+        runs = document.get("runs")
+        assert isinstance(runs, list) and len(runs) == 1
+        run = runs[0]
+        assert isinstance(run, dict)
+        tool = run.get("tool")
+        assert isinstance(tool, dict) and isinstance(tool.get("driver"), dict)
+        assert tool["driver"].get("name") == "Semgrep OSS"
+        results = run.get("results")
+        assert isinstance(results, list) and len(results) == 13
+        signatures, flow_states = _sarif_result_signatures(document, target)
+        assert signatures == json_signatures
+        assert len(signatures) == 13
+        assert all(count == 1 for count in signatures.values())
+        assert all(not Path(signature[1]).is_absolute() for signature in signatures)
+        assert CANARY not in repr(signatures)
+        assert flow_states == Counter({"absent": 13})
+        # No codeFlows means no observed threadFlows or threadFlowLocations.
+        assert all("codeFlows" not in result for result in results)
+
+    plain_signatures, _ = _sarif_result_signatures(sarif_document, target)
+    trace_signatures, _ = _sarif_result_signatures(trace_document, target)
+    assert plain_signatures == trace_signatures
+    # Both outputs are held only in memory and are never returned as public data.
+    assert all(finding.status is FindingStatus.UNVERIFIED for finding in findings)
+    assert all(finding.confirmation is None for finding in findings)
 
 
 def _finding_locations(result) -> dict[tuple[str, str], tuple[int, str, str]]:
