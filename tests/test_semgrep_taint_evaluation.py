@@ -24,6 +24,7 @@ from ai_code_security_analyzer.evidence_summary import (
     build_evidence_summary,
     validate_evidence_summary,
 )
+from ai_code_security_analyzer.evidence_consumer import consume_evidence_summary
 from ai_code_security_analyzer.semgrep_adapter import (
     MAX_OUTPUT_BYTES,
     SCAN_TIMEOUT_SECONDS,
@@ -395,7 +396,21 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
             rules_file=TAINT_RULE,
             trusted_rules_directory=TRUSTED_RULES,
         ) == summary
+        consumed = consume_evidence_summary(
+            summary,
+            finding,
+            evidence=item,
+            scan_result=taint,
+            rules_file=TAINT_RULE,
+            trusted_rules_directory=TRUSTED_RULES,
+        )
+        assert consumed.finding_kind is FindingKind.TAINT
+        assert consumed.supports(ClaimType.TAINT_RULE_MATCH_REPORTED)
+        assert not consumed.supports(ClaimType.SOURCE_LOCATION_IDENTIFIED)
+        assert not consumed.supports(ClaimType.FLOW_TRACE_AVAILABLE)
+        assert not consumed.supports(ClaimType.VULNERABILITY_CONFIRMED)
         assert CANARY not in summary.model_dump_json()
+        assert CANARY not in consumed.model_dump_json()
 
     for finding in baseline.findings:
         pattern_gate = evaluate_all_claims(finding, scan_result=baseline)
@@ -408,7 +423,12 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
         assert summary.trusted_rule_declaration_status is RuleDeclarationStatus.NOT_APPLICABLE
         assert summary.association_status is SummaryAssociationStatus.NOT_APPLICABLE
         assert validate_evidence_summary(summary, finding, scan_result=baseline) == summary
+        consumed = consume_evidence_summary(summary, finding, scan_result=baseline)
+        assert consumed.finding_kind is FindingKind.PATTERN
+        assert consumed.supports(ClaimType.MATCH_REPORTED)
+        assert not consumed.supports(ClaimType.TAINT_RULE_MATCH_REPORTED)
         assert CANARY not in summary.model_dump_json()
+        assert CANARY not in consumed.model_dump_json()
 
     taint_plain = {
         path: (line, rule_id)
