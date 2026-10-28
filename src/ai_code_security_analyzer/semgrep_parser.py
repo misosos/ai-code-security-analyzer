@@ -32,6 +32,13 @@ class ParsedFindings:
     issues: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class _ParsedSemgrepDocument:
+    parsed: ParsedFindings
+    document: dict[str, Any]
+    result_findings: tuple[Finding | None, ...]
+
+
 def _positive_int(value: Any) -> int | None:
     return value if type(value) is int and value > 0 else None
 
@@ -116,8 +123,8 @@ def _convert(item: Any, project_root: Path) -> tuple[Finding | None, str | None]
     return finding, cwe_issue
 
 
-def parse_semgrep_json(raw: bytes, project_root: Path) -> ParsedFindings:
-    """Parse output without exposing raw diagnostics or matched source code."""
+def _parse_semgrep_json_internal(raw: bytes, project_root: Path) -> _ParsedSemgrepDocument:
+    """Parse bounded JSON for internal consumers; raw fields stay transient."""
     try:
         document = json.loads(raw)
     except (UnicodeDecodeError, json.JSONDecodeError):
@@ -127,6 +134,7 @@ def parse_semgrep_json(raw: bytes, project_root: Path) -> ParsedFindings:
 
     project_root = project_root.resolve()
     findings: list[Finding] = []
+    result_findings: list[Finding | None] = []
     issues: list[str] = []
     if document["errors"]:
         issues.append("semgrep_reported_errors")
@@ -141,8 +149,15 @@ def parse_semgrep_json(raw: bytes, project_root: Path) -> ParsedFindings:
             issues.append("no_files_scanned")
     for index, item in enumerate(document["results"]):
         finding, issue = _convert(item, project_root)
+        result_findings.append(finding)
         if finding is not None:
             findings.append(finding)
         if issue is not None:
             issues.append(f"result_{index}_{issue}")
-    return ParsedFindings(tuple(findings), tuple(issues))
+    parsed = ParsedFindings(tuple(findings), tuple(issues))
+    return _ParsedSemgrepDocument(parsed, document, tuple(result_findings))
+
+
+def parse_semgrep_json(raw: bytes, project_root: Path) -> ParsedFindings:
+    """Parse output without exposing raw diagnostics or matched source code."""
+    return _parse_semgrep_json_internal(raw, project_root).parsed

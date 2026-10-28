@@ -13,7 +13,8 @@ from enum import StrEnum
 from pathlib import Path
 
 from ai_code_security_analyzer.models import Finding
-from ai_code_security_analyzer.semgrep_parser import InvalidSemgrepJson, parse_semgrep_json
+from ai_code_security_analyzer.semgrep_parser import InvalidSemgrepJson, _parse_semgrep_json_internal
+from ai_code_security_analyzer.taint_evidence import TaintEvidence, build_taint_evidence
 
 
 MAX_OUTPUT_BYTES = 2_000_000
@@ -40,6 +41,12 @@ class ScanResult:
     issues: tuple[str, ...] = ()
     exit_code: int | None = None
     semgrep_version: str | None = None
+
+
+@dataclass(frozen=True)
+class _ScanOutput:
+    result: ScanResult
+    taint_evidence: tuple[TaintEvidence, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -132,6 +139,13 @@ class SemgrepAdapter:
         self.trusted_rules_directory = root
 
     def scan(self, target: Path, rules_file: Path, *, timeout: int = SCAN_TIMEOUT_SECONDS) -> ScanResult:
+        """Run a scan and preserve the established public ScanResult contract."""
+        return self._scan_with_evidence(target, rules_file, timeout=timeout).result
+
+    def _scan_with_evidence(
+        self, target: Path, rules_file: Path, *, timeout: int = SCAN_TIMEOUT_SECONDS
+    ) -> _ScanOutput:
+        """Internal scan path returning derived taint evidence from the same JSON parse."""
         if timeout <= 0:
             raise ValueError("timeout must be positive")
         project = _resolve_path(target)
@@ -150,7 +164,7 @@ class SemgrepAdapter:
 
         executable = shutil.which("semgrep")
         if executable is None:
-            return ScanResult(ScanStatus.NOT_INSTALLED, issues=("semgrep_not_installed",))
+            return _ScanOutput(ScanResult(ScanStatus.NOT_INSTALLED, issues=("semgrep_not_installed",)))
 
         with tempfile.TemporaryDirectory(prefix="ai-code-semgrep-") as temporary_home:
             env = {
@@ -164,12 +178,12 @@ class SemgrepAdapter:
                 version_result = _run_process([executable, "--version"], project_root, env, PROBE_TIMEOUT_SECONDS)
                 version_match = _VERSION_PATTERN.search(version_result.stdout.decode("utf-8", errors="replace"))
                 if version_result.exit_code != 0 or version_match is None:
-                    return ScanResult(ScanStatus.EXECUTION_FAILED, issues=("version_check_failed",))
+                    return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("version_check_failed",)))
                 version = version_match.group()
                 help_result = _run_process([executable, "scan", "--help"], project_root, env, PROBE_TIMEOUT_SECONDS)
                 help_text = help_result.stdout.decode("utf-8", errors="replace")
                 if help_result.exit_code != 0 or any(option not in help_text for option in _REQUIRED_OPTIONS):
-                    return ScanResult(ScanStatus.EXECUTION_FAILED, issues=("required_option_unsupported",), semgrep_version=version)
+                    return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("required_option_unsupported",), semgrep_version=version))
                 args = [
                     executable, "scan", "--json", "--metrics=off", "--disable-version-check",
                     "--oss-only", "--no-autofix", "--config", rules.name, "--", str(project),
@@ -178,19 +192,30 @@ class SemgrepAdapter:
                 # rules directory in check_id values exposed by public reports.
                 completed = _run_process(args, rules.parent, env, timeout)
             except _ProcessTimeout:
-                return ScanResult(ScanStatus.TIMED_OUT, issues=("semgrep_timeout",))
+                return _ScanOutput(ScanResult(ScanStatus.TIMED_OUT, issues=("semgrep_timeout",)))
             except _OutputLimitExceeded:
-                return ScanResult(ScanStatus.OUTPUT_LIMIT_EXCEEDED, issues=("semgrep_output_limit",))
+                return _ScanOutput(ScanResult(ScanStatus.OUTPUT_LIMIT_EXCEEDED, issues=("semgrep_output_limit",)))
             except OSError:
-                return ScanResult(ScanStatus.EXECUTION_FAILED, issues=("semgrep_launch_failed",))
+                return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("semgrep_launch_failed",)))
 
         try:
-            parsed = parse_semgrep_json(completed.stdout, project_root)
+            semgrep_document = _parse_semgrep_json_internal(completed.stdout, project_root)
         except InvalidSemgrepJson:
             if completed.exit_code != 0:
-                return ScanResult(ScanStatus.EXECUTION_FAILED, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version)
-            return ScanResult(ScanStatus.INVALID_JSON, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version)
+                return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version))
+            return _ScanOutput(ScanResult(ScanStatus.INVALID_JSON, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version))
+        parsed = semgrep_document.parsed
+        taint_evidence = build_taint_evidence(
+            semgrep_document.document,
+            semgrep_document.result_findings,
+            project_root,
+            rules_file=rules,
+            trusted_rules_directory=self.trusted_rules_directory,
+        )
         if completed.exit_code != 0:
-            return ScanResult(ScanStatus.EXECUTION_FAILED, parsed.findings, parsed.issues + ("nonzero_exit",), completed.exit_code, version)
+            return _ScanOutput(
+                ScanResult(ScanStatus.EXECUTION_FAILED, parsed.findings, parsed.issues + ("nonzero_exit",), completed.exit_code, version),
+                taint_evidence,
+            )
         status = ScanStatus.PARTIAL if parsed.issues else ScanStatus.COMPLETED
-        return ScanResult(status, parsed.findings, parsed.issues, completed.exit_code, version)
+        return _ScanOutput(ScanResult(status, parsed.findings, parsed.issues, completed.exit_code, version), taint_evidence)

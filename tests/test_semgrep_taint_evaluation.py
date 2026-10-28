@@ -135,11 +135,24 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
     _copy_fixtures(target)
 
     adapter = SemgrepAdapter(TRUSTED_RULES)
-    taint = adapter.scan(target, TAINT_RULE)
+    taint_output = adapter._scan_with_evidence(target, TAINT_RULE)
+    taint = taint_output.result
     baseline = adapter.scan(target, BASELINE_RULE)
     assert taint.status is baseline.status is ScanStatus.COMPLETED
     assert taint.semgrep_version == baseline.semgrep_version == REQUIRED_VERSION
     assert taint.issues == baseline.issues == ()
+    assert len(taint_output.taint_evidence) == len(taint.findings)
+    findings_by_id = {finding.finding_id: finding for finding in taint.findings}
+    assert all(item.finding_id in findings_by_id for item in taint_output.taint_evidence)
+    assert all(item.flow_trace_status.value == "absent" for item in taint_output.taint_evidence)
+    assert all(item.source_location is None and item.sink_location is None for item in taint_output.taint_evidence)
+    assert all(item.source_location_status.value == "unknown" for item in taint_output.taint_evidence)
+    assert all(item.sink_location_status.value == "unknown" for item in taint_output.taint_evidence)
+    assert all(item.matched_file == findings_by_id[item.finding_id].file_path for item in taint_output.taint_evidence)
+    assert all(item.matched_start.line == findings_by_id[item.finding_id].line_number for item in taint_output.taint_evidence)
+    assert all(item.source_declaration_status.value == "available" for item in taint_output.taint_evidence)
+    assert all(item.rules_file_sha256 for item in taint_output.taint_evidence)
+    assert all(CANARY not in repr(item) for item in taint_output.taint_evidence)
 
     taint_plain = {
         path: (line, rule_id)
