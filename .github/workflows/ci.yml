@@ -93,3 +93,4 @@ jobs:
           tests/test_scan_e2e.py
           tests/test_security_baseline.py
           tests/test_semgrep_taint_evaluation.py
+          tests/test_command_injection_taint.py

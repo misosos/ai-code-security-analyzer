@@ -26,6 +26,14 @@ Semgrep OSS taint 분석은 지정 source→sink 관계를 같은 함수 내 변
 
 Semgrep 1.182.1은 Git 작업 트리에서 기본적으로 추적되지 않은 파일을 검사 대상에서 제외할 수 있다. 따라서 검사 결과 0건을 모든 파일을 검사했다는 뜻으로 해석하지 말고 보고서의 검사 상태와 대상 범위를 함께 확인한다.
 
+### Node.js command injection 실험 규칙
+
+`experimental/javascript-command-injection-taint.yml`은 별도 PoC 규칙이다. `req.query.cmd`와 `req.body.cmd`를 모델링한 Source에서 Node `child_process.exec()` 또는 `execSync()`의 첫 번째 명령 인자까지 같은 파일 안에서 이어지는 흐름을 대상으로 한다. 규칙은 코드 안의 `child_process` 이름에 대한 명시적 `require` 선언, `child_process` 또는 `node:child_process` namespace import, 그리고 직접적인 `require(...).exec(...)`/`execSync(...)` 형태를 대상으로 한다. 별도 합성 fixture에서 `const cp = require("child_process")`도 탐지됐다. namespace import 별칭은 해당 fixture에서 탐지되지 않았다. Source 객체명은 고정하지 않는다.
+
+규칙은 command 인자 메타변수에 sink 초점을 두어 옵션 인자만 tainted인 호출을 제외한다. 일반 `object.exec()`, `RegExp.exec()`, 고정 명령, 명령 인자와 무관한 요청 입력은 대상으로 보지 않는다. `child_process` 이름이 실제 Node 모듈에 결합됐는지의 런타임 증명은 아니며, Source 패턴도 Express 입력 도달성이나 validation 부재를 증명하지 않는다.
+
+현재 Semgrep OSS 1.182.1에서 합성 사례로 검증한 지원 형태와 미지원 탐색은 `docs/phase4a1-command-injection-taint.md`에 기록한다. 이 신규 규칙은 기존 TaintEvidence 신뢰 allowlist에 편입되지 않았으므로, 해당 규칙을 사용한 결과는 기존 Gate/Review에서 검증된 taint 근거로 분류되지 않는다. baseline에는 포함하지 않는다. CWE-78은 규칙 메타데이터 분류이며 취약점 확정이 아니다.
+
 ## 이후 검토할 유형
 
 - 사용자 입력 URL: 허용 스킴, 리디렉션, 네트워크 요청까지의 데이터 흐름과 배포 정책 확인이 필요하다.
