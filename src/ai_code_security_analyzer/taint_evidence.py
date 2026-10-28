@@ -45,6 +45,7 @@ class EvidenceState(StrEnum):
 class TraceStatus(StrEnum):
     AVAILABLE = "available"
     ABSENT = "absent"
+    EMPTY = "empty"
     MALFORMED = "malformed"
     UNSUPPORTED = "unsupported"
     NOT_EVALUATED = "not_evaluated"
@@ -148,6 +149,8 @@ def _trace_status(item: dict[str, Any]) -> TraceStatus:
     # Inspect only the outer type and never retain the provided value.
     if any(not isinstance(value, (dict, list)) for value in candidates):
         return TraceStatus.MALFORMED
+    if all(not value for value in candidates):
+        return TraceStatus.EMPTY
     return TraceStatus.UNSUPPORTED
 
 
@@ -295,6 +298,8 @@ def build_taint_evidence(
         trace_status = _trace_status(item)
         if trace_status in {TraceStatus.MALFORMED, TraceStatus.UNSUPPORTED}:
             limitations.append("trace_structure_not_supported")
+        elif trace_status is TraceStatus.EMPTY:
+            limitations.append("trace_field_present_empty")
         evidence.append(TaintEvidence(
             finding_id=linked_finding_id,
             association_status=association,

@@ -18,6 +18,7 @@ from ai_code_security_analyzer.semgrep_adapter import (
     SemgrepAdapter,
     _run_process,
 )
+from ai_code_security_analyzer.semgrep_parser import parse_semgrep_json
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,7 +91,9 @@ def _copy_fixtures(target: Path) -> None:
             shutil.copyfile(source, target / source.name)
 
 
-def _raw_taint_json(executable: str, target: Path) -> dict[str, object]:
+def _raw_taint_json(
+    executable: str, target: Path, *, dataflow_traces: bool = False
+) -> dict[str, object]:
     # Mirror adapter process isolation and bounded output for temporary raw JSON
     # inspection. The parsed object is never printed or persisted.
     with tempfile.TemporaryDirectory(prefix="semgrep-taint-home-") as home_value:
@@ -106,6 +109,8 @@ def _raw_taint_json(executable: str, target: Path) -> dict[str, object]:
             executable, "scan", "--json", "--metrics=off", "--disable-version-check",
             "--oss-only", "--no-autofix", "--config", TAINT_RULE.name, "--", str(target),
         ]
+        if dataflow_traces:
+            args.insert(args.index("--"), "--dataflow-traces")
         process = _run_process(args, TAINT_RULE.parent, env, SCAN_TIMEOUT_SECONDS)
     if process.exit_code != 0 or len(process.stdout) > MAX_OUTPUT_BYTES:
         pytest.fail("taint_semgrep_execution_failed")
@@ -213,6 +218,29 @@ def test_oss_taint_flows_baseline_difference_sanitizer_and_json_evidence(tmp_pat
         assert "metavars" not in extra
         assert isinstance(item.get("start"), dict)
         assert isinstance(item.get("end"), dict)
+
+    # The CLI accepts --dataflow-traces with JSON + OSS, but its documented
+    # output scope excludes JSON. Confirm actual results and locations are
+    # unchanged and no trace field was added.
+    traced_raw = _raw_taint_json(executable, target, dataflow_traces=True)
+    traced_results = traced_raw.get("results")
+    assert traced_raw.get("version") == REQUIRED_VERSION
+    assert traced_raw.get("engine_requested") == "OSS"
+    assert traced_raw.get("errors") == []
+    assert isinstance(traced_results, list)
+    assert len(traced_results) == len(raw_results)
+    assert [
+        (item.get("check_id"), item.get("path"), item.get("start"), item.get("end"))
+        for item in traced_results
+    ] == [
+        (item.get("check_id"), item.get("path"), item.get("start"), item.get("end"))
+        for item in raw_results
+    ]
+    assert all("dataflow_trace" not in item.get("extra", {}) for item in traced_results)
+    parsed_with_trace_option = parse_semgrep_json(json.dumps(traced_raw).encode(), target)
+    assert [finding.finding_id for finding in parsed_with_trace_option.findings] == [
+        finding.finding_id for finding in taint.findings
+    ]
 
     # In-scope cases A-H, K, L have deterministic expected flow labels.
     # I/J depend on interprocedural/interfile analysis and are reported separately.

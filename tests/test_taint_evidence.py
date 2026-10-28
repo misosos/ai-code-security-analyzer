@@ -167,6 +167,26 @@ def test_trace_shapes_are_not_retained_or_promoted_to_available(tmp_path: Path) 
     )
     assert malformed[0].flow_trace_status is TraceStatus.MALFORMED
 
+    for index, empty_value in enumerate(([], {})):
+        empty_root = tmp_path / f"empty-{index}"
+        empty_root.mkdir()
+        empty_doc = {
+            "version": "1.182.1",
+            "engine_requested": "OSS",
+            "results": [raw_result(dataflow_trace=empty_value)],
+            "errors": [],
+        }
+        empty_parsed = _parse_semgrep_json_internal(json.dumps(empty_doc).encode(), empty_root)
+        empty_evidence = build_taint_evidence(
+            empty_parsed.document,
+            empty_parsed.result_findings,
+            empty_root,
+            rules_file=RULE_FILE,
+            trusted_rules_directory=RULES,
+        )
+        assert empty_evidence[0].flow_trace_status is TraceStatus.EMPTY
+        assert "trace_field_present_empty" in empty_evidence[0].limitations
+
 
 def test_invalid_path_and_position_do_not_create_match_location(tmp_path: Path) -> None:
     _internal, invalid_path = parse_and_build(tmp_path, [raw_result(path="../outside.ts")])
