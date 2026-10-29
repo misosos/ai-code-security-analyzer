@@ -141,8 +141,10 @@ def _restricted(parts: tuple[str, ...]) -> bool:
     )
 
 
-def _read_regular_file(root: Path, parts: tuple[str, ...], limit: int) -> tuple[bytes | None, str | None]:
-    """Use directory descriptors so a swapped path cannot redirect the read."""
+def read_regular_file_under_root(
+    root: Path, parts: tuple[str, ...], limit: int
+) -> tuple[bytes | None, str | None]:
+    """Read one bounded regular file without following path-component symlinks."""
     if not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
         return None, "secure_open_unavailable"
     directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
@@ -252,7 +254,7 @@ def extract_code_context(
     if end_line is not None and (type(end_line) is not int or end_line < finding.line_number):
         return unavailable("invalid_span")
     last_finding_line = end_line or finding.line_number
-    data, issue = _read_regular_file(root, parts, policy.max_file_bytes)
+    data, issue = read_regular_file_under_root(root, parts, policy.max_file_bytes)
     if issue is not None or data is None:
         return unavailable(issue or "file_access_denied")
     if b"\x00" in data:

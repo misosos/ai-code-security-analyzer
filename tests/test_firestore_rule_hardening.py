@@ -163,11 +163,12 @@ def test_firestore_hardening_semgrep_integration() -> None:
         if case["label"] == "negative" and not case["exploratory"]
     }
     assert not (strict_negative_ids & findings_by_case.keys())
-    # N14 is deliberately exploratory: a line-oriented regex may see a rule
-    # declaration inside a multi-line block comment. Its observed signal is
-    # retained as an FP by the measured table, not suppressed or re-labelled.
+    # N14 remains an exploratory negative in the frozen Phase 6B oracle. The
+    # shared adapter now discards its regex candidate only after confirming the
+    # exact match span lies in a closed block comment.
     assert measured["TP"] + measured["FN"] == 13
     assert measured["FP"] + measured["TN"] == 14
+    assert measured["TP"] == 13 and measured["FP"] == 0 and measured["FN"] == 0 and measured["TN"] == 14
     assert measured["duplicate_findings"] == 0
 
     representative = findings_by_case["P06_create_update_delete"][0]

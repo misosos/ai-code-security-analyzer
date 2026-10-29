@@ -1,0 +1,4 @@
+/* disabled example
+allow write: if true;
+*/
+allow create: if true;

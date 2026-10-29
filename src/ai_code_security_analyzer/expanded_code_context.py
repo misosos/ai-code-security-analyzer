@@ -20,7 +20,7 @@ from ai_code_security_analyzer.code_context import (
     CodeContext,
     ContextStatus,
     UntrustedCodeLine,
-    _read_regular_file,
+    read_regular_file_under_root,
     _restricted,
     _safe_parts,
     _sanitize_line,
@@ -211,7 +211,7 @@ def extract_expanded_code_context(
     else:
         fallback_reason = None
 
-    data, issue = _read_regular_file(root, parts, MAX_FILE_BYTES)
+    data, issue = read_regular_file_under_root(root, parts, MAX_FILE_BYTES)
     if issue is not None or data is None:
         return _unavailable(finding, root, issue or "file_access_denied")
     if b"\x00" in data:
@@ -300,7 +300,7 @@ def extract_expanded_code_context(
                                        "cross_file_flow_not_traced", "source_to_sink_flow_not_verified"})
 
     if fallback_reason is not None:
-        fallback_data, fallback_issue = _read_regular_file(root, parts, MAX_FILE_BYTES)
+        fallback_data, fallback_issue = read_regular_file_under_root(root, parts, MAX_FILE_BYTES)
         if (fallback_issue is not None or fallback_data is None
                 or hashlib.sha256(fallback_data).hexdigest() != source_hash):
             return _unavailable(finding, root, "file_changed_between_reads")

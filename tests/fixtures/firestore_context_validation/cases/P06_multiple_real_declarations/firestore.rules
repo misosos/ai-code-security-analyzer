@@ -1,0 +1,2 @@
+allow create: if true;
+allow delete, update: if true;

@@ -12,6 +12,13 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
+from ai_code_security_analyzer.code_context import read_regular_file_under_root
+from ai_code_security_analyzer.firestore_context import (
+    FirestoreContextStatus,
+    FirestoreLexicalContext,
+    classify_semgrep_span,
+    scan_lexical_context,
+)
 from ai_code_security_analyzer.models import Finding
 from ai_code_security_analyzer.semgrep_parser import InvalidSemgrepJson, _parse_semgrep_json_internal
 from ai_code_security_analyzer.taint_evidence import TaintEvidence, build_taint_evidence
@@ -22,6 +29,12 @@ SCAN_TIMEOUT_SECONDS = 60
 PROBE_TIMEOUT_SECONDS = 10
 _REQUIRED_OPTIONS = ("--json", "--metrics", "--disable-version-check", "--oss-only", "--no-autofix")
 _VERSION_PATTERN = re.compile(r"\b\d+\.\d+\.\d+\b")
+_FIRESTORE_RULE_ID = "baseline.firestore-unconditional-write"
+_FIRESTORE_CONTEXT_MAX_BYTES = 1_000_000
+_FIRESTORE_SNAPSHOT_MAX_FILES = 512
+_FIRESTORE_SNAPSHOT_MAX_BYTES = 16_000_000
+_FIRESTORE_SNAPSHOT_WALK_SECONDS = 3
+_RULE_CONFIG_MAX_BYTES = 2_000_000
 
 
 class ScanStatus(StrEnum):
@@ -61,6 +74,149 @@ class _ProcessTimeout(Exception):
 
 class _OutputLimitExceeded(Exception):
     pass
+
+
+def _firestore_match_context(
+    finding: Finding,
+    item: object,
+    project_root: Path,
+    source_snapshot: dict[str, tuple[bytes | None, str | None]],
+    source_cache: dict[str, tuple[bytes | None, str | None]],
+    lexical_cache: dict[str, FirestoreLexicalContext],
+) -> FirestoreContextStatus:
+    """Check only the exact Semgrep span; inability to check never drops it."""
+    if not isinstance(item, dict):
+        return FirestoreContextStatus.UNAVAILABLE
+    if item.get("check_id") != finding.rule_id:
+        return FirestoreContextStatus.UNAVAILABLE
+    raw_path = item.get("path")
+    if not isinstance(raw_path, str):
+        return FirestoreContextStatus.UNAVAILABLE
+    try:
+        raw_candidate = Path(raw_path)
+        raw_resolved = (project_root / raw_candidate).resolve()
+        if raw_resolved.relative_to(project_root).as_posix() != finding.file_path:
+            return FirestoreContextStatus.UNAVAILABLE
+    except (OSError, ValueError, RuntimeError):
+        return FirestoreContextStatus.UNAVAILABLE
+    parts = finding.file_path.split("/")
+    if (
+        not parts
+        or parts[-1] != "firestore.rules"
+        or any(part in {"", ".", ".."} for part in parts)
+        or "\\" in finding.file_path
+        or "\x00" in finding.file_path
+    ):
+        return FirestoreContextStatus.UNAVAILABLE
+    original, original_issue = source_snapshot.get(finding.file_path, (None, "source_not_snapshotted"))
+    if original_issue is not None or original is None:
+        return FirestoreContextStatus.UNAVAILABLE
+    cached = source_cache.get(finding.file_path)
+    if cached is None:
+        cached = read_regular_file_under_root(project_root, tuple(parts), _FIRESTORE_CONTEXT_MAX_BYTES)
+        source_cache[finding.file_path] = cached
+    current, issue = cached
+    if issue is not None or current is None or current != original:
+        return FirestoreContextStatus.UNAVAILABLE
+    source = original
+    lexical_context = lexical_cache.get(finding.file_path)
+    if lexical_context is None:
+        lexical_context = scan_lexical_context(source)
+        lexical_cache[finding.file_path] = lexical_context
+    start = item.get("start")
+    end = item.get("end")
+    if not isinstance(start, dict) or not isinstance(end, dict):
+        return FirestoreContextStatus.UNAVAILABLE
+    return classify_semgrep_span(
+        source,
+        start_offset=start.get("offset"),
+        end_offset=end.get("offset"),
+        start_line=start.get("line"),
+        start_column=start.get("col"),
+        end_line=end.get("line"),
+        end_column=end.get("col"),
+        expected_line=finding.line_number,
+        lexical_context=lexical_context,
+    )
+
+
+def _snapshot_firestore_sources(project: Path, project_root: Path) -> dict[str, tuple[bytes | None, str | None]]:
+    """Take a bounded pre-scan byte snapshot; incomplete entries remain unvalidated."""
+    candidates: list[Path] = []
+    deadline = time.monotonic() + _FIRESTORE_SNAPSHOT_WALK_SECONDS
+    if project.is_file():
+        if project.name == "firestore.rules":
+            candidates.append(project)
+    else:
+        entries_seen = 0
+        for root, directories, files in os.walk(project, followlinks=False):
+            directories.sort()
+            files.sort()
+            root_path = Path(root)
+            entries_seen += len(directories) + len(files)
+            if entries_seen > 100_000 or time.monotonic() > deadline:
+                break
+            for filename in files:
+                if filename == "firestore.rules":
+                    candidates.append(root_path / filename)
+                    if len(candidates) >= _FIRESTORE_SNAPSHOT_MAX_FILES:
+                        break
+            if len(candidates) >= _FIRESTORE_SNAPSHOT_MAX_FILES:
+                break
+
+    snapshot: dict[str, tuple[bytes | None, str | None]] = {}
+    total_bytes = 0
+    for candidate in candidates:
+        try:
+            relative = candidate.relative_to(project_root).as_posix()
+        except ValueError:
+            continue
+        parts = relative.split("/")
+        data, issue = read_regular_file_under_root(project_root, tuple(parts), _FIRESTORE_CONTEXT_MAX_BYTES)
+        if data is None or issue is not None:
+            snapshot[relative] = (None, issue or "source_unavailable")
+            continue
+        if total_bytes + len(data) > _FIRESTORE_SNAPSHOT_MAX_BYTES:
+            snapshot[relative] = (None, "snapshot_byte_limit")
+            continue
+        total_bytes += len(data)
+        snapshot[relative] = (data, None)
+    return snapshot
+
+
+def _rules_include_firestore_rule(rules: Path) -> bool:
+    """Avoid walking project sources for profiles without the Firestore rule."""
+    try:
+        data, issue = read_regular_file_under_root(rules.parent, (rules.name,), _RULE_CONFIG_MAX_BYTES)
+    except (OSError, ValueError, RuntimeError):
+        return False
+    return issue is None and data is not None and _FIRESTORE_RULE_ID.encode("ascii") in data
+
+
+def _filter_firestore_comment_matches(
+    semgrep_document, project_root: Path, source_snapshot: dict[str, tuple[bytes | None, str | None]]
+) -> tuple[Finding, ...]:
+    """Filter only candidates proven to lie wholly in a closed comment/string."""
+    source_cache: dict[str, tuple[bytes | None, str | None]] = {}
+    lexical_cache: dict[str, FirestoreLexicalContext] = {}
+    retained: list[Finding] = []
+    raw_results = semgrep_document.document.get("results", [])
+    if not isinstance(raw_results, list) or len(raw_results) != len(semgrep_document.result_findings):
+        return semgrep_document.parsed.findings
+    for raw, finding in zip(raw_results, semgrep_document.result_findings):
+        if finding is None:
+            continue
+        if finding.rule_id == _FIRESTORE_RULE_ID:
+            context = _firestore_match_context(
+                finding, raw, project_root, source_snapshot, source_cache, lexical_cache
+            )
+            if context in {
+                FirestoreContextStatus.CONFIRMED_COMMENT,
+                FirestoreContextStatus.CONFIRMED_STRING,
+            }:
+                continue
+        retained.append(finding)
+    return tuple(retained)
 
 
 def _resolve_path(path: Path) -> Path:
@@ -188,6 +344,11 @@ class SemgrepAdapter:
                     executable, "scan", "--json", "--metrics=off", "--disable-version-check",
                     "--oss-only", "--no-autofix", "--config", rules.name, "--", str(project),
                 ]
+                firestore_snapshot = (
+                    _snapshot_firestore_sources(project, project_root)
+                    if _rules_include_firestore_rule(rules)
+                    else {}
+                )
                 # A relative config name prevents Semgrep from embedding the local
                 # rules directory in check_id values exposed by public reports.
                 completed = _run_process(args, rules.parent, env, timeout)
@@ -212,10 +373,11 @@ class SemgrepAdapter:
             rules_file=rules,
             trusted_rules_directory=self.trusted_rules_directory,
         )
+        findings = _filter_firestore_comment_matches(semgrep_document, project_root, firestore_snapshot)
         if completed.exit_code != 0:
             return _ScanOutput(
-                ScanResult(ScanStatus.EXECUTION_FAILED, parsed.findings, parsed.issues + ("nonzero_exit",), completed.exit_code, version),
+                ScanResult(ScanStatus.EXECUTION_FAILED, findings, parsed.issues + ("nonzero_exit",), completed.exit_code, version),
                 taint_evidence,
             )
         status = ScanStatus.PARTIAL if parsed.issues else ScanStatus.COMPLETED
-        return _ScanOutput(ScanResult(status, parsed.findings, parsed.issues, completed.exit_code, version), taint_evidence)
+        return _ScanOutput(ScanResult(status, findings, parsed.issues, completed.exit_code, version), taint_evidence)

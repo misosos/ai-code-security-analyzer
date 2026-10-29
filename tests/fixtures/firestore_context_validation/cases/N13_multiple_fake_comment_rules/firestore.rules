@@ -1,0 +1,4 @@
+/*
+allow write: if true;
+allow create, delete: if true;
+*/

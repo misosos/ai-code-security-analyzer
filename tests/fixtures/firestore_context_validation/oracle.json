@@ -1,0 +1,401 @@
+{
+  "dataset_version": "firestore-context-v1",
+  "case_count": 29,
+  "cases": [
+    {
+      "case_id": "P01_single_write",
+      "path": "cases/P01_single_write/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        1
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        1
+      ],
+      "expected_context_by_line": {
+        "1": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P02_multi_write",
+      "path": "cases/P02_multi_write/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        1
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        1
+      ],
+      "expected_context_by_line": {
+        "1": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P03_nested_match",
+      "path": "cases/P03_nested_match/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        4
+      ],
+      "expected_context_by_line": {
+        "4": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P04_after_block_comment",
+      "path": "cases/P04_after_block_comment/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        2,
+        4
+      ],
+      "expected_cardinality": 2,
+      "expected_context": "code",
+      "expected_final_lines": [
+        4
+      ],
+      "expected_context_by_line": {
+        "2": "confirmed_comment_context",
+        "4": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P05_real_then_line_comment",
+      "path": "cases/P05_real_then_line_comment/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        1
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        1
+      ],
+      "expected_context_by_line": {
+        "1": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P06_multiple_real_declarations",
+      "path": "cases/P06_multiple_real_declarations/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        1,
+        2
+      ],
+      "expected_cardinality": 2,
+      "expected_context": "code",
+      "expected_final_lines": [
+        1,
+        2
+      ],
+      "expected_context_by_line": {
+        "1": "confirmed_code_context",
+        "2": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P07_string_markers_then_rule",
+      "path": "cases/P07_string_markers_then_rule/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P08_unicode_before_rule",
+      "path": "cases/P08_unicode_before_rule/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P09_escaped_quote_then_rule",
+      "path": "cases/P09_escaped_quote_then_rule/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P10_comment_after_rule_same_line",
+      "path": "cases/P10_comment_after_rule_same_line/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        1
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        1
+      ],
+      "expected_context_by_line": {
+        "1": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P11_comment_then_nested_real",
+      "path": "cases/P11_comment_then_nested_real/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "P12_string_literal_before_nested_real",
+      "path": "cases/P12_string_literal_before_nested_real/firestore.rules",
+      "label": "positive",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "code",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "confirmed_code_context"
+      }
+    },
+    {
+      "case_id": "N01_multiline_block_comment",
+      "path": "cases/N01_multiline_block_comment/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {
+        "2": "confirmed_comment_context"
+      }
+    },
+    {
+      "case_id": "N02_one_line_block_comment",
+      "path": "cases/N02_one_line_block_comment/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N03_line_comment",
+      "path": "cases/N03_line_comment/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N04_double_quoted_string",
+      "path": "cases/N04_double_quoted_string/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N05_single_quoted_string",
+      "path": "cases/N05_single_quoted_string/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N06_escaped_quotes",
+      "path": "cases/N06_escaped_quotes/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N07_string_comment_markers",
+      "path": "cases/N07_string_comment_markers/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N08_read_only",
+      "path": "cases/N08_read_only/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N09_authenticated_write",
+      "path": "cases/N09_authenticated_write/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N10_false_write",
+      "path": "cases/N10_false_write/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N11_compound_condition",
+      "path": "cases/N11_compound_condition/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N12_other_filename",
+      "path": "cases/N12_other_filename/notes.txt",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "N13_multiple_fake_comment_rules",
+      "path": "cases/N13_multiple_fake_comment_rules/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [
+        2,
+        3
+      ],
+      "expected_cardinality": 2,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {
+        "2": "confirmed_comment_context",
+        "3": "confirmed_comment_context"
+      }
+    },
+    {
+      "case_id": "N14_code_after_comment_same_line",
+      "path": "cases/N14_code_after_comment_same_line/firestore.rules",
+      "label": "negative",
+      "expected_semgrep_match_lines": [],
+      "expected_cardinality": 0,
+      "expected_context": "comment_or_string",
+      "expected_final_lines": [],
+      "expected_context_by_line": {}
+    },
+    {
+      "case_id": "E01_unterminated_block",
+      "path": "cases/E01_unterminated_block/firestore.rules",
+      "label": "exploratory",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "ambiguous",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "context_ambiguous"
+      }
+    },
+    {
+      "case_id": "E02_unterminated_string",
+      "path": "cases/E02_unterminated_string/firestore.rules",
+      "label": "exploratory",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "ambiguous",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "context_ambiguous"
+      }
+    },
+    {
+      "case_id": "E03_malformed_escape_string",
+      "path": "cases/E03_malformed_escape_string/firestore.rules",
+      "label": "exploratory",
+      "expected_semgrep_match_lines": [
+        2
+      ],
+      "expected_cardinality": 1,
+      "expected_context": "ambiguous",
+      "expected_final_lines": [
+        2
+      ],
+      "expected_context_by_line": {
+        "2": "context_ambiguous"
+      }
+    }
+  ]
+}

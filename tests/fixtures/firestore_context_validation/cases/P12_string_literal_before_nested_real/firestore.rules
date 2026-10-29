@@ -1,0 +1,2 @@
+let text = 'allow write: if true;';
+allow update: if true;

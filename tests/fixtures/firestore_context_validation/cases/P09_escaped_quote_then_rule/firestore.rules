@@ -1,0 +1,2 @@
+let note = "escaped \\" quote and // text";
+allow create, update: if true;
