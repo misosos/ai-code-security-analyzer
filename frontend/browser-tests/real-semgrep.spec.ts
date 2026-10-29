@@ -8,14 +8,17 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   if (!token) throw new Error('real_browser_e2e_token_missing');
   const scanRequests: string[] = [];
   const scanAuthLocations: string[] = [];
+  const scanTargets: string[] = [];
   page.on('request', (request) => {
     if (request.url().endsWith('/api/v1/scans')) {
       scanRequests.push(request.method());
       scanAuthLocations.push(request.headers()['x-local-api-token'] === token && !request.url().includes(token) ? 'header-only' : 'invalid');
+      scanTargets.push(request.postDataJSON()?.target_id);
     }
     if (!request.url().startsWith(process.env.BROWSER_E2E_BASE_URL!)) throw new Error('unexpected_external_request');
   });
 
+  const optionsResponsePromise = page.waitForResponse((response) => response.url().endsWith('/api/v1/options'));
   const documentResponse = await page.goto('/');
   expect(documentResponse?.status()).toBe(200);
   expect(documentResponse?.headers()['cache-control']).toBe('no-store');
@@ -23,19 +26,26 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   expect(documentResponse?.headers()['referrer-policy']).toBe('no-referrer');
   expect(documentResponse?.headers()['content-security-policy']).toContain("default-src 'self'");
   await expect(page.getByText(/API 연결됨/)).toBeVisible();
+  const optionsBody = await (await optionsResponsePromise).text();
+  expect(optionsBody).toContain('synthetic-primary');
+  expect(optionsBody).toContain('synthetic-selected');
+  expect(optionsBody).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   await expect(page.getByRole('option', { name: 'Experimental · Experimental Command Injection' })).toBeAttached();
+  await expect(page.getByRole('option', { name: 'Synthetic Selected (synthetic-selected)' })).toBeAttached();
 
   await page.getByLabel('로컬 API 토큰').fill(token);
   expect(await page.evaluate(() => [localStorage.length, sessionStorage.length])).toEqual([0, 0]);
+  await page.getByLabel('검사 대상').selectOption('synthetic-selected');
   await page.getByLabel('규칙 프로필').selectOption('command-injection-experimental');
   const scanResponsePromise = page.waitForResponse((response) => response.url().endsWith('/api/v1/scans'));
   await page.getByRole('button', { name: '검사 실행' }).click();
   const scanResponse = await scanResponsePromise;
   expect(scanResponse.status()).toBe(200);
   const responseBody = await scanResponse.text();
+  expect(responseBody).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   const payload = JSON.parse(responseBody) as {
     scan_status: string; semgrep_version: string; finding_count: number; displayed_finding_count: number;
-    findings: Array<{ finding_id: string; rule_id: string; severity: string; verification_status: string; finding_kind: string; evidence_validation_status: string; supported_claims: string[]; restricted_claims: Array<{ claim_type: string; decision: string }> }>;
+    findings: Array<{ finding_id: string; rule_id: string; severity: string; verification_status: string; finding_kind: string; file_path: string | null; evidence_validation_status: string; supported_claims: string[]; restricted_claims: Array<{ claim_type: string; decision: string }> }>;
   };
   expect(payload.scan_status).toBe('completed');
   expect(payload.semgrep_version).toBe('1.182.1');
@@ -44,6 +54,7 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   const finding = payload.findings.find((item) => item.rule_id === 'experimental.javascript-command-injection-taint');
   expect(finding).toBeDefined();
   expect(finding?.finding_id).toMatch(/^semgrep:[a-f0-9]{24}$/);
+  expect(payload.findings[0].file_path).toBe('selected-project.js');
   expect(finding?.severity).toBe('high');
   expect(finding?.verification_status).toBe('unverified');
   expect(finding?.finding_kind).toBe('taint');
@@ -62,6 +73,8 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   await expect(page.locator('body')).not.toContainText(token);
 
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await expect(page.getByText(/Synthetic Selected synthetic-selected/)).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   await expect(page.getByText('experimental.javascript-command-injection-taint').first()).toBeVisible();
   await expect(page.getByText('미검증 후보').first()).toBeVisible();
   await page.getByText('기술 근거와 제한 자세히 보기').click();
@@ -80,6 +93,7 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   let markdown = '';
   for await (const chunk of stream!) markdown += chunk.toString('utf8');
   expect(markdown).toContain(finding!.finding_id);
+  expect(markdown).toContain('synthetic-selected');
   expect(markdown).toContain('experimental.javascript-command-injection-taint');
   expect(markdown).toContain('신뢰된 taint 규칙 매치 보고');
   expect(markdown).toContain('source&#x5F;location&#x5F;identified');
@@ -88,7 +102,9 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   expect(markdown).toContain('취약점 확정 문서가 아니며');
   expect(markdown).not.toContain(canary);
   expect(markdown).not.toContain(token);
+  expect(markdown).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   expect(markdown).not.toContain(process.cwd());
   expect(scanRequests).toEqual(['POST']);
+  expect(scanTargets).toEqual(['synthetic-selected']);
   expect(scanAuthLocations).toEqual(['header-only']);
 });

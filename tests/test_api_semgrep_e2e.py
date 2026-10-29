@@ -13,7 +13,7 @@ from ai_code_security_analyzer.api.app import create_app
 from ai_code_security_analyzer.evidence_sufficiency import ClaimType
 from ai_code_security_analyzer.models import FindingStatus
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus
-from ai_code_security_analyzer.services.scan_service import ApiSettings
+from ai_code_security_analyzer.services.scan_service import ApiSettings, ProjectTarget
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -94,3 +94,48 @@ def test_api_runs_real_semgrep_and_returns_only_validated_claim_codes(tmp_path: 
                     assert item["finding_kind"] == "pattern"
                 if profile == "eval-experimental":
                     assert item["finding_kind"] == "taint"
+
+
+def test_real_semgrep_scans_only_the_selected_registered_project(tmp_path: Path) -> None:
+    executable = shutil.which("semgrep")
+    if executable is None:
+        if os.environ.get("SEMGREP_REQUIRED") == "1":
+            pytest.fail("Semgrep required by this job but not installed")
+        pytest.skip("Semgrep CLI is not installed")
+    first, second = tmp_path / "project-a", tmp_path / "project-b"
+    first.mkdir()
+    second.mkdir()
+    (first / "plain.js").write_text("export const label = 'plain';\n", encoding="utf-8")
+    (second / "selected.js").write_text("export function calculate(input) { return eval(input); }\n", encoding="utf-8")
+    settings = ApiSettings(
+        target_directory=None,
+        trusted_rules_directory=ROOT / "rules",
+        api_token=TOKEN,
+        allowed_hosts=("testserver",),
+        project_targets=(
+            ProjectTarget("project-a", "Project A", first),
+            ProjectTarget("project-b", "Project B", second),
+        ),
+    )
+    with TestClient(create_app(settings)) as client:
+        options = client.get("/api/v1/options")
+        results = {
+            target_id: client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN}, json={
+                "target_id": target_id, "rule_profile_id": "baseline",
+            })
+            for target_id in ("project-a", "project-b")
+        }
+    assert options.status_code == 200
+    assert options.json()["targets"] == [
+        {"id": "project-a", "label": "Project A"}, {"id": "project-b", "label": "Project B"},
+    ]
+    assert str(tmp_path) not in options.text
+    assert results["project-a"].status_code == results["project-b"].status_code == 200
+    first_result, second_result = results["project-a"].json(), results["project-b"].json()
+    assert first_result["scan_status"] == second_result["scan_status"] == "completed"
+    assert first_result["finding_count"] == 0
+    assert second_result["finding_count"] == 1
+    assert second_result["findings"][0]["rule_id"] == "baseline.javascript-dynamic-eval"
+    assert second_result["findings"][0]["file_path"] == "selected.js"
+    assert second_result["findings"][0]["verification_status"] == "unverified"
+    assert str(tmp_path) not in results["project-a"].text + results["project-b"].text

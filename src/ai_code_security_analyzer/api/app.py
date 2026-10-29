@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -15,7 +16,16 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from ai_code_security_analyzer.api.routes import router
 from ai_code_security_analyzer.api.schemas import ErrorResponse
 from ai_code_security_analyzer.api.security import ApiBoundaryMiddleware, SecurityHeadersMiddleware
-from ai_code_security_analyzer.services.scan_service import ApiSettings, ScanService
+from ai_code_security_analyzer.services.scan_service import ApiSettings, ProjectTarget, ScanService
+
+
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("target_configuration_ambiguous")
+        result[key] = value
+    return result
 
 
 def create_app(
@@ -75,22 +85,49 @@ def create_app(
 
 
 def create_app_from_env() -> SecurityHeadersMiddleware:
+    target_present = "AI_CODE_SECURITY_TARGET" in os.environ
+    targets_present = "AI_CODE_SECURITY_TARGETS" in os.environ
     target_value = os.environ.get("AI_CODE_SECURITY_TARGET")
+    targets_value = os.environ.get("AI_CODE_SECURITY_TARGETS")
     token = os.environ.get("AI_CODE_SECURITY_API_TOKEN")
-    if not target_value or not token:
+    if (not target_present and not targets_present) or not token:
         raise RuntimeError("local_api_configuration_required") from None
+    if target_present and targets_present:
+        raise RuntimeError("local_api_configuration_invalid") from None
     default_rules = Path(__file__).resolve().parents[3] / "rules"
     rules_value = os.environ.get("AI_CODE_SECURITY_RULES_DIR")
     origins = tuple(
         item.strip() for item in os.environ.get("AI_CODE_SECURITY_ALLOWED_ORIGINS", "").split(",") if item.strip()
     )
     try:
+        project_targets: tuple[ProjectTarget, ...] = ()
+        target_directory: Path | None = None
+        if targets_value is not None:
+            if not targets_value or len(targets_value.encode("utf-8")) > 65_536:
+                raise ValueError("target_configuration_invalid")
+            decoded = json.loads(targets_value, object_pairs_hook=_unique_json_object)
+            if not isinstance(decoded, list) or not 1 <= len(decoded) <= 32:
+                raise ValueError("target_configuration_invalid")
+            parsed: list[ProjectTarget] = []
+            for entry in decoded:
+                if not isinstance(entry, dict) or set(entry) != {"id", "label", "path"}:
+                    raise ValueError("target_configuration_invalid")
+                if not all(isinstance(entry[key], str) for key in ("id", "label", "path")):
+                    raise ValueError("target_configuration_invalid")
+                path = Path(entry["path"])
+                if not path.is_absolute():
+                    raise ValueError("target_configuration_invalid")
+                parsed.append(ProjectTarget(entry["id"], entry["label"], path))
+            project_targets = tuple(parsed)
+        else:
+            target_directory = Path(target_value)
         settings = ApiSettings(
-            target_directory=Path(target_value),
+            target_directory=target_directory,
             trusted_rules_directory=Path(rules_value) if rules_value else default_rules,
             api_token=token,
             allowed_origins=origins,
+            project_targets=project_targets,
         )
-    except (OSError, ValueError):
+    except (OSError, ValueError, TypeError, json.JSONDecodeError, RecursionError):
         raise RuntimeError("local_api_configuration_invalid") from None
     return create_app(settings)

@@ -34,7 +34,7 @@ export function QuickStart() {
         <ol>
           <li>검사할 프로젝트를 서버 관리자가 정하고, 서버 실행 전에 그 경로를 등록합니다.</li>
           <li>저장소 루트에서 서버를 실행할 터미널을 엽니다.</li>
-          <li>아래 예시에서 프로젝트 경로를 바꾸고, 무작위 토큰을 생성해 서버 환경에 설정합니다.</li>
+          <li>아래 예시처럼 서버 운영자가 프로젝트 ID, 표시 이름, 절대 경로를 등록하고 무작위 토큰을 서버 환경에 설정합니다.</li>
           <li>빌드된 대시보드는 <code>http://127.0.0.1:8765</code>에서 열립니다. 개발용 Vite 화면은 아래 별도 안내를 따릅니다.</li>
           <li>대시보드에 같은 토큰을 입력하고, 등록된 검사 대상과 규칙 묶음을 선택해 검사를 시작합니다.</li>
           <li>표시된 파일과 위치를 확인하고, 후보인지 취약점이 확인된 것인지 구분해 검토합니다.</li>
@@ -42,8 +42,13 @@ export function QuickStart() {
         <h3>빌드된 대시보드로 실행</h3>
         <p>저장소 루트에서 먼저 화면 파일을 빌드합니다.</p>
         <pre><code>{'cd frontend\nnpm ci\nnpm run build\ncd ..\nuv sync --locked --dev'}</code></pre>
-        <p>그다음 저장소 루트의 서버 터미널에서 실행합니다. 프로젝트 경로를 실제 허용 대상 경로로 바꾸세요. 생성된 토큰은 터미널에 한 번 표시되므로 로컬에서 복사해 대시보드에 입력하고, 저장소에 커밋하거나 공유하지 마세요.</p>
-        <pre><code>{'export AI_CODE_SECURITY_TARGET="/absolute/path/to/approved/project"\nexport AI_CODE_SECURITY_API_TOKEN="$(python3 -c \'import secrets; print(secrets.token_urlsafe(48))\')"\nprintf \'%s\\n\' "$AI_CODE_SECURITY_API_TOKEN"\nexport AI_CODE_SECURITY_ALLOWED_ORIGINS="http://127.0.0.1:8765"\nuv run python -m ai_code_security_analyzer.api'}</code></pre>
+        <p>그다음 저장소 루트의 서버 터미널에서 실행합니다. 아래 JSON의 예시 ID, 이름, 경로를 운영자가 등록할 프로젝트에 맞게 바꾸세요. 서버를 재시작해야 등록 변경이 적용됩니다. 생성된 토큰은 터미널에 한 번 표시되므로 로컬에서 복사해 대시보드에 입력하고, 저장소에 커밋하거나 공유하지 마세요.</p>
+        <pre><code>{`export AI_CODE_SECURITY_TARGETS='[{"id":"app","label":"Application","path":"/absolute/path/to/approved/project"},{"id":"worker","label":"Worker","path":"/absolute/path/to/another/project"}]'
+export AI_CODE_SECURITY_API_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
+printf '%s\\n' "$AI_CODE_SECURITY_API_TOKEN"
+export AI_CODE_SECURITY_ALLOWED_ORIGINS="http://127.0.0.1:8765"
+uv run python -m ai_code_security_analyzer.api`}</code></pre>
+        <p>기존 단일 프로젝트 설정을 사용하는 경우에는 <code>AI_CODE_SECURITY_TARGET</code> 환경 변수도 계속 사용할 수 있습니다. 두 설정을 동시에 지정하면 서버는 모호한 설정으로 거부합니다.</p>
         <h3>개발용 Vite 화면으로 실행</h3>
         <p>서버 환경의 허용 출처를 <code>http://127.0.0.1:5173</code>으로 설정한 뒤, 다른 터미널에서 실행합니다.</p>
         <pre><code>{'cd frontend\nnpm ci\nnpm run dev'}</code></pre>

@@ -10,7 +10,7 @@ from ai_code_security_analyzer.api.app import create_app
 from ai_code_security_analyzer.models import Finding, FindingStatus, Severity
 from ai_code_security_analyzer.semgrep_adapter import ScanResult, ScanStatus
 from ai_code_security_analyzer.semgrep_parser import _finding_id
-from ai_code_security_analyzer.services.scan_service import ApiSettings, ScanService, ServiceError
+from ai_code_security_analyzer.services.scan_service import ApiSettings, ProjectTarget, ScanService, ServiceError
 
 
 TOKEN = "z" * 48
@@ -81,6 +81,67 @@ def test_scan_uses_allowlisted_paths_and_returns_consumer_claims_only(tmp_path: 
     assert "secret-canary" not in response.text
     target, rules_file = service.settings.target_directory, service.settings.trusted_rules_directory / "security-baseline.yml"
     assert target.is_dir() and rules_file.is_file()
+
+
+def test_registered_directory_identity_change_is_rejected_before_adapter(tmp_path: Path) -> None:
+    client, service = _client(tmp_path)
+    configured = service.settings.target_directory
+    assert configured is not None
+    moved = tmp_path / "registered-original"
+    configured.rename(moved)
+    configured.mkdir()
+    called = False
+
+    class MustNotScan:
+        def __init__(self, _rules: Path) -> None:
+            nonlocal called
+            called = True
+
+    service.adapter_factory = MustNotScan
+    with client:
+        response = _request(client)
+    assert response.status_code == 400
+    assert response.json() == {"error": "target_not_allowed"}
+    assert called is False
+
+
+def test_registered_projects_select_only_the_mapped_target_and_never_expose_paths(tmp_path: Path) -> None:
+    first, second, rules = tmp_path / "first", tmp_path / "second", tmp_path / "rules"
+    first.mkdir()
+    second.mkdir()
+    rules.mkdir()
+    (rules / "security-baseline.yml").write_text("rules: []\n")
+    (rules / "experimental").mkdir()
+    (rules / "experimental" / "javascript-eval-taint.yml").write_text("rules: []\n")
+    (rules / "experimental" / "javascript-command-injection-taint.yml").write_text("rules: []\n")
+    seen: list[Path] = []
+
+    class TargetRecordingAdapter(FakeAdapter):
+        def _scan_with_evidence(self, target: Path, rules_file: Path):
+            seen.append(target)
+            return super()._scan_with_evidence(target, rules_file)
+
+    settings = ApiSettings(
+        None, rules, TOKEN,
+        allowed_hosts=("testserver",),
+        project_targets=(ProjectTarget("alpha", "Alpha Project", first), ProjectTarget("beta", "Beta Project", second)),
+    )
+    service = ScanService(settings, adapter_factory=lambda root: TargetRecordingAdapter(root))
+    with TestClient(create_app(settings, scan_service=service)) as client:
+        options = client.get("/api/v1/options")
+        result = client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN}, json={
+            "target_id": "beta", "rule_profile_id": "baseline",
+        })
+        unknown = client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN}, json={
+            "target_id": "unregistered", "rule_profile_id": "baseline",
+        })
+    assert options.json()["targets"] == [
+        {"id": "alpha", "label": "Alpha Project"}, {"id": "beta", "label": "Beta Project"},
+    ]
+    assert str(tmp_path) not in options.text and str(tmp_path) not in result.text
+    assert result.status_code == 200 and unknown.status_code == 404
+    assert unknown.json() == {"error": "target_not_allowed"}
+    assert seen == [second.resolve()]
 
 
 def test_invalid_ids_and_failed_scan_do_not_return_supported_claims(tmp_path: Path) -> None:

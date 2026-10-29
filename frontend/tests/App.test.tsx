@@ -30,7 +30,8 @@ describe('Analyst dashboard',()=>{
     expect(quickStart).toBeInTheDocument(); expect(quickStart).not.toHaveAttribute('open');
     await user.click(screen.getByText('처음 시작하기'));
     expect(quickStart).toHaveAttribute('open');
-    expect(within(quickStart).getByText(/AI_CODE_SECURITY_TARGET/)).toBeInTheDocument();
+    expect(within(quickStart).getByText(/AI_CODE_SECURITY_TARGETS/)).toBeInTheDocument();
+    expect(within(quickStart).getByText(/서버를 재시작해야 등록 변경이 적용됩니다/)).toBeInTheDocument();
     expect(within(quickStart).getByText(/secrets\.token_urlsafe\(48\)/)).toBeInTheDocument();
     expect(within(quickStart).getAllByText(/127\.0\.0\.1:8765/).length).toBeGreaterThan(0);
     expect(within(quickStart).getAllByText(/127\.0\.0\.1:5173/).length).toBeGreaterThan(0);
@@ -42,7 +43,8 @@ describe('Analyst dashboard',()=>{
     expect(screen.getByText(/내 컴퓨터의 검사 서버에 요청할 권한/)).toBeInTheDocument();
     expect(screen.getByText(/GitHub에 커밋하거나 다른 사람과 공유하지 마세요/)).toBeInTheDocument();
     expect(screen.getByText(/토큰을 지우면 화면의 입력값만 제거됩니다/)).toBeInTheDocument();
-    expect(screen.getByText(/미리 등록된 프로젝트만 선택/)).toBeInTheDocument();
+    expect(screen.getByText(/서버 운영자가 등록한 프로젝트만 선택/)).toBeInTheDocument();
+    expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
     expect(screen.getByText(/보안 문제.*검사 규칙 묶음/)).toBeInTheDocument();
     await userEvent.setup().selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
     expect(screen.getByText(/일반적인 정확도가 충분히 검증됐다는 뜻은 아닙니다/)).toBeInTheDocument();

@@ -4,9 +4,10 @@ import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+import pytest
 
-from ai_code_security_analyzer.api.app import create_app
-from ai_code_security_analyzer.services.scan_service import ApiSettings
+from ai_code_security_analyzer.api.app import create_app, create_app_from_env
+from ai_code_security_analyzer.services.scan_service import ApiSettings, ProjectTarget
 
 
 TOKEN = "t" * 48
@@ -93,6 +94,98 @@ def test_target_and_rules_directory_must_not_overlap_or_be_symlinks(tmp_path: Pa
         assert str(error) == "symlink_path_not_allowed"
     else:
         raise AssertionError("symlink configuration must fail")
+
+
+def test_target_with_symlinked_parent_is_rejected_before_resolution(tmp_path: Path) -> None:
+    real_parent = tmp_path / "real-parent"
+    target = real_parent / "project"
+    rules = tmp_path / "rules"
+    target.mkdir(parents=True)
+    rules.mkdir()
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(real_parent, target_is_directory=True)
+
+    try:
+        ApiSettings(linked_parent / "project", rules, TOKEN)
+    except ValueError as error:
+        assert str(error) == "symlink_path_not_allowed"
+    else:
+        raise AssertionError("symlinked path components must be rejected before resolving")
+
+
+def test_legacy_relative_single_target_remains_supported(tmp_path: Path, monkeypatch) -> None:
+    rules, target = tmp_path / "rules", tmp_path / "project"
+    rules.mkdir()
+    target.mkdir()
+    monkeypatch.chdir(tmp_path)
+    settings = ApiSettings(Path("project"), rules.resolve(), TOKEN)
+    assert settings.target_directory == target.resolve()
+
+
+@pytest.mark.parametrize("duplicate_id", [True, False])
+def test_duplicate_project_ids_or_ambiguous_labels_are_rejected(tmp_path: Path, duplicate_id: bool) -> None:
+    rules, first, second = tmp_path / "rules", tmp_path / "first", tmp_path / "second"
+    rules.mkdir()
+    first.mkdir()
+    second.mkdir()
+    ids = ("same", "same") if duplicate_id else ("first", "second")
+    labels = ("First", "Second") if duplicate_id else ("Same", "same")
+    targets = (ProjectTarget(ids[0], labels[0], first), ProjectTarget(ids[1], labels[1], second))
+    with pytest.raises(ValueError, match="target_configuration_ambiguous"):
+        ApiSettings(None, rules, TOKEN, project_targets=targets)
+
+
+def test_multi_target_environment_registration_and_legacy_ambiguity(tmp_path: Path, monkeypatch) -> None:
+    rules, first, second = tmp_path / "rules", tmp_path / "first", tmp_path / "second"
+    rules.mkdir(); first.mkdir(); second.mkdir()
+    monkeypatch.setenv("AI_CODE_SECURITY_RULES_DIR", str(rules))
+    monkeypatch.setenv("AI_CODE_SECURITY_API_TOKEN", TOKEN)
+    monkeypatch.setenv("AI_CODE_SECURITY_TARGETS", json.dumps([
+        {"id": "frontend", "label": "Frontend", "path": str(first)},
+        {"id": "worker", "label": "Worker", "path": str(second)},
+    ]))
+    monkeypatch.delenv("AI_CODE_SECURITY_TARGET", raising=False)
+    app = create_app_from_env()
+    with TestClient(app, base_url="http://127.0.0.1") as client:
+        response = client.get("/api/v1/options")
+    assert response.status_code == 200, response.text
+    assert response.json()["targets"] == [
+        {"id": "frontend", "label": "Frontend"}, {"id": "worker", "label": "Worker"},
+    ]
+    assert str(tmp_path) not in response.text
+
+    monkeypatch.setenv("AI_CODE_SECURITY_TARGET", str(first))
+    with pytest.raises(RuntimeError, match="local_api_configuration_invalid"):
+        create_app_from_env()
+
+
+def test_duplicate_json_keys_in_project_registration_are_rejected(tmp_path: Path, monkeypatch) -> None:
+    rules, project = tmp_path / "rules", tmp_path / "project"
+    rules.mkdir()
+    project.mkdir()
+    monkeypatch.setenv("AI_CODE_SECURITY_RULES_DIR", str(rules))
+    monkeypatch.setenv("AI_CODE_SECURITY_API_TOKEN", TOKEN)
+    monkeypatch.delenv("AI_CODE_SECURITY_TARGET", raising=False)
+    monkeypatch.setenv("AI_CODE_SECURITY_TARGETS", (
+        '[{"id":"first","id":"second","label":"Project","path":'
+        + json.dumps(str(project)) + '}]'
+    ))
+    with pytest.raises(RuntimeError, match="local_api_configuration_invalid"):
+        create_app_from_env()
+
+
+def test_project_registry_rejects_nested_targets_and_missing_directories(tmp_path: Path) -> None:
+    rules, project, nested = tmp_path / "rules", tmp_path / "project", tmp_path / "project" / "nested"
+    rules.mkdir()
+    nested.mkdir(parents=True)
+    with pytest.raises(ValueError, match="target_configuration_ambiguous"):
+        ApiSettings(None, rules, TOKEN, project_targets=(
+            ProjectTarget("root", "Root", project), ProjectTarget("child", "Child", nested),
+        ))
+    with pytest.raises(ValueError):
+        ApiSettings(None, rules, TOKEN, project_targets=(
+            ProjectTarget("missing", "Missing", tmp_path / "absent"),
+        ))
 
 
 def test_exact_loopback_origin_cors_preflight_requires_configured_origin(tmp_path: Path) -> None:
