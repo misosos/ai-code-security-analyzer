@@ -156,3 +156,36 @@ rules:
       - patterns:
           - pattern: require("node:child_process").execSync($CMD, ...)
           - focus-metavariable: $CMD
+      - patterns:
+          - pattern: 'spawn($COMMAND, [..., $ARG, ...], {..., shell: true, ...})'
+          - focus-metavariable: $ARG
+          - pattern-inside: |
+              import { spawn } from "node:child_process";
+              ...
+          - pattern-not-inside: |
+              function $FUNCTION(...) {
+                const spawn = $SHADOW;
+                ...
+              }
+      - patterns:
+          - pattern: 'child_process.spawn($COMMAND, [..., $ARG, ...], {..., shell: true, ...})'
+          - focus-metavariable: $ARG
+          - pattern-inside: |
+              const child_process = require("child_process");
+              ...
+          - pattern-not-inside: |
+              function $FUNCTION(...) {
+                const child_process = $SHADOW;
+                ...
+              }
+      - patterns:
+          - pattern: 'launch($COMMAND, {..., shell: true, ...})'
+          - focus-metavariable: $COMMAND
+          - pattern-inside: |
+              import { spawn as launch } from "node:child_process";
+              ...
+          - pattern-not-inside: |
+              function $FUNCTION(...) {
+                const launch = $SHADOW;
+                ...
+              }

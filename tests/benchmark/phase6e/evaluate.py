@@ -39,7 +39,17 @@ RULE_PROFILES = {
 PROFILES = {
     "baseline": "rules/security-baseline.yml",
     "eval_taint": "rules/experimental/javascript-eval-taint.yml",
-    "command_injection": "rules/experimental/javascript-command-injection-taint.yml",
+    # Preserve the exact Phase 6E rule bytes after the active experimental rule
+    # evolves. The immutable historical corpus must not silently score a newer rule.
+    "command_injection": "tests/benchmark/phase6e/pinned_rules/javascript-command-injection-taint.yml",
+}
+RULE_HASH_PATHS = {
+    **{
+        relative: ROOT / relative
+        for relative in RULE_SHA256
+        if relative != "rules/experimental/javascript-command-injection-taint.yml"
+    },
+    "rules/experimental/javascript-command-injection-taint.yml": DATA_ROOT / "pinned_rules" / "javascript-command-injection-taint.yml",
 }
 SIGNALS = {"positive", "negative", "out_of_scope"}
 RELEVANCE = {"review_worthy", "lower_priority", "undetermined"}
@@ -427,7 +437,7 @@ def run_evaluation() -> dict[str, Any]:
     dataset = load_dataset()
     for relative, expected in RULE_SHA256.items():
         try:
-            if _sha((ROOT / relative).read_bytes()) != expected:
+            if _sha(RULE_HASH_PATHS[relative].read_bytes()) != expected:
                 raise EvaluationInputError("benchmark_rule_hash_mismatch")
         except OSError:
             raise EvaluationInputError("benchmark_rule_unavailable") from None
@@ -438,7 +448,13 @@ def run_evaluation() -> dict[str, Any]:
         target = Path(temporary) / "cases"
         shutil.copytree(CASES_ROOT, target)
         for profile, rule_path in PROFILES.items():
-            results[profile] = SemgrepAdapter(ROOT / "rules").scan(target, ROOT / rule_path)
+            rule_file = ROOT / rule_path
+            trusted_root = (
+                DATA_ROOT / "pinned_rules"
+                if profile == "command_injection"
+                else ROOT / "rules"
+            )
+            results[profile] = SemgrepAdapter(trusted_root).scan(target, rule_file)
     report = evaluate_results(dataset, results)
     report["rule_sha256"] = RULE_SHA256
     return report

@@ -25,6 +25,16 @@ RULE_SHA256 = {
     "rules/experimental/javascript-eval-taint.yml": "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e",
     "rules/experimental/javascript-command-injection-taint.yml": "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783",
 }
+RULE_HASH_PATHS = {
+    **{
+        relative: ROOT / relative
+        for relative in RULE_SHA256
+        if relative != "rules/experimental/javascript-command-injection-taint.yml"
+    },
+    "rules/experimental/javascript-command-injection-taint.yml": DATA
+    / "pinned_rules"
+    / "javascript-command-injection-taint.yml",
+}
 
 
 def _digest(data: bytes) -> str:
@@ -50,7 +60,7 @@ def test_phase6e_fixture_and_rule_hashes_match_preregistration() -> None:
     assert manifest["evaluation_set_version"] == VERSION
     assert manifest["rule_sha256"] == RULE_SHA256
     for relative_rule, expected in RULE_SHA256.items():
-        assert _digest((ROOT / relative_rule).read_bytes()) == expected
+        assert _digest(RULE_HASH_PATHS[relative_rule].read_bytes()) == expected
 
     declared: set[Path] = set()
     seen_case_ids: set[str] = set()

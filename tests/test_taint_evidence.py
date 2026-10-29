@@ -155,12 +155,13 @@ def test_rule_registry_binds_command_rule_to_reviewed_path_hash_and_declarations
     )
     assert status is EvidenceState.AVAILABLE
     assert file_id == "experimental/javascript-command-injection-taint.yml"
-    assert digest == "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783"
+    assert digest == "a06063859bb8ce2c284412a5922fa2674679b27fbcfb3a5e12625ad430a73fb8"
     assert sources == ("req.query.cmd", "req.body.cmd")
-    assert len(sinks) == 4
-    assert all("first argument focused" in pattern for pattern in sinks)
+    assert len(sinks) == 7
+    assert all("first argument focused" in pattern for pattern in sinks[:4])
     assert any("named imports" in pattern for pattern in sinks)
     assert any("destructured require" in pattern for pattern in sinks)
+    assert sum("shell: true" in pattern for pattern in sinks) == 3
     assert sanitizers == ()
     rule_text = COMMAND_RULE_FILE.read_text(encoding="utf-8")
     assert f"id: {COMMAND_RULE_ID}" in rule_text

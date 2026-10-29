@@ -96,6 +96,7 @@ jobs:
           tests/test_semgrep_taint_evaluation.py
           tests/test_command_injection_taint.py
           tests/test_command_injection_hardening.py
+          tests/test_command_injection_phase6f.py
           tests/test_api_semgrep_e2e.py
           tests/test_firestore_context_validation.py
       - name: Run independent synthetic detection benchmark

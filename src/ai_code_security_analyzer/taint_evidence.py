@@ -53,7 +53,7 @@ _TRUSTED_RULES: dict[str, _TrustedRuleDeclaration] = {
     ),
     "experimental.javascript-command-injection-taint": _TrustedRuleDeclaration(
         "experimental/javascript-command-injection-taint.yml",
-        "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783",
+        "a06063859bb8ce2c284412a5922fa2674679b27fbcfb3a5e12625ad430a73fb8",
         ("req.query.cmd", "req.body.cmd"),
         (
             "child_process.exec($CMD, ...) / child_process.execSync($CMD, ...); "
@@ -67,6 +67,15 @@ _TRUSTED_RULES: dict[str, _TrustedRuleDeclaration] = {
             "child_process/node:child_process; function-local binding shadowing excluded",
             "require('child_process'|'node:child_process').exec($CMD, ...) / "
             "execSync($CMD, ...); first argument focused",
+            "spawn($COMMAND, [..., $ARG, ...], {..., shell: true, ...}); "
+            "tainted argv element focused; named import from node:child_process; "
+            "function-local spawn shadowing excluded",
+            "child_process.spawn($COMMAND, [..., $ARG, ...], "
+            "{..., shell: true, ...}); tainted argv element focused; "
+            "CommonJS child_process binding; function-local binding shadowing excluded",
+            "launch($COMMAND, {..., shell: true, ...}); command argument focused; "
+            "named import alias of spawn from node:child_process; "
+            "function-local alias shadowing excluded",
         ),
         (),
     ),

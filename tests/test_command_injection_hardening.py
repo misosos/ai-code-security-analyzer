@@ -164,7 +164,7 @@ def test_expanded_import_forms_and_hard_negatives(tmp_path: Path) -> None:
         assert item.matched_file == finding.file_path
         assert item.matched_start is not None and item.matched_start.line == finding.line_number
         assert item.rules_file_id == "experimental/javascript-command-injection-taint.yml"
-        assert item.rules_file_sha256 == "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783"
+        assert item.rules_file_sha256 == "a06063859bb8ce2c284412a5922fa2674679b27fbcfb3a5e12625ad430a73fb8"
         assert item.source_patterns_declared == ("req.query.cmd", "req.body.cmd")
         assert item.sink_patterns_declared
         assert item.sanitizer_patterns_declared == ()
