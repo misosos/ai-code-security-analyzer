@@ -20,6 +20,12 @@ Firestore의 공개 읽기(`allow read: if true;`)는 사용 사례에 따라 �
 
 ## 실험용 OSS taint 규칙
 
+### React HTML sink coverage 실험
+
+`experimental/react-html-sink-coverage.yml`은 기존 `baseline.react-dangerous-html`을 수정하거나 대체하지 않는 별도 실험 규칙이다. Phase 6G 합성 개발 사례에서 실제 `react` default import 문맥이 있는 JSX의 변수 `dangerouslySetInnerHTML` props와 `React.createElement`/default import 별칭의 직접 props 객체를 평가한다. Semgrep OSS 1.182.1에서 관찰된 이 구문 범위만 대상으로 하며, JSX 변수 props의 HTML 값 출처는 추적하지 않는다. 상수 HTML도 문법상 sink로 매치될 수 있어 검토 우선순위가 낮을 수 있다.
+
+일반 DOM `innerHTML`, `insertAdjacentHTML`, `document.write`, named `createElement` import, helper 함수가 만든 props, 컴포넌트 간·파일 간 props 전달, 복잡한 alias 및 sanitizer 효력은 지원하지 않는다. React import 문맥은 정적 구문 근거이지 실제 런타임 binding이나 XSS 악용 가능성의 증명이 아니다. 모든 Finding은 `unverified`이며 취약점 확인·HTML 출처 확인·정제 안전성 확인을 뜻하지 않는다. 규칙은 실험 파일에만 있고 baseline 프로필에 자동 포함되지 않는다. 개발 사례 결과와 제한은 `docs/phase6g-react-html-sink-coverage.md`에 기록한다.
+
 `experimental/javascript-eval-taint.yml`은 baseline에 포함되지 않는 PoC 규칙 두 개다. `experimental.javascript-eval-taint`는 `req.query.code` 및 `req.body.code`를 source, `eval`의 첫 인자를 sink로 모델링한다. 두 번째 규칙은 같은 모델에 합성 함수 `syntheticSafe(...)`를 sanitizer로 추가한다. 이는 규칙에서 이름 붙인 패턴을 신뢰한다고 가정한 실험일 뿐, 해당 함수가 실제 안전한 정제 함수라는 검증이 아니다. 다른 함수명, 검증 로직 또는 부분 조건문은 sanitizer로 인정하지 않는다.
 
 Semgrep OSS taint 분석은 지정 source→sink 관계를 같은 함수 내 변수 할당을 따라 추적하는지 확인하는 범위다. 함수 간·파일 간 흐름은 이 평가에서 지원 보장으로 간주하지 않는다. 요청 객체의 `query`/`body` 필드 패턴은 데이터 source 정의일 뿐, 실제 사용자 도달성이나 런타임 framework 동작을 입증하지 않는다. 재현 평가와 제한은 `docs/phase3a-taint-evaluation.md` 및 `tests/fixtures/semgrep_taint/`를 참고한다.

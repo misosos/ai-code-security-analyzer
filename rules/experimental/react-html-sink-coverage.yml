@@ -1,0 +1,41 @@
+rules:
+  - id: experimental.react-html-sink-coverage
+    languages:
+      - javascript
+      - typescript
+    severity: WARNING
+    message: Review the React HTML sink, HTML origin, and sanitization context.
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      category: security
+      technology:
+        - react
+      confidence: LOW
+      impact: MEDIUM
+      likelihood: LOW
+      references:
+        - https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html
+      subcategory:
+        - vuln
+      experimental: true
+    pattern-either:
+      - patterns:
+          - pattern: '<$TAG ... dangerouslySetInnerHTML={$PROPS} ... />'
+          - metavariable-regex:
+              metavariable: $PROPS
+              regex: '^[A-Za-z_$][A-Za-z0-9_$]*$'
+          - pattern-inside: |
+              const $PROPS = {..., __html: $HTML, ...};
+              ...
+          - pattern-inside: |
+              import $REACT from "react";
+              ...
+      - patterns:
+          - pattern: '$REACT.createElement($TAG, {..., dangerouslySetInnerHTML: {..., __html: $HTML, ...}, ...})'
+          - pattern-inside: |
+              import $REACT from "react";
+              ...
+          - pattern-not-inside: |
+              function $FN(..., $REACT, ...) {
+                ...
+              }
