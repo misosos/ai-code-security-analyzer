@@ -1,0 +1,745 @@
+{
+  "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+  "case_count": 60,
+  "categories": {
+    "js_eval": 12,
+    "react_html": 12,
+    "firestore": 12,
+    "eval_taint": 12,
+    "command_injection": 12
+  },
+  "authoring": {
+    "author": "Codex-generated synthetic cases, authored in this task",
+    "prior_exposure": "Author had full access to Phase 6A–6D rules, fixtures, evaluation reports, and benchmark outcomes before authoring.",
+    "oracle_basis": "Labels authored from stated rule scope, language syntax, and described review context before running Semgrep on Phase 6E cases.",
+    "independent_review": "INDEPENDENT_REVIEW_NOT_PERFORMED",
+    "source": "Directly authored synthetic code; no external repositories or user code."
+  },
+  "rule_sha256": {
+    "rules/security-baseline.yml": "bfeb93c42ad942fda138dff3a9be8f4ccc1b137a2b547b6b29b65d98fc70a1a3",
+    "rules/experimental/javascript-eval-taint.yml": "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e",
+    "rules/experimental/javascript-command-injection-taint.yml": "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783"
+  },
+  "cases": [
+    {
+      "case_id": "EJX01_invoice_preview",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX01_invoice_preview",
+      "files": [
+        {
+          "path": "src/preview.js",
+          "sha256": "5478c648c739c3b375d4d3115c91968d1a550d151d3c993300d75e7e3e0d7e8d"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX02_fixed_formula",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX02_fixed_formula",
+      "files": [
+        {
+          "path": "src/formula.ts",
+          "sha256": "45e006ed03e28910e63da12ff044e5b7779237a03d57925e35fdd4289a81abf5"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX03_legacy_console",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX03_legacy_console",
+      "files": [
+        {
+          "path": "src/legacy.js",
+          "sha256": "01cea5d7802721d51bfa303a4756b0e1964f8fbcc781d96e306bfd3f1bc6c0d0"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX04_worker_transform",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX04_worker_transform",
+      "files": [
+        {
+          "path": "src/worker.js",
+          "sha256": "fe27dad828ed7d148227f0629b7a503730fd5f5c2c4c302e9582d9ad76c08f16"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX05_import_map_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX05_import_map_expression",
+      "files": [
+        {
+          "path": "src/resolve.ts",
+          "sha256": "3e90ba78d4c8e1855049f215c4c2473bd9dc88d2afbd1399db00cf69364554f1"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX06_migration_constant",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX06_migration_constant",
+      "files": [
+        {
+          "path": "src/migrate.js",
+          "sha256": "bae9eaaf20e201c52e6f7161a35ad5ed55cf30309f83a5b9044514f74f043711"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX07_comment_documentation",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX07_comment_documentation",
+      "files": [
+        {
+          "path": "src/guide.js",
+          "sha256": "59859073c16e2c025d41aeeb1123c7b515434aa36f60eb95142a933f264ebd17"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX08_method_name",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX08_method_name",
+      "files": [
+        {
+          "path": "src/decoder.js",
+          "sha256": "fef78e6dcbaf707de60c08e59a0ae11ecf5ab36ff6360d1ca409489e1bdcb9b0"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX09_text_template",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX09_text_template",
+      "files": [
+        {
+          "path": "src/log.js",
+          "sha256": "08070b0e50d0d7ed4fb70ead26d14621e9983bf169cb9b5fc247b1c5bd52d623"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX10_safe_parser",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX10_safe_parser",
+      "files": [
+        {
+          "path": "src/parser.js",
+          "sha256": "1d37aaa2c401a4558e4361ab598376edabefc2b0f9f8b8825222b97b09febf69"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX11_alias_constructor",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX11_alias_constructor",
+      "files": [
+        {
+          "path": "src/compiler.js",
+          "sha256": "c9d603312215e72010871b8dbfbe50947ae60fa140cf9eac264753c16fe2b295"
+        }
+      ]
+    },
+    {
+      "case_id": "EJX12_deferred_wrapper",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX12_deferred_wrapper",
+      "files": [
+        {
+          "path": "src/runtime.js",
+          "sha256": "9b134d0424903ff75e8fded7974b6281a024c83d74d65de09874426a8c65011e"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX01_profile_bio",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX01_profile_bio",
+      "files": [
+        {
+          "path": "src/Profile.jsx",
+          "sha256": "96450fa208c91d79952e726fe9d772c48253c70e2516ed1360fc254745d278f5"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX02_static_help",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX02_static_help",
+      "files": [
+        {
+          "path": "src/Help.tsx",
+          "sha256": "f4e86940ae75b81e2e6f68eb3153381cad4fa0b332ae8364a57c42106e9ba7a2"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX03_ticket_body",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX03_ticket_body",
+      "files": [
+        {
+          "path": "src/Ticket.jsx",
+          "sha256": "2362d79ffb05f2948225fab8e67423d056b01e0e273f285151887e33ca7d245f"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX04_notice_content",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX04_notice_content",
+      "files": [
+        {
+          "path": "src/Notice.tsx",
+          "sha256": "ac332159e6cdce6ef7ca013bde82fc15147da8150f3768a2592cdc29edc3aee9"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX05_static_policy",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX05_static_policy",
+      "files": [
+        {
+          "path": "src/Policy.jsx",
+          "sha256": "266356a159b31348a5937c18a4491d3b98ce9a910df3b738bf6e44515bc06ff9"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX06_sanitized_profile",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX06_sanitized_profile",
+      "files": [
+        {
+          "path": "src/SanitizedProfile.jsx",
+          "sha256": "565f51b3bc976d66eebea8e018e3a1f5ae551aac15d412bc4412e52020f1c054"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX07_text_render",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX07_text_render",
+      "files": [
+        {
+          "path": "src/Comment.jsx",
+          "sha256": "56b447f4db9bb45cfc9423af1473cfd9f327928ca09c044e19cfcfad792d13c4"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX08_similar_prop",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX08_similar_prop",
+      "files": [
+        {
+          "path": "src/Widget.jsx",
+          "sha256": "d456febbed3d3920df39403eebc2b2b2986964685a14dcb425e83b15349c04cf"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX09_dom_api",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX09_dom_api",
+      "files": [
+        {
+          "path": "src/legacy-dom.js",
+          "sha256": "09f708dcc76b3c0c3a50589d10244968f7894ed87268e31e44c2ad2658f18b9b"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX10_create_element",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX10_create_element",
+      "files": [
+        {
+          "path": "src/element.tsx",
+          "sha256": "f270dfe3549fc852d708496d2205689d2b8f3857519d7296220574355d8c3d34"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX11_plain_string",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX11_plain_string",
+      "files": [
+        {
+          "path": "src/preview.tsx",
+          "sha256": "f5e9e84ebebf6f42086868761d53632a8a83cf258b7dd65069e61f7ef8eabaeb"
+        }
+      ]
+    },
+    {
+      "case_id": "RHX12_child_component",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX12_child_component",
+      "files": [
+        {
+          "path": "src/Outer.jsx",
+          "sha256": "465ccd771f6afc6c3f1fa2654b974229b5e83cb4ee05ece450ff7495e434cf10"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX01_account_create",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX01_account_create",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "0f095ff27176f8be761f462ff8259e0270be8a8ecbb951f43e343306e144793d"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX02_nested_multiwrite",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX02_nested_multiwrite",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "1186b11916f8955cb4aac6e32f8c312252b0a406b1c1d67260fe8962365ac1d6"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX03_write_alias",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX03_write_alias",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "9d7e86d10d1e12f84330e4dfa6ae3eb8c89b59d9feff64e9b308c12a036d0c7c"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX04_read_public",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX04_read_public",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "fa4de38a4974df431bf7032d579d35a7e71a1539a478887dc84ac725bb6023ab"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX05_auth_guard",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX05_auth_guard",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "0f002fc5064c5413a76824ed62490730dc7e68ba6814f4e6299520ac2f837bfa"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX06_block_comment",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX06_block_comment",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "63cef4ca92e920fbcbbe13e23ff3a0f9597914b433ceb9b98ee2392bb4a10c15"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX07_string_sample",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX07_string_sample",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "16d445913998077394b6ecac599f2912e0e143f33f9986de0c0a33c84014bca5"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX08_conditional_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX08_conditional_write",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "967e556ea768a4a52c5948eea34cb4fbe1dcb6209b9a9b2abfc6a091164679e4"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX09_alt_filename",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX09_alt_filename",
+      "files": [
+        {
+          "path": "policy.rules",
+          "sha256": "04b1e33d3a1f453b7eeaeff29bbd0075ad51d78c235cb691dab7ddce8c5d7e99"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX10_unclosed_comment",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX10_unclosed_comment",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "cff3cad603222720774f1add725f255f37318adb015b88d983e53a58fdcd546b"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX11_false_condition",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX11_false_condition",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "344be941e38e8ac3561aa13f1469b42012ab272c651950ba26ad9d034c52d03c"
+        }
+      ]
+    },
+    {
+      "case_id": "FSX12_review_function",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX12_review_function",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "faca012fc07b1b309f176264d7f80631f97f166ae0d5dce6fe55d838197e2965"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX01_route_preview",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX01_route_preview",
+      "files": [
+        {
+          "path": "src/routes/preview.js",
+          "sha256": "30af6a1eb6b5d9fd720fc2d17ffd43769feaa82a7df07ce66c8e2448f77b51c6"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX02_body_calculator",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX02_body_calculator",
+      "files": [
+        {
+          "path": "src/controllers/calc.ts",
+          "sha256": "3350b945cd77b3aedc350db5964fcfc9645856a7fb899ff8fe9d44268b5264e0"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX03_generic_record",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX03_generic_record",
+      "files": [
+        {
+          "path": "src/tools/record.js",
+          "sha256": "cba166245837b713fad6982f46354fa8708e780ec9bbe8d59231dd84948bc8b4"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX04_synthetic_filter",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX04_synthetic_filter",
+      "files": [
+        {
+          "path": "src/demo/filter.js",
+          "sha256": "d4ae92b307db743d11273b16c018d0e5ad3b8e4b945498407787596828cd3b78"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX05_no_sink",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX05_no_sink",
+      "files": [
+        {
+          "path": "src/routes/store.js",
+          "sha256": "f7302bc91eff4b62693a4fa0224ff57e42ffe49844d1313217b58d652e697a59"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX06_unrelated_local",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX06_unrelated_local",
+      "files": [
+        {
+          "path": "src/math/evaluate.js",
+          "sha256": "b02fe1ee22740de91b729f43c15ea21e464f481d3eb21e462e20808d83ae0bb9"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX07_alternate_field",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX07_alternate_field",
+      "files": [
+        {
+          "path": "src/routes/query.js",
+          "sha256": "84b4fbf3cbd72c9fc9a05da8189cb43d74346cba566240ae114aa2a5953cfac1"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX08_helper_boundary",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX08_helper_boundary",
+      "files": [
+        {
+          "path": "src/routes/helper.js",
+          "sha256": "c552c245f48c32dfdb57db3bfa7cc73c6c311cc957f5108d98dc3925d1c22c68"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX09_other_object",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX09_other_object",
+      "files": [
+        {
+          "path": "src/tasks/offline.js",
+          "sha256": "6d960c606d6ebeb5bdabd09d83133e3f2a04bed4e0affaf14eab2745c015eb82"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX10_cross_file",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX10_cross_file",
+      "files": [
+        {
+          "path": "src/routes/cross.js",
+          "sha256": "d9a2e3fe904bb60be9cd22e7c1343903444b4501294813e6235f44a06537e855"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX11_not_eval",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX11_not_eval",
+      "files": [
+        {
+          "path": "src/routes/filter.js",
+          "sha256": "c472069bf6c7d338fe839d31fdacf7e534811a534290134a1bd1bc5b5eb0afce"
+        }
+      ]
+    },
+    {
+      "case_id": "ETX12_synthetic_unknown",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX12_synthetic_unknown",
+      "files": [
+        {
+          "path": "src/middleware/clean.js",
+          "sha256": "a66fc5ae85e937abd038d11c134b8de82967384ba2f409a545d9b11b42c0d8ac"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX01_export_route",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX01_export_route",
+      "files": [
+        {
+          "path": "src/routes/export.js",
+          "sha256": "249187a396c296217ecd896f0c6b04bc87ddf2d19ddc519e2f161874322a3778"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX02_sync_admin",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX02_sync_admin",
+      "files": [
+        {
+          "path": "src/tasks/rebuild.ts",
+          "sha256": "d44a3ecf95e5159acea498b211352e29fd20e0905be0258ac9adfac34de5096d"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX03_named_alias",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX03_named_alias",
+      "files": [
+        {
+          "path": "src/ops/archive.ts",
+          "sha256": "9422811bcf92f2fe397f4cf4cc92519d7b7f5992d8b48fe4d7b2a68f9cb4e69b"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX04_static_command",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX04_static_command",
+      "files": [
+        {
+          "path": "src/jobs/cleanup.js",
+          "sha256": "358244541eade30d947391ca81660c24a840ff00e552e78c9a4946ee0cfeb691"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX05_regex_exec",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX05_regex_exec",
+      "files": [
+        {
+          "path": "src/parsers/route.js",
+          "sha256": "059f5f687bf50501097f53a6f07746eb9abb37801422a65600adceced1447cec"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX06_option_only",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX06_option_only",
+      "files": [
+        {
+          "path": "src/routes/options.js",
+          "sha256": "aa6e89b3c34bb510567148bf2f3a6ba0e20680435b1e6f0695fbc0df26ddd3b7"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX07_spawn_api",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX07_spawn_api",
+      "files": [
+        {
+          "path": "src/routes/spawn.js",
+          "sha256": "da4e9bbfa95f6680ec3ae4ca7336b6c6ab5b4daa24a15cd88adff1ed739ed712"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX08_helper_boundary",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX08_helper_boundary",
+      "files": [
+        {
+          "path": "src/routes/helper.js",
+          "sha256": "42969bb3eaa0341b34b47caaa41c51a74088f58ff59eacfcb209ac4a85087719"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX09_other_property",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX09_other_property",
+      "files": [
+        {
+          "path": "src/routes/search.js",
+          "sha256": "b3abd3a6b4e7a8a4db9470b00444ffcaf566cd4d1caddd56662542f6e2fc82bc"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX10_mock",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX10_mock",
+      "files": [
+        {
+          "path": "src/tests/fake.js",
+          "sha256": "e3017c48ad7294a01f459b0c4464fec84556989596140319b3258ab94abd18a8"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX11_local_alias",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX11_local_alias",
+      "files": [
+        {
+          "path": "src/tasks/queue.js",
+          "sha256": "5a18d97064d6c409e668fb67a6b33c7bc0c40c155e49c5cb2fb2117044c56d87"
+        }
+      ]
+    },
+    {
+      "case_id": "CIX12_cross_file",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX12_cross_file",
+      "files": [
+        {
+          "path": "src/routes/cross.ts",
+          "sha256": "f108b50a08832f7d38827fa91cdf7fd280825f126fa357bef835639abd4aabd3"
+        }
+      ]
+    }
+  ]
+}

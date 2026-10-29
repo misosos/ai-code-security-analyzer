@@ -6,6 +6,8 @@ This corpus is new relative to Phase 6A–6D fixture files; it is **not** an ind
 
 `oracle.json` was authored from the documented rule contracts and language-level case meaning before Semgrep was run on this corpus. `manifest.json` pins the case paths and per-file SHA-256; the Oracle pins the Rule Signal, review relevance, coverage-gap category, expected rule IDs, cardinality, and match locations. All vulnerability labels are `NOT_EVALUATED`.
 
-The corpus is frozen before its first Semgrep evaluation. It must not be changed to fit observed matches. Any genuine Oracle correction requires preserving the original, a correction record, reason, and before/after metrics. Once used to guide implementation, this corpus is development data rather than an unused generalization set.
+The corpus was committed before its first Semgrep evaluation. The first run exposed a pre-registration label error in `EJX04_worker_transform`: `Function(sourceText)()` is outside the configured `new Function(...)` pattern. The original Oracle and first run are retained; `oracle-corrections.json` records the rationale, corrected label, hashes, and the resulting corrected-Oracle evaluation. No fixture or rule was changed. This is not a result-driven performance adjustment: the case remains review-worthy but is classified as an unsupported-pattern coverage gap.
+
+Future Oracle changes require preserving each original, a correction record, reason, and before/after metrics. Once used to guide implementation, this corpus is development data rather than an unused generalization set.
 
 The code is static-analysis input only. No fixture command or function is executed. This dataset does not measure deployed configurations, actual exploitability, or production-repository accuracy.

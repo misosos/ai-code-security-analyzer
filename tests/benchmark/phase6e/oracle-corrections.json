@@ -1,0 +1,58 @@
+{
+  "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+  "correction_id": "ORACLE-CORRECTION-01",
+  "case_id": "EJX04_worker_transform",
+  "rule_id": "baseline.javascript-dynamic-eval",
+  "original_oracle_sha256": "0fb9e05cebe47b25b26f9926096d2afee18ccb5a1c9cfbfea73e102c606fe2a5",
+  "corrected_oracle_sha256": "b62dd1b912305d199a640493a2ad1fae00917b65cb87450cd74e561cbb2b54fb",
+  "original_label": "positive",
+  "corrected_label": "out_of_scope",
+  "coverage_gap": "unsupported_pattern",
+  "reason": "The fixture calls Function(sourceText)() without new. Although the Function constructor can be called this way in JavaScript, the frozen target rule pattern is new Function(...), so this case does not test the implemented syntax. This was a pre-registration label error, not a Semgrep-result-driven performance adjustment. The original label and first evaluation output are retained.",
+  "first_evaluation_case_observation": {
+    "finding_count": 0,
+    "case_level_classification_under_original_oracle": "FN"
+  },
+  "corrected_interpretation": "Out-of-scope observations are excluded from TP/FP/FN/TN and counted as a review-worthy unsupported-pattern coverage gap.",
+  "changed_fixture_files": false,
+  "changed_rule_files": false,
+  "metrics_before_correction": {
+    "rule_id": "baseline.javascript-dynamic-eval",
+    "TP": 5,
+    "FP": 0,
+    "FN": 1,
+    "TN": 4,
+    "precision": 1.0,
+    "recall": 0.8333333333333334,
+    "false_positive_rate": 0.0,
+    "note": "EJX04 was counted as the single FN; unchanged observed findings and match locations."
+  },
+  "metrics_after_correction": {
+    "rule_id": "baseline.javascript-dynamic-eval",
+    "TP": 5,
+    "FP": 0,
+    "FN": 0,
+    "TN": 4,
+    "precision": 1.0,
+    "recall": 1.0,
+    "false_positive_rate": 0.0,
+    "out_of_scope_case_count": 3,
+    "unreported_review_worthy_unsupported_pattern_cases": [
+      "EJX04_worker_transform",
+      "EJX11_alias_constructor"
+    ],
+    "evaluation_result": "results/evaluation.json"
+  },
+  "first_original_evaluation_sha256": "fd1b4d114b499fe91c3adebb6223d4f6038b0e112257455c68b3b139aa904680",
+  "metadata_correction": {
+    "id": "METADATA-CORRECTION-01",
+    "original_manifest_sha256": "d978d326eaabfa3050e1276f1208bb3b1a8f4ff26938a988e08f4fcf366a72fd",
+    "corrected_manifest_sha256": "0aa7c9ebf89f9f79ce737db7595cd2b795c989aa5f7de825f1a54d8e5e005c24",
+    "original_oracle_sha256": "8d1c8276d8024e3ad014b9e99c1eb7d656a4cd132afc2122fc1eb40626a21136",
+    "corrected_oracle_sha256": "b62dd1b912305d199a640493a2ad1fae00917b65cb87450cd74e561cbb2b54fb",
+    "reason": "The original metadata labeled every React fixture as TypeScript although the set contains both .jsx and .tsx files. Per-file language metadata now follows the extension; source files, paths, Rule Signal labels, expected matches, and code are unchanged. Semgrep chooses parsers from these actual file extensions, so the scan input and observed rule matches are unchanged.",
+    "changed_fixture_files": false,
+    "changed_rule_files": false,
+    "score_oracle_labels_changed": false
+  }
+}

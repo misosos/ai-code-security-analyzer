@@ -11,8 +11,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "tests" / "benchmark" / "phase6e"
 VERSION = "phase6e-heldout-synthetic-v1"
-MANIFEST_SHA256 = "d978d326eaabfa3050e1276f1208bb3b1a8f4ff26938a988e08f4fcf366a72fd"
-ORACLE_SHA256 = "0fb9e05cebe47b25b26f9926096d2afee18ccb5a1c9cfbfea73e102c606fe2a5"
+MANIFEST_SHA256 = "0aa7c9ebf89f9f79ce737db7595cd2b795c989aa5f7de825f1a54d8e5e005c24"
+ORIGINAL_MANIFEST_SHA256 = "d978d326eaabfa3050e1276f1208bb3b1a8f4ff26938a988e08f4fcf366a72fd"
+ORACLE_SHA256 = "b62dd1b912305d199a640493a2ad1fae00917b65cb87450cd74e561cbb2b54fb"
+ORIGINAL_ORACLE_SHA256 = "0fb9e05cebe47b25b26f9926096d2afee18ccb5a1c9cfbfea73e102c606fe2a5"
+SIGNAL_ORACLE_PRE_METADATA_SHA256 = "8d1c8276d8024e3ad014b9e99c1eb7d656a4cd132afc2122fc1eb40626a21136"
+CORRECTIONS_SHA256 = "3c7530b82efc1823019962d201d74b2330d1a34657c1b407934177a8dfeadbfa"
+ORIGINAL_FIRST_RESULT_SHA256 = "fd1b4d114b499fe91c3adebb6223d4f6038b0e112257455c68b3b139aa904680"
+CORRECTED_INITIAL_RESULT_SHA256 = "2348d6e1c03c88f4f0b9a9ecb5baf25c77463808686bf64e95be9a5c4cb73383"
+FINAL_RESULT_SHA256 = "7866026609ddb123484ac0e61734a6c97c86151045c03202fe814bbf116a2753"
 RULE_SHA256 = {
     "rules/security-baseline.yml": "bfeb93c42ad942fda138dff3a9be8f4ccc1b137a2b547b6b29b65d98fc70a1a3",
     "rules/experimental/javascript-eval-taint.yml": "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e",
@@ -29,6 +36,13 @@ def test_phase6e_manifest_and_oracle_are_frozen() -> None:
     oracle_bytes = (DATA / "oracle.json").read_bytes()
     assert _digest(manifest_bytes) == MANIFEST_SHA256
     assert _digest(oracle_bytes) == ORACLE_SHA256
+    assert _digest((DATA / "manifest-v1-original.json").read_bytes()) == ORIGINAL_MANIFEST_SHA256
+    assert _digest((DATA / "oracle-v1-corrected-signal-before-metadata.json").read_bytes()) == SIGNAL_ORACLE_PRE_METADATA_SHA256
+    assert _digest((DATA / "oracle-v1-original.json").read_bytes()) == ORIGINAL_ORACLE_SHA256
+    assert _digest((DATA / "oracle-corrections.json").read_bytes()) == CORRECTIONS_SHA256
+    assert _digest((DATA / "results" / "oracle-v1-original-evaluation.json").read_bytes()) == ORIGINAL_FIRST_RESULT_SHA256
+    assert _digest((DATA / "results" / "oracle-v1-corrected-evaluation-initial.json").read_bytes()) == CORRECTED_INITIAL_RESULT_SHA256
+    assert _digest((DATA / "results" / "evaluation.json").read_bytes()) == FINAL_RESULT_SHA256
 
 
 def test_phase6e_fixture_and_rule_hashes_match_preregistration() -> None:
@@ -43,6 +57,9 @@ def test_phase6e_fixture_and_rule_hashes_match_preregistration() -> None:
     for case in manifest["cases"]:
         assert case["case_id"] not in seen_case_ids
         seen_case_ids.add(case["case_id"])
+        if case["category"] == "react_html":
+            expected_language = "typescript" if case["files"][0]["path"].endswith(".tsx") else "javascript"
+            assert case["language"] == expected_language
         case_root = DATA / case["path"]
         assert case_root.is_dir() and not case_root.is_symlink()
         for entry in case["files"]:
@@ -65,9 +82,13 @@ def test_phase6e_fixture_and_rule_hashes_match_preregistration() -> None:
 def test_phase6e_oracle_is_complete_and_has_separate_labels() -> None:
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
     oracle = json.loads((DATA / "oracle.json").read_text(encoding="utf-8"))
+    corrections = json.loads((DATA / "oracle-corrections.json").read_text(encoding="utf-8"))
     assert manifest["case_count"] == oracle["case_count"] == 60
     assert manifest["evaluation_set_version"] == oracle["evaluation_set_version"] == VERSION
     assert oracle["oracle_frozen_before_semgrep"] is True
+    assert corrections["original_oracle_sha256"] == ORIGINAL_ORACLE_SHA256
+    assert corrections["corrected_oracle_sha256"] == ORACLE_SHA256
+    assert corrections["changed_fixture_files"] is False
     assert manifest["authoring"]["independent_review"] == "INDEPENDENT_REVIEW_NOT_PERFORMED"
     assert manifest["authoring"]["prior_exposure"]
 

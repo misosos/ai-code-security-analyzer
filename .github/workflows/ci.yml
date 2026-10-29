@@ -113,6 +113,12 @@ jobs:
           SEMGREP_SEND_METRICS: 'off'
           SEMGREP_ENABLE_VERSION_CHECK: '0'
         run: uv run --locked python -m pytest -q -s tests/test_phase6d_benchmark_integration.py
+      - name: Run Phase 6E held-out evaluation
+        env:
+          SEMGREP_REQUIRED: '1'
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+        run: uv run --locked python -m pytest -q -s tests/test_phase6e_benchmark_integration.py
 
   frontend:
     name: React dashboard

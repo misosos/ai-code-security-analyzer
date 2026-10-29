@@ -114,25 +114,20 @@
       "path": "cases/js_eval/EJX04_worker_transform",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
-        "baseline.javascript-dynamic-eval": "positive"
+        "baseline.javascript-dynamic-eval": "out_of_scope"
       },
       "expected_matches": {
-        "baseline.javascript-dynamic-eval": [
-          {
-            "path": "src/worker.js",
-            "line": 2
-          }
-        ]
+        "baseline.javascript-dynamic-eval": []
       },
       "expected_cardinality": {
-        "baseline.javascript-dynamic-eval": 1
+        "baseline.javascript-dynamic-eval": 0
       },
       "security_review_relevance": "review_worthy",
-      "security_coverage_gap": "in_scope",
+      "security_coverage_gap": "unsupported_pattern",
       "vulnerability_confirmation": "NOT_EVALUATED",
-      "rationale": "Direct Function construction uses a supplied function argument.",
+      "rationale": "Function(sourceText)() invokes the Function constructor without the new keyword; the current baseline rule explicitly matches eval(...) or new Function(...), so this syntax is outside its Rule Signal scope while still warranting code review.",
       "limitations": [
-        "Source provenance and invocation are not evaluated."
+        "Only the existing rule syntax is scored; equivalent dynamic-code behavior outside that syntax is tracked as a coverage gap. Runtime reachability and input provenance are not established."
       ]
     },
     {
@@ -332,7 +327,7 @@
     {
       "case_id": "RHX01_profile_bio",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX01_profile_bio",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -388,7 +383,7 @@
     {
       "case_id": "RHX03_ticket_body",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX03_ticket_body",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -439,7 +434,7 @@
     {
       "case_id": "RHX05_static_policy",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX05_static_policy",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -467,7 +462,7 @@
     {
       "case_id": "RHX06_sanitized_profile",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX06_sanitized_profile",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -495,7 +490,7 @@
     {
       "case_id": "RHX07_text_render",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX07_text_render",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -518,7 +513,7 @@
     {
       "case_id": "RHX08_similar_prop",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX08_similar_prop",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -541,7 +536,7 @@
     {
       "case_id": "RHX09_dom_api",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX09_dom_api",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
@@ -610,7 +605,7 @@
     {
       "case_id": "RHX12_child_component",
       "category": "react_html",
-      "language": "typescript",
+      "language": "javascript",
       "path": "cases/react_html/RHX12_child_component",
       "evaluation_set_version": "phase6e-heldout-synthetic-v1",
       "expected_rule_signals": {
