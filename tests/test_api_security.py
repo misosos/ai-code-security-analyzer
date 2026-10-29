@@ -93,3 +93,42 @@ def test_target_and_rules_directory_must_not_overlap_or_be_symlinks(tmp_path: Pa
         assert str(error) == "symlink_path_not_allowed"
     else:
         raise AssertionError("symlink configuration must fail")
+
+
+def test_exact_loopback_origin_cors_preflight_requires_configured_origin(tmp_path: Path) -> None:
+    with client_for(tmp_path, allowed_origins=("http://localhost:5173",)) as client:
+        response = client.options("/api/v1/scans", headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,x-local-api-token",
+        })
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+        assert "x-local-api-token" in response.headers["access-control-allow-headers"].lower()
+        assert response.headers.get("access-control-allow-credentials") is None
+        denied = client.options("/api/v1/scans", headers={
+            "Origin": "https://evil.example",
+            "Access-Control-Request-Method": "POST",
+        })
+        assert denied.status_code == 403
+
+
+def test_static_dashboard_optional_serving_has_security_and_no_store_headers(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.api.app import create_app
+
+    target = tmp_path / "target"
+    rules = tmp_path / "rules"
+    target.mkdir()
+    rules.mkdir()
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<!doctype html><html><body>dashboard-shell</body></html>")
+    settings = ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",))
+    with TestClient(create_app(settings, static_directory=dist)) as client:
+        response = client.get("/")
+        health = client.get("/api/v1/health")
+    assert response.status_code == 200 and "dashboard-shell" in response.text
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "default-src 'self'" in response.headers["content-security-policy"]
+    assert health.status_code == 200

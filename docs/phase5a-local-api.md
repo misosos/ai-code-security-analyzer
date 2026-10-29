@@ -12,7 +12,7 @@ AI_CODE_SECURITY_API_TOKEN='<at-least-43-url-safe-random-characters>' \
 uv run python -m ai_code_security_analyzer.api
 ```
 
-규칙 디렉터리를 바꾸려면 `AI_CODE_SECURITY_RULES_DIR`에 신뢰할 로컬 규칙 디렉터리를 지정한다. 기본값은 저장소의 `rules/`다. 브라우저 Origin은 기본적으로 모두 거부한다. 향후 로컬 UI Origin을 허용하려면 `AI_CODE_SECURITY_ALLOWED_ORIGINS`에 정확한 `http://localhost:<port>` 또는 `http://127.0.0.1:<port>` origin을 쉼표로 구분해 지정한다. CORS middleware는 활성화하지 않으므로 browser preflight 권한을 열지 않는다.
+규칙 디렉터리를 바꾸려면 `AI_CODE_SECURITY_RULES_DIR`에 신뢰할 로컬 규칙 디렉터리를 지정한다. 기본값은 저장소의 `rules/`다. 브라우저 Origin은 기본적으로 모두 거부한다. 로컬 UI Origin을 사용할 때는 `AI_CODE_SECURITY_ALLOWED_ORIGINS`에 정확한 `http://localhost:<port>` 또는 `http://127.0.0.1:<port>` origin을 쉼표로 구분해 지정한다. 지정된 Origin에만 GET/POST와 `Content-Type`, `X-Local-API-Token` 헤더를 허용하며 credentials는 허용하지 않는다. 와일드카드 Origin은 지원하지 않는다.
 
 ## API
 
@@ -39,13 +39,13 @@ X-Local-API-Token: <local-secret>
 ## 보호 경계
 
 - scan 요청에는 `X-Local-API-Token` 인증이 필요하다. 토큰을 URL, cookie 또는 로그에 넣지 않는다.
-- Host는 기본적으로 `localhost`와 `127.0.0.1`만 허용하고, Origin은 기본적으로 존재할 수 없다. Origin이 있으면 설정된 정확한 loopback origin이어야 한다.
+- Host는 기본적으로 `localhost`와 `127.0.0.1`만 허용하고, Origin은 기본적으로 존재할 수 없다. Origin이 있으면 설정된 정확한 loopback origin이어야 한다. 허용 목록이 설정되면 동일한 목록만 CORS에 사용한다.
 - Content-Type은 JSON으로 제한하고 요청 본문은 16 KiB 이하로 제한한다.
 - 동시 scan은 프로세스당 하나다. 두 번째 요청은 `scan_already_running`으로 거부된다. Semgrep의 기존 60초 timeout과 2 MB 출력 제한을 그대로 쓴다.
 - target과 rules 디렉터리는 설정 시 실제 경로로 정규화하고 서로 겹치지 않아야 한다. scan 직전에 target과 규칙 경로를 다시 확인하고 target 아래의 symlink를 거부한다. 사전 검사 시간은 5초, 방문 항목은 100,000개로 제한한다.
 - 이 검사는 경로 변경과 symlink 위험을 줄이지만 TOCTOU 경쟁을 완전히 제거하지 않는다. 프로세스 수준 CPU·메모리·파일 접근·네트워크 격리도 제공하지 않는다. 신뢰할 수 없는 프로젝트는 OS/container 격리에서 검사한다.
 - loopback bind, Host/Origin 검사만으로 모든 DNS rebinding이나 로컬 웹 공격을 막는다고 보장하지 않는다. 실제 네트워크 차단은 OS 수준 정책이 필요하다.
-- API는 브라우저 파일 업로드, 폴더 열람, 임의 경로 접근, CORS 허용, 기록 저장, 외부 전송을 제공하지 않는다.
+- API는 브라우저 파일 업로드, 폴더 열람, 임의 경로 접근, 기록 저장, 외부 전송을 제공하지 않는다. CORS는 설정된 정확한 loopback Origin에 대해서만 제한적으로 동작한다. Phase 5B에서 빌드된 UI가 있으면 FastAPI가 이를 같은 출처로 제공하며, 개발 시 Vite는 loopback의 `/api`만 백엔드로 프록시한다.
 
 ## 결과 계약
 

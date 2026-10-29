@@ -8,6 +8,8 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ai_code_security_analyzer.api.routes import router
@@ -16,7 +18,12 @@ from ai_code_security_analyzer.api.security import ApiBoundaryMiddleware
 from ai_code_security_analyzer.services.scan_service import ApiSettings, ScanService
 
 
-def create_app(settings: ApiSettings, *, scan_service: ScanService | None = None) -> FastAPI:
+def create_app(
+    settings: ApiSettings,
+    *,
+    scan_service: ScanService | None = None,
+    static_directory: Path | None = None,
+) -> FastAPI:
     app = FastAPI(
         title="AI Code Security Analyzer Local API",
         docs_url=None,
@@ -26,6 +33,30 @@ def create_app(settings: ApiSettings, *, scan_service: ScanService | None = None
     )
     app.state.api_settings = settings
     app.state.scan_service = scan_service or ScanService(settings)
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; "
+            "img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
+            "frame-ancestors 'none'; form-action 'self'"
+        )
+        return response
+    # Exact configured loopback Origins only; no wildcard and no credentials.
+    # Boundary middleware is outermost, so preflight still passes Host/Origin checks.
+    if settings.allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(settings.allowed_origins),
+            allow_methods=["GET", "POST"],
+            allow_headers=["Content-Type", "X-Local-API-Token"],
+            allow_credentials=False,
+            max_age=300,
+        )
     app.add_middleware(
         ApiBoundaryMiddleware,
         allowed_hosts=settings.allowed_hosts,
@@ -47,6 +78,9 @@ def create_app(settings: ApiSettings, *, scan_service: ScanService | None = None
         return JSONResponse(status_code=exc.status_code, content=ErrorResponse(error=code).model_dump())
 
     app.include_router(router, prefix="/api/v1")
+    ui_directory = static_directory or (Path(__file__).resolve().parents[3] / "frontend" / "dist")
+    if ui_directory.is_dir():
+        app.mount("/", StaticFiles(directory=ui_directory, html=True, check_dir=True), name="dashboard")
     return app
 
 

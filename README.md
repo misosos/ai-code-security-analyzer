@@ -36,3 +36,16 @@ AI_CODE_SECURITY_TARGET=/path/to/project \
 AI_CODE_SECURITY_API_TOKEN='<at-least-43-url-safe-random-characters>' \
 uv run python -m ai_code_security_analyzer.api
 ```
+
+React 대시보드 개발은 Node.js 24.22.2와 npm lockfile을 사용한다. FastAPI와 Vite를 각각 loopback에서 실행하며, Vite는 `/api` 요청만 고정된 로컬 API 주소로 프록시한다. API 서버에는 개발 Origin을 명시적으로 허용한다.
+
+```sh
+cd frontend && npm ci && npm run dev
+# 별도 터미널: 기존 API 설정에 개발 Origin을 추가
+AI_CODE_SECURITY_TARGET=/path/to/project \
+AI_CODE_SECURITY_API_TOKEN='<at-least-43-url-safe-random-characters>' \
+AI_CODE_SECURITY_ALLOWED_ORIGINS='http://127.0.0.1:5173' \
+uv run python -m ai_code_security_analyzer.api
+```
+
+Vite가 표시하는 `http://127.0.0.1:5173` 주소로 접속한다. 토큰은 대시보드 메모리에만 유지되며 새로고침하면 사라진다. 상세 설정은 [React 대시보드 안내](docs/phase5b-react-dashboard.md)를 참고한다.
