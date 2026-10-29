@@ -107,6 +107,12 @@ jobs:
           uv run --locked python -m pytest -q -s
           tests/test_detection_benchmark_integration.py
           tests/test_firestore_rule_hardening.py
+      - name: Run Phase 6D generalization evaluation
+        env:
+          SEMGREP_REQUIRED: '1'
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+        run: uv run --locked python -m pytest -q -s tests/test_phase6d_benchmark_integration.py
 
   frontend:
     name: React dashboard

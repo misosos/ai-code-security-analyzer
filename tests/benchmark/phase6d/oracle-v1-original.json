@@ -1,0 +1,1217 @@
+{
+  "evaluation_set_version": "phase6d-generalization-v1",
+  "case_count": 50,
+  "cases": [
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ01_constant_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ01_constant_expression",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/preview.js",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The direct eval call contains a fixed arithmetic expression. The rule reports API use, while the input shown here is constant.",
+      "limitations": [
+        "Runtime policy and surrounding callers are not evaluated."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ02_route_query",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ02_route_query",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/routes/search.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A request-derived value reaches a direct eval call in the same function.",
+      "limitations": [
+        "Reachability, validation, deployment, and runtime controls are not verified."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ03_function_constructor",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ03_function_constructor",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/templates/compiler.ts",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The Function constructor receives a caller-provided source parameter.",
+      "limitations": [
+        "The caller set and runtime restrictions are not analyzed."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ04_local_parameter",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ04_local_parameter",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/legacy/runner.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "A parameter reaches direct eval, but its callers and trust boundary are absent.",
+      "limitations": [
+        "Inter-file caller flow and runtime reachability are not established."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ05_comment_example",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ05_comment_example",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The eval-like text is only in a line comment; active code uses JSON.parse.",
+      "limitations": [
+        "This case tests lexical exclusion, not whether JSON.parse is safe for all inputs."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ06_log_string",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ06_log_string",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The eval-like text is a logging string, not a call.",
+      "limitations": [
+        "The logger implementation is outside the case."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ07_object_method",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ07_object_method",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The call is a method on an injected codec object, not the direct global eval syntax modeled by the rule.",
+      "limitations": [
+        "The codec implementation and its behavior are not included."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ08_alias_wrapper",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ08_alias_wrapper",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "An alias to eval is invoked, but the current pattern is a direct call/constructor rule.",
+      "limitations": [
+        "The evaluator alias behavior is visible syntactically but rule support is intentionally narrower."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ09_unused_admin_helper",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ09_unused_admin_helper",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/admin/retired-preview.ts",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "A direct eval is present inside a helper with no call site in the case.",
+      "limitations": [
+        "Whether the helper is reachable from other modules is unknown."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "EJ10_policy_comment",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ10_policy_comment",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/policy/interpreter.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The fixed expression is syntactically evaluated; the nearby comment mentions a possible CSP control.",
+      "limitations": [
+        "A comment does not prove an enforced CSP or server-side execution restriction."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH01_fixed_help_markup",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH01_fixed_help_markup",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/help/Notice.tsx",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "A fixed HTML string is passed to the recognized JSX property.",
+      "limitations": [
+        "The rule detects syntax, not whether the string can change at runtime."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH02_external_message",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH02_external_message",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/messages/Message.tsx",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A component property reaches the recognized HTML insertion property.",
+      "limitations": [
+        "The property origin and any caller-side sanitization are not traced."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH03_sanitizer_result",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH03_sanitizer_result",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/content/Article.tsx",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The recognized sink receives a value named as a sanitizer result.",
+      "limitations": [
+        "The sanitizer implementation and policy are not validated."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH04_state_preview",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH04_state_preview",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/editor/Preview.tsx",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A component state value is supplied to the recognized insertion property.",
+      "limitations": [
+        "The state origin, escaping, and runtime constraints are outside this fixture."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH05_normal_text",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH05_normal_text",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "User-facing text is rendered as a normal React text node.",
+      "limitations": [
+        "This does not assess other DOM sinks."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH06_similar_property",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH06_similar_property",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The attribute name is similar but is not the recognized React property.",
+      "limitations": [
+        "Custom component behavior is not assessed."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH07_create_element_api",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH07_create_element_api",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A non-JSX API uses the same property, outside the current JSX pattern.",
+      "limitations": [
+        "Runtime behavior depends on React and the caller; this rule does not cover createElement syntax."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH08_prebuilt_props",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH08_prebuilt_props",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The HTML property receives a prebuilt variable instead of the inline object shape expected by the rule.",
+      "limitations": [
+        "The code uses the dangerous property, but the current pattern has a narrower object shape."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH09_comment_only",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH09_comment_only",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The matching-looking JSX is in a comment; active JSX renders text.",
+      "limitations": [
+        "No other component usage is included."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "RH10_wrapped_component",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH10_wrapped_component",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The component delegates rendering; no recognized insertion property appears in this file.",
+      "limitations": [
+        "The RichContent implementation is not included."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS01_public_create",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS01_public_create",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A write permission has the literal true condition in a nested match.",
+      "limitations": [
+        "Deployment, inheritance, and effective access are not checked."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS02_multi_operation",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS02_multi_operation",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Multiple write permissions are declared with a literal true condition.",
+      "limitations": [
+        "The rule scope and deployed configuration are unknown."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS03_read_write_convenience",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS03_read_write_convenience",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The convenience write permission is included in the literal-true declaration.",
+      "limitations": [
+        "The effective deployed ruleset is not evaluated."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS04_nested_public_delete",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS04_nested_public_delete",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "A nested match contains an unconditional delete declaration.",
+      "limitations": [
+        "Parent/child match composition and deployment are not verified."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS05_authenticated_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS05_authenticated_write",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The condition is not the literal true form targeted by this rule.",
+      "limitations": [
+        "This label is about rule signal scope, not proof that the condition is secure."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS06_public_read_only",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS06_public_read_only",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Only read is allowed; this rule targets writes.",
+      "limitations": [
+        "Public read may or may not be appropriate for the application."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS07_block_comment_sample",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS07_block_comment_sample",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The only declaration-like line is within a closed block comment.",
+      "limitations": [
+        "Lexical context validation does not parse the whole Firestore grammar."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS08_false_condition",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS08_false_condition",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The condition is literal false, outside the rule target.",
+      "limitations": [
+        "Effective access is not evaluated."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS09_function_condition",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS09_function_condition",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The condition uses a helper function instead of literal true.",
+      "limitations": [
+        "Function semantics and effective permissions are not assessed."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "FS10_parent_condition_context",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS10_parent_condition_context",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The exact write declaration is a positive pattern signal; broader policy context is not modeled.",
+      "limitations": [
+        "Parent scopes, other matches, and deployment can affect effective access."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET01_direct_query",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET01_direct_query",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/routes/calc.js",
+            "line": 2
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/routes/calc.js",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The modeled query field is passed directly to eval.",
+      "limitations": [
+        "Runtime reachability and input controls are not verified."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET02_body_local_alias",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET02_body_local_alias",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/routes/preview.ts",
+            "line": 3
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/routes/preview.ts",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A modeled body field flows through a local variable to eval.",
+      "limitations": [
+        "Only the rule modeled source fields are covered."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET03_two_assignments",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET03_two_assignments",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/runner/job.js",
+            "line": 4
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/runner/job.js",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A modeled request field flows through two local assignments.",
+      "limitations": [
+        "Interprocedural and runtime behavior are not assessed."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET04_synthetic_sanitizer",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET04_synthetic_sanitizer",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/sandbox/demo.js",
+            "line": 2
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The base rule models this flow; the second experimental rule treats syntheticSafe as a sanitizer by declaration.",
+      "limitations": [
+        "syntheticSafe is a test model, not a verified security sanitizer."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET05_source_but_static_sink",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET05_source_but_static_sink",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The source and sink coexist but the sink receives a constant.",
+      "limitations": [
+        "The case does not prove other callers safe."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET06_unmodeled_property",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET06_unmodeled_property",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The rule source is query.code, not query.expression.",
+      "limitations": [
+        "Other request-field shapes are outside the modeled source set."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET07_alternate_request_name",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET07_alternate_request_name",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "out_of_scope",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The code connects a differently named request object to eval, outside the configured source pattern.",
+      "limitations": [
+        "The rule does not infer arbitrary object provenance."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET08_helper_boundary",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET08_helper_boundary",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "out_of_scope",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The source and sink are separated by a module/function boundary.",
+      "limitations": [
+        "No cross-file flow is established by this rule configuration."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET09_disconnected_function",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET09_disconnected_function",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "A modeled source exists, but the sink uses a constant in a separate function.",
+      "limitations": [
+        "Call graph and broader project data flow are not analyzed."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "ET10_computed_property",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET10_computed_property",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "out_of_scope",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The computed property access is not the exact modeled source syntax.",
+      "limitations": [
+        "The static rule does not establish equivalence to query.code."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI01_require_query_direct",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI01_require_query_direct",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/routes/export.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The modeled query command reaches child_process.exec first argument.",
+      "limitations": [
+        "Runtime reachability and validation are not established."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI02_namespace_body_sync",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI02_namespace_body_sync",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/jobs/worker.ts",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The modeled body command reaches execSync through a supported namespace import.",
+      "limitations": [
+        "No command execution is performed by this benchmark."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI03_named_alias",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI03_named_alias",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/admin/task.ts",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The modeled command flows through a local variable into a supported named alias.",
+      "limitations": [
+        "Only the explicit req fields and supported import forms are modeled."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI04_destructured_body",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI04_destructured_body",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/api/maintenance.js",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "The modeled body field reaches the command argument through a local variable.",
+      "limitations": [
+        "Application authorization and runtime conditions are not tested."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI05_alternate_request",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI05_alternate_request",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "A differently named request object reaches a child_process sink, but the configured Source is the exact req object.",
+      "limitations": [
+        "The rule does not infer arbitrary request objects."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI06_static_command",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI06_static_command",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The recognized sink receives a fixed command string.",
+      "limitations": [
+        "Other inputs or wrapper behavior are absent."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI07_mock_exec",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI07_mock_exec",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "The exec-like method belongs to a local mock object, not the imported Node module.",
+      "limitations": [
+        "This is a synthetic lexical distinction, not module resolution."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI08_option_argument_only",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI08_option_argument_only",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The modeled input appears only in the options object; the command argument is constant.",
+      "limitations": [
+        "The rule focuses on the first command argument, not option safety."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI09_cross_file_helper",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI09_cross_file_helper",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Source and sink are separated by a file/function boundary.",
+      "limitations": [
+        "The configured rule does not promise this cross-file flow."
+      ]
+    },
+    {
+      "evaluation_set_version": "phase6d-generalization-v1",
+      "case_id": "CI10_callback_input",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI10_callback_input",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "The modeled request value is used only in a callback; the command argument is constant.",
+      "limitations": [
+        "Callback side effects are not analyzed as command strings."
+      ]
+    }
+  ],
+  "confirmed_vulnerability": "NOT_EVALUATED"
+}

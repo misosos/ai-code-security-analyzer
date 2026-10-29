@@ -1,0 +1,614 @@
+{
+  "evaluation_set_version": "phase6d-generalization-v1",
+  "case_count": 50,
+  "cases": [
+    {
+      "case_id": "EJ01_constant_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ01_constant_expression",
+      "files": [
+        {
+          "path": "src/preview.js",
+          "sha256": "e8c1fbc7be5eb3c504daaff0d62bc32d9d16ec94d94cb6fffe5d9183c11fdd15"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ02_route_query",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ02_route_query",
+      "files": [
+        {
+          "path": "src/routes/search.js",
+          "sha256": "f4655ec775899f1651199bae9f58e08494bb583884b0aedc7e5e73025eb2728d"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ03_function_constructor",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ03_function_constructor",
+      "files": [
+        {
+          "path": "src/templates/compiler.ts",
+          "sha256": "74db977101989adccdfec35f7965397fe4cea249531ccaae48f7d5c1066103d4"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ04_local_parameter",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ04_local_parameter",
+      "files": [
+        {
+          "path": "src/legacy/runner.js",
+          "sha256": "a7476b1c4a0fe119355ea2e5c72e1617ed76fa2c8646cf64ebe367c8f673c651"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ05_comment_example",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ05_comment_example",
+      "files": [
+        {
+          "path": "src/docs/example.js",
+          "sha256": "c20208ebf1322b6c00cb1fa8c2aeda3ed32f44b3067850353344bb3678b5fb7c"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ06_log_string",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ06_log_string",
+      "files": [
+        {
+          "path": "src/logging/audit.ts",
+          "sha256": "f356ef83d3ebb6a134502b6f8d20fb97ab43f04cb867c3a6f6eac3be82f150c3"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ07_object_method",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ07_object_method",
+      "files": [
+        {
+          "path": "src/codec/decoder.js",
+          "sha256": "aeeb4ed9726d990fc8456d36e40cd4533bb9c7e085fb443c916e4b84d4fcaa2c"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ08_alias_wrapper",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ08_alias_wrapper",
+      "files": [
+        {
+          "path": "src/compat/evaluator.js",
+          "sha256": "3bf7e7ddfb63d84f8605c1b00833c26e3a31af8a78fdeb502c52eb1cc48e358b"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ09_unused_admin_helper",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ09_unused_admin_helper",
+      "files": [
+        {
+          "path": "src/admin/retired-preview.ts",
+          "sha256": "912b83f54066d64156c850f2fbbb09458188554e31482f0b01c31886cb258572"
+        }
+      ]
+    },
+    {
+      "case_id": "EJ10_policy_comment",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJ10_policy_comment",
+      "files": [
+        {
+          "path": "src/policy/interpreter.js",
+          "sha256": "5ea87a5fda5c49c206dd81e5bbf3ba8037685656ecc3a9c95b8c0612db103845"
+        }
+      ]
+    },
+    {
+      "case_id": "RH01_fixed_help_markup",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH01_fixed_help_markup",
+      "files": [
+        {
+          "path": "src/help/Notice.tsx",
+          "sha256": "6845262f645663537e843393e85bf07c6798d96105a0ce6a036bcb64369ee1fc"
+        }
+      ]
+    },
+    {
+      "case_id": "RH02_external_message",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH02_external_message",
+      "files": [
+        {
+          "path": "src/messages/Message.tsx",
+          "sha256": "21668f4b9a5d8c16eda5a73baae761f20860f258db271c7a783722ba6a25b22b"
+        }
+      ]
+    },
+    {
+      "case_id": "RH03_sanitizer_result",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH03_sanitizer_result",
+      "files": [
+        {
+          "path": "src/content/Article.tsx",
+          "sha256": "4da72b67fca64bdaa42a7a66ffb1e332b4fc5f4b3c93a517ef828c083353851e"
+        }
+      ]
+    },
+    {
+      "case_id": "RH04_state_preview",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH04_state_preview",
+      "files": [
+        {
+          "path": "src/editor/Preview.tsx",
+          "sha256": "fe22788eaff2514059ae35ec505a40a20bffbf679055d3fc023eb69ad2786850"
+        }
+      ]
+    },
+    {
+      "case_id": "RH05_normal_text",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH05_normal_text",
+      "files": [
+        {
+          "path": "src/comments/Comment.tsx",
+          "sha256": "5815c8d5153a2e00624db0c3d1b3bd1c3efcdd7d659c66d9b1c481b0da1a70d2"
+        }
+      ]
+    },
+    {
+      "case_id": "RH06_similar_property",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH06_similar_property",
+      "files": [
+        {
+          "path": "src/widgets/Widget.tsx",
+          "sha256": "43ea939feb44f3d5c910bc3100bff844bf149f22874ac70c6081bbc1b84a8f18"
+        }
+      ]
+    },
+    {
+      "case_id": "RH07_create_element_api",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH07_create_element_api",
+      "files": [
+        {
+          "path": "src/legacy/create.tsx",
+          "sha256": "3d6b3df5168925fe4cd9da52293ea53a4ace22dd8eade0b6fe325daf1634da1c"
+        }
+      ]
+    },
+    {
+      "case_id": "RH08_prebuilt_props",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH08_prebuilt_props",
+      "files": [
+        {
+          "path": "src/legacy/Panel.tsx",
+          "sha256": "897607c6f3953300e777badaf951c773d932257bcc764b06f049ce05279cf7e2"
+        }
+      ]
+    },
+    {
+      "case_id": "RH09_comment_only",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH09_comment_only",
+      "files": [
+        {
+          "path": "src/docs/Panel.tsx",
+          "sha256": "c552fc32516e511e025358ddfc466f668fe5ef149e122f19f2ebfe7355586a30"
+        }
+      ]
+    },
+    {
+      "case_id": "RH10_wrapped_component",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RH10_wrapped_component",
+      "files": [
+        {
+          "path": "src/renderers/HtmlPanel.tsx",
+          "sha256": "12926bfc816205376f55c077cf934e4bf6686bc9e538468b8338574c16976d0c"
+        }
+      ]
+    },
+    {
+      "case_id": "FS01_public_create",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS01_public_create",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "2a5676ea23ed34a6a893fa60ae786f3cec4cfc70b0d4ba33b0b9d3496310cff1"
+        }
+      ]
+    },
+    {
+      "case_id": "FS02_multi_operation",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS02_multi_operation",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "cffd74e01c65c6c87c1893a7ad78715aedc7250959afebcac937e04c43b39efa"
+        }
+      ]
+    },
+    {
+      "case_id": "FS03_read_write_convenience",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS03_read_write_convenience",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "1c28288ed7ea8b86d85bb94dfcf16072747246d5e22911ee77ae068ad4394fce"
+        }
+      ]
+    },
+    {
+      "case_id": "FS04_nested_public_delete",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS04_nested_public_delete",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "fb4ba2f4ef505d29e6d3d7b2c456f830d5f78334c513c54f4d7e63fdc1f45412"
+        }
+      ]
+    },
+    {
+      "case_id": "FS05_authenticated_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS05_authenticated_write",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "fd4312d8765090e8492aaf0edba4fa692ecffbb0df1e6a59060c7de349df743d"
+        }
+      ]
+    },
+    {
+      "case_id": "FS06_public_read_only",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS06_public_read_only",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "d4fb38eb5e5b771b8d78d75e629761c86a4320a739803b51d1e9786687d7f957"
+        }
+      ]
+    },
+    {
+      "case_id": "FS07_block_comment_sample",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS07_block_comment_sample",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "461e0c17c172e37f1057f0f28b34a7d2820b375e54b60f79fc4c74f0589d7784"
+        }
+      ]
+    },
+    {
+      "case_id": "FS08_false_condition",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS08_false_condition",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "2af896f7bff12e840f755ec062690b8a26e521e2ac80c5f52b4effa80d687705"
+        }
+      ]
+    },
+    {
+      "case_id": "FS09_function_condition",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS09_function_condition",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "05706916ea64547c81a29b9302810939a0993e3d6a15b0512003dd5407b4bf15"
+        }
+      ]
+    },
+    {
+      "case_id": "FS10_parent_condition_context",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FS10_parent_condition_context",
+      "files": [
+        {
+          "path": "firestore.rules",
+          "sha256": "569120022b7676174d6d67163aee02f2eddcb390b3520c0ad524af40d20c8485"
+        }
+      ]
+    },
+    {
+      "case_id": "ET01_direct_query",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET01_direct_query",
+      "files": [
+        {
+          "path": "src/routes/calc.js",
+          "sha256": "b1d7a591c4452e7403f9cc932d8a217fec346930e612292e14f812ef71e613e8"
+        }
+      ]
+    },
+    {
+      "case_id": "ET02_body_local_alias",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET02_body_local_alias",
+      "files": [
+        {
+          "path": "src/routes/preview.ts",
+          "sha256": "d883018674b2a30c12db5a9b2f480b617431fda5d1bf3ece3ed427e80a939624"
+        }
+      ]
+    },
+    {
+      "case_id": "ET03_two_assignments",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET03_two_assignments",
+      "files": [
+        {
+          "path": "src/runner/job.js",
+          "sha256": "34fbdb08601212b7c3ff21827df7ebceceeb49af24431bf592bfbaa4f29cdb35"
+        }
+      ]
+    },
+    {
+      "case_id": "ET04_synthetic_sanitizer",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET04_synthetic_sanitizer",
+      "files": [
+        {
+          "path": "src/sandbox/demo.js",
+          "sha256": "9ecb98e489821e0a5602e5c28e4d40eac6b2bd1f6b3088d246eaf4a9af17fd8a"
+        }
+      ]
+    },
+    {
+      "case_id": "ET05_source_but_static_sink",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET05_source_but_static_sink",
+      "files": [
+        {
+          "path": "src/routes/static.js",
+          "sha256": "3fdc721e0f41f8ea30023997c547f0624ffa9b60b8b6e08124d492e912e0f547"
+        }
+      ]
+    },
+    {
+      "case_id": "ET06_unmodeled_property",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET06_unmodeled_property",
+      "files": [
+        {
+          "path": "src/routes/expression.js",
+          "sha256": "45ef868ca1bd0f995ff248c2de5335574b2a693e379db6fb32b8ff51956b86a2"
+        }
+      ]
+    },
+    {
+      "case_id": "ET07_alternate_request_name",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET07_alternate_request_name",
+      "files": [
+        {
+          "path": "src/routes/alternate.js",
+          "sha256": "cd9acd4b6ad26bc6cd6b799ccc8d188ce837e6694791bf737844f1bc7578c4cc"
+        }
+      ]
+    },
+    {
+      "case_id": "ET08_helper_boundary",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET08_helper_boundary",
+      "files": [
+        {
+          "path": "src/routes/route.js",
+          "sha256": "5018809d5c64fabf360793c6284e3bdb1abe8af3d3670d4f8b7ad9b0e6f2541d"
+        },
+        {
+          "path": "src/services/evaluate.js",
+          "sha256": "515e2cfec50810731bea2e1003d00ba9bf64c220519532a6d8e9cc34491c48bd"
+        }
+      ]
+    },
+    {
+      "case_id": "ET09_disconnected_function",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET09_disconnected_function",
+      "files": [
+        {
+          "path": "src/tasks/disconnected.ts",
+          "sha256": "ddd82ccc6cfdc8112c160e0f1bc9164353fbbaa4f1de01f697188803b8590ae1"
+        }
+      ]
+    },
+    {
+      "case_id": "ET10_computed_property",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ET10_computed_property",
+      "files": [
+        {
+          "path": "src/routes/computed.js",
+          "sha256": "7006042417aae12a14a1162e957a3af5d2ad5641c258795e91f45b65ef36356f"
+        }
+      ]
+    },
+    {
+      "case_id": "CI01_require_query_direct",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI01_require_query_direct",
+      "files": [
+        {
+          "path": "src/routes/export.js",
+          "sha256": "66c1d0f75a9d8cbb917510439932837e78b8efc2d8f2eef9c977f3c4ae086dea"
+        }
+      ]
+    },
+    {
+      "case_id": "CI02_namespace_body_sync",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI02_namespace_body_sync",
+      "files": [
+        {
+          "path": "src/jobs/worker.ts",
+          "sha256": "4d9b7d85bdb507f4b1f1043163191a5f6932b4f1cfea71789018c087a4fcbb5c"
+        }
+      ]
+    },
+    {
+      "case_id": "CI03_named_alias",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI03_named_alias",
+      "files": [
+        {
+          "path": "src/admin/task.ts",
+          "sha256": "0468b7f1be044e4dca7625a12fbbbd60d418d7bb8546d92027f850528dee65ec"
+        }
+      ]
+    },
+    {
+      "case_id": "CI04_destructured_body",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI04_destructured_body",
+      "files": [
+        {
+          "path": "src/api/maintenance.js",
+          "sha256": "65bd152c76fe248d56f6fb7bb14cbcc16fda350712c6b13b785996b5f13137aa"
+        }
+      ]
+    },
+    {
+      "case_id": "CI05_alternate_request",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI05_alternate_request",
+      "files": [
+        {
+          "path": "src/api/alternate.js",
+          "sha256": "bc70cb80f83074f37ffdd6222ee66025e20891aea165e8eeb71b56f52983598b"
+        }
+      ]
+    },
+    {
+      "case_id": "CI06_static_command",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI06_static_command",
+      "files": [
+        {
+          "path": "src/jobs/cleanup.js",
+          "sha256": "89d35fbecdcfb8076e971c44604f04276e08820524aa127cc5e4c7455ff093c5"
+        }
+      ]
+    },
+    {
+      "case_id": "CI07_mock_exec",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI07_mock_exec",
+      "files": [
+        {
+          "path": "src/tests/fake.js",
+          "sha256": "b8f2a5ff5588534a455000180394e1d771af82b9c99e7e5cc3b4e8193957b927"
+        }
+      ]
+    },
+    {
+      "case_id": "CI08_option_argument_only",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI08_option_argument_only",
+      "files": [
+        {
+          "path": "src/routes/options.js",
+          "sha256": "e3361db9aed6413b5da9ff2fc168fff849523606a110ea15486369ec29c54156"
+        }
+      ]
+    },
+    {
+      "case_id": "CI09_cross_file_helper",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI09_cross_file_helper",
+      "files": [
+        {
+          "path": "src/routes/route.js",
+          "sha256": "32fcdf565e43226afdd4307e80a6dcf7f87f51f581890f494786f007099ff7a2"
+        },
+        {
+          "path": "src/services/execute.js",
+          "sha256": "a7d22e5ace2096f2bc62396e599c8621bdde3efe1de44d46f8aeae7d4ccc2fcc"
+        }
+      ]
+    },
+    {
+      "case_id": "CI10_callback_input",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CI10_callback_input",
+      "files": [
+        {
+          "path": "src/routes/callback.js",
+          "sha256": "ccb45898e943f8170ec8c6c004bac93c837d3768daabf5823014dd505aea78a1"
+        }
+      ]
+    }
+  ]
+}

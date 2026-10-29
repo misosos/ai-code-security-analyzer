@@ -1,0 +1,7 @@
+service cloud.firestore {
+ match /databases/{database}/documents {
+  match /teams/{team}/records/{record} {
+   allow delete: if true;
+  }
+ }
+}

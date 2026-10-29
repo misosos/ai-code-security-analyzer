@@ -1,0 +1,15 @@
+{
+  "evaluation_set_version": "phase6d-generalization-v1",
+  "corrections": [
+    {
+      "case_id": "ET07_alternate_request_name",
+      "from_oracle_sha256": "af911e6c2a02d23e4ce6dcee970931002360ec13c40600964dcdd724f88df2e3",
+      "to_oracle_sha256": "0d70ef57a247e31bb8bbea1258069a649ae5ead764f2a423e938c7e05e0c4ea8",
+      "previous_rule_signal": "out_of_scope",
+      "corrected_rule_signal": "positive",
+      "reason": "The existing eval-taint rule uses the $REQ metavariable in $REQ.body.code and does not restrict its identifier to the literal req. ET07's request identifier therefore matches the configured syntactic source pattern.",
+      "initial_observation": "The first valid Semgrep run reported one finding for ET07 under both eval-taint rules. The initial oracle had excluded it from binary scores and the evaluator listed it as an out-of-scope match.",
+      "confirmed_vulnerability": "NOT_EVALUATED"
+    }
+  ]
+}
