@@ -100,6 +100,7 @@ jobs:
           tests/test_api_semgrep_e2e.py
           tests/test_firestore_context_validation.py
           tests/test_react_html_phase6g.py
+          tests/test_eval_taint_phase6h.py
       - name: Run independent synthetic detection benchmark
         env:
           SEMGREP_REQUIRED: '1'

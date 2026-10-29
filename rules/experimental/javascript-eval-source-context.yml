@@ -1,0 +1,32 @@
+rules:
+  - id: experimental.javascript-eval-source-context
+    languages: [javascript, typescript]
+    mode: taint
+    severity: ERROR
+    message: A modeled eval source occurs inside a syntactically observed Express route handler; runtime input provenance remains unverified.
+    metadata:
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+      experimental: true
+    pattern-sources:
+      - patterns:
+          - pattern: $REQ.query.code
+          - pattern-inside: |
+              import express from "express";
+              ...
+              const $APP = express();
+              ...
+              $APP.$METHOD($PATH, ($REQ, $RES) => {
+                ...
+              });
+      - patterns:
+          - pattern: $REQ.body.code
+          - pattern-inside: |
+              import express from "express";
+              ...
+              const $APP = express();
+              ...
+              $APP.$METHOD($PATH, ($REQ, $RES) => {
+                ...
+              });
+    pattern-sinks:
+      - pattern: eval($CODE)

@@ -28,6 +28,8 @@ Firestore의 공개 읽기(`allow read: if true;`)는 사용 사례에 따라 �
 
 `experimental/javascript-eval-taint.yml`은 baseline에 포함되지 않는 PoC 규칙 두 개다. `experimental.javascript-eval-taint`는 `req.query.code` 및 `req.body.code`를 source, `eval`의 첫 인자를 sink로 모델링한다. 두 번째 규칙은 같은 모델에 합성 함수 `syntheticSafe(...)`를 sanitizer로 추가한다. 이는 규칙에서 이름 붙인 패턴을 신뢰한다고 가정한 실험일 뿐, 해당 함수가 실제 안전한 정제 함수라는 검증이 아니다. 다른 함수명, 검증 로직 또는 부분 조건문은 sanitizer로 인정하지 않는다.
 
+이 규칙에서 `$REQ`는 임의의 식별자 metavariable다. 실제 Semgrep OSS 1.182.1은 `record.query.code`, `job.body.code`처럼 일반 객체의 동일한 필드 구조도 taint Source 패턴으로 매치할 수 있다. 이것은 구문상 Source→Sink 관찰이지 HTTP 요청 출처나 외부 입력 도달성 증거가 아니다. Phase 6H의 `experimental/javascript-eval-source-context.yml`은 별도 실험으로, ESM `express` default import, `const app = express()` 형태, 그리고 해당 app의 route callback 안에 있는 source를 요구한다. 그 문맥도 실제 route mount·서버 실행·요청 도달성을 입증하지 않는다. 새 source-context 규칙은 TaintEvidence 신뢰 allowlist에 등록되지 않았으며 trusted evidence claim을 생성하지 않는다. CommonJS, Router, wrapper/helper, cross-file 흐름은 실험 규칙의 지원을 보장하지 않는다. 제한과 평가 결과는 `docs/phase6h-eval-taint-source-context.md`를 참고한다.
+
 Semgrep OSS taint 분석은 지정 source→sink 관계를 같은 함수 내 변수 할당을 따라 추적하는지 확인하는 범위다. 함수 간·파일 간 흐름은 이 평가에서 지원 보장으로 간주하지 않는다. 요청 객체의 `query`/`body` 필드 패턴은 데이터 source 정의일 뿐, 실제 사용자 도달성이나 런타임 framework 동작을 입증하지 않는다. 재현 평가와 제한은 `docs/phase3a-taint-evaluation.md` 및 `tests/fixtures/semgrep_taint/`를 참고한다.
 
 Semgrep 1.182.1은 Git 작업 트리에서 기본적으로 추적되지 않은 파일을 검사 대상에서 제외할 수 있다. 따라서 검사 결과 0건을 모든 파일을 검사했다는 뜻으로 해석하지 말고 보고서의 검사 상태와 대상 범위를 함께 확인한다.
