@@ -110,6 +110,30 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version-file: .python-version
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          uv-version: 0.11.26
+          enable-cache: false
+
+      - name: Install locked backend dependencies
+        run: |
+          uv lock --check
+          uv sync --locked
+
+      - name: Install pinned Semgrep CLI for real browser integration
+        run: |
+          uv tool install --python 3.12 'semgrep==1.182.1'
+          printf '%s\n' "$(uv tool dir --bin)" >> "$GITHUB_PATH"
+
+      - name: Require the expected Semgrep version
+        run: semgrep --version | grep -Fx '1.182.1'
+
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -135,3 +159,11 @@ jobs:
       - name: Run browser smoke test
         working-directory: frontend
         run: npm run test:browser
+
+      - name: Run required real Chromium, FastAPI, and Semgrep E2E
+        working-directory: frontend
+        env:
+          SEMGREP_REQUIRED: '1'
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+        run: npm run test:e2e:real

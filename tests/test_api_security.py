@@ -132,3 +132,96 @@ def test_static_dashboard_optional_serving_has_security_and_no_store_headers(tmp
     assert response.headers["x-content-type-options"] == "nosniff"
     assert "default-src 'self'" in response.headers["content-security-policy"]
     assert health.status_code == 200
+
+
+def _assert_browser_security_headers(response) -> None:
+    assert response.headers.get("cache-control") == "no-store"
+    assert response.headers.get("x-content-type-options") == "nosniff"
+    assert response.headers.get("referrer-policy") == "no-referrer"
+    assert "default-src 'self'" in response.headers.get("content-security-policy", "")
+
+
+def test_security_headers_cover_normal_preflight_early_rejections_and_static_assets(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.api.app import create_app
+
+    target = tmp_path / "target"
+    rules = tmp_path / "rules"
+    target.mkdir()
+    rules.mkdir()
+    dist = tmp_path / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<!doctype html><script src='/assets/app.js'></script>")
+    (dist / "assets" / "app.js").write_text("const app = true;")
+    (dist / "assets" / "app.css").write_text("body { color: black; }")
+    settings = ApiSettings(
+        target, rules, TOKEN,
+        allowed_hosts=("testserver", "127.0.0.1", "localhost"),
+        allowed_origins=("http://127.0.0.1:8765",),
+    )
+    app = create_app(settings, static_directory=dist)
+    with TestClient(app, raise_server_exceptions=False) as client:
+        responses = [
+            client.get("/api/v1/health"),
+            client.post("/api/v1/scans", json={"target_id": "local-project", "rule_profile_id": "baseline"}),
+            client.get("/api/v1/health", headers={"origin": "https://evil.example"}),
+            client.get("/api/v1/health", headers={"host": "evil.example"}),
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN, "Content-Type": "text/plain"}, content="{}"),
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN, "Content-Type": "application/json"}, content=b"{"),
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN, "Content-Type": "application/json"}, content=b" " * 20_000),
+        ]
+        preflight = client.options("/api/v1/scans", headers={
+            "Origin": "http://127.0.0.1:8765",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,x-local-api-token",
+        })
+        assets = [client.get("/"), client.get("/assets/app.js"), client.get("/assets/app.css")]
+    assert [response.status_code for response in responses] == [200, 401, 403, 400, 415, 400, 413]
+    assert preflight.status_code == 200
+    assert preflight.headers.get("access-control-allow-origin") == "http://127.0.0.1:8765"
+    assert all(response.status_code == 200 for response in assets)
+    for response in [*responses, preflight, *assets]:
+        _assert_browser_security_headers(response)
+
+
+def test_rejected_header_matrix_never_calls_scan_service(tmp_path: Path) -> None:
+    client = client_for(tmp_path, allowed_origins=("http://127.0.0.1:8765",))
+    scan_calls: list[tuple[object, ...]] = []
+    client.app.state.scan_service.scan = lambda *args: scan_calls.append(args)
+    payload = json.dumps({"target_id": "local-project", "rule_profile_id": "baseline"})
+    with client:
+        cases = [
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": "x" * 257, "Content-Type": "application/json"}, content=payload),
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN, "Content-Type": "application/json", "Origin": "http://localhost:8765"}, content=payload),
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN, "Content-Type": "application/json", "Origin": "http://127.0.0.1:9999"}, content=payload),
+            client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN, "Content-Type": "application/json"}, json={"target_id": "local-project", "rule_profile_id": "baseline", "extra": True}),
+        ]
+        duplicate_header = client.get("/api/v1/health", headers=[("host", "testserver"), ("host", "evil.example")])
+        duplicate_origin = client.get("/api/v1/health", headers=[("host", "testserver"), ("origin", "http://127.0.0.1:8765"), ("origin", "https://evil.example")])
+        duplicate_token = client.post("/api/v1/scans", headers=[("host", "testserver"), ("x-local-api-token", TOKEN), ("x-local-api-token", TOKEN), ("content-type", "application/json")], content=payload)
+        duplicate_type = client.post("/api/v1/scans", headers=[("host", "testserver"), ("x-local-api-token", TOKEN), ("content-type", "application/json"), ("content-type", "text/plain")], content=payload)
+        duplicate_length = client.post("/api/v1/scans", headers=[("host", "testserver"), ("x-local-api-token", TOKEN), ("content-type", "application/json"), ("content-length", str(len(payload))), ("content-length", str(len(payload)))], content=payload)
+    assert [response.status_code for response in cases] == [401, 403, 403, 400]
+    assert all(response.status_code == 400 for response in [duplicate_header, duplicate_origin, duplicate_token, duplicate_type, duplicate_length])
+    assert all("x" * 257 not in response.text and "secret" not in response.text for response in cases)
+    assert scan_calls == []
+
+
+def test_internal_error_is_sanitized_and_keeps_security_headers(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.api.app import create_app
+
+    target = tmp_path / "target"
+    rules = tmp_path / "rules"
+    target.mkdir()
+    rules.mkdir()
+    app = create_app(ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",)))
+
+    def fail(_target: str, _profile: str):
+        raise RuntimeError("PRIVATE_TRACEBACK_CANARY /private/project")
+
+    app.state.scan_service.scan = fail
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.post("/api/v1/scans", headers={"X-Local-API-Token": TOKEN}, json={"target_id": "local-project", "rule_profile_id": "baseline"})
+    assert response.status_code == 500
+    assert response.json() == {"error": "internal_error"}
+    assert "PRIVATE_TRACEBACK_CANARY" not in response.text and "/private/project" not in response.text
+    _assert_browser_security_headers(response)

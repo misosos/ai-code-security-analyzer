@@ -14,7 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ai_code_security_analyzer.api.routes import router
 from ai_code_security_analyzer.api.schemas import ErrorResponse
-from ai_code_security_analyzer.api.security import ApiBoundaryMiddleware
+from ai_code_security_analyzer.api.security import ApiBoundaryMiddleware, SecurityHeadersMiddleware
 from ai_code_security_analyzer.services.scan_service import ApiSettings, ScanService
 
 
@@ -23,7 +23,7 @@ def create_app(
     *,
     scan_service: ScanService | None = None,
     static_directory: Path | None = None,
-) -> FastAPI:
+) -> SecurityHeadersMiddleware:
     app = FastAPI(
         title="AI Code Security Analyzer Local API",
         docs_url=None,
@@ -34,18 +34,6 @@ def create_app(
     app.state.api_settings = settings
     app.state.scan_service = scan_service or ScanService(settings)
 
-    @app.middleware("http")
-    async def security_headers(request: Request, call_next):
-        response = await call_next(request)
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Cache-Control"] = "no-store"
-        response.headers["Referrer-Policy"] = "no-referrer"
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; "
-            "img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
-            "frame-ancestors 'none'; form-action 'self'"
-        )
-        return response
     # Exact configured loopback Origins only; no wildcard and no credentials.
     # Boundary middleware is outermost, so preflight still passes Host/Origin checks.
     if settings.allowed_origins:
@@ -81,10 +69,12 @@ def create_app(
     ui_directory = static_directory or (Path(__file__).resolve().parents[3] / "frontend" / "dist")
     if ui_directory.is_dir():
         app.mount("/", StaticFiles(directory=ui_directory, html=True, check_dir=True), name="dashboard")
-    return app
+    # Wrap outside Starlette's ServerErrorMiddleware so sanitized 500 responses, as
+    # well as boundary denials and preflight/static responses, receive the same headers.
+    return SecurityHeadersMiddleware(app)
 
 
-def create_app_from_env() -> FastAPI:
+def create_app_from_env() -> SecurityHeadersMiddleware:
     target_value = os.environ.get("AI_CODE_SECURITY_TARGET")
     token = os.environ.get("AI_CODE_SECURITY_API_TOKEN")
     if not target_value or not token:

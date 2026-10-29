@@ -51,3 +51,5 @@ uv run python -m ai_code_security_analyzer.api
 Vite가 표시하는 `http://127.0.0.1:5173` 주소로 접속한다. 토큰은 대시보드 메모리에만 유지되며 새로고침하면 사라진다. 상세 설정은 [React 대시보드 안내](docs/phase5b-react-dashboard.md)를 참고한다.
 
 검사 결과에는 실행 당시 target 및 규칙 프로필이 연결되어 표시된다. **현재 검사 결과 내보내기**는 화면에 이미 수신된 결과만 사용하는 UI 전용 Markdown 요약을 다운로드하며 Semgrep을 재실행하지 않는다. 브라우저 다운로드 파일의 저장 위치와 권한은 브라우저·운영체제가 관리한다. 범위와 한계는 [Phase 5C 안내](docs/phase5c-analyst-workflow-export.md)를 참고한다.
+
+실제 Chromium·FastAPI·Semgrep 통합 검증은 테스트용 임시 프로젝트에서 `frontend` 디렉터리에서 `SEMGREP_REQUIRED=1 npm run test:e2e:real`로 실행한다. 이 검증은 Semgrep OSS 1.182.1을 요구하며 실제 사용자 저장소를 사용하지 않는다. 보안 경계와 운영 한계는 [Phase 5D 검증 기록](docs/phase5d-browser-security-validation.md)을 참고한다.

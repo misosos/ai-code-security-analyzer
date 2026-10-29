@@ -10,6 +10,38 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 MAX_REQUEST_BYTES = 16_384
+SECURITY_HEADERS = (
+    (b"cache-control", b"no-store"),
+    (b"x-content-type-options", b"nosniff"),
+    (b"referrer-policy", b"no-referrer"),
+    (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"),
+)
+
+
+class SecurityHeadersMiddleware:
+    """Apply browser security and no-store headers to all HTTP responses."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+        # Keep the familiar FastAPI state handle available to trusted in-process callers.
+        self.state = getattr(app, "state", None)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_security_headers(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = [
+                    (key, value) for key, value in message.get("headers", [])
+                    if key.lower() not in {name for name, _ in SECURITY_HEADERS}
+                ]
+                headers.extend(SECURITY_HEADERS)
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self.app(scope, receive, send_with_security_headers)
 
 
 def _error(status: int, code: str) -> tuple[Message, Message]:
@@ -140,4 +172,4 @@ def valid_token(candidate: str | None, expected: str) -> bool:
     return hmac.compare_digest(candidate.encode("utf-8"), expected.encode("utf-8"))
 
 
-__all__ = ["ApiBoundaryMiddleware", "valid_token"]
+__all__ = ["ApiBoundaryMiddleware", "SecurityHeadersMiddleware", "valid_token"]

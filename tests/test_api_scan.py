@@ -161,6 +161,29 @@ def test_scan_lock_rejects_second_run_and_releases_after_completion(tmp_path: Pa
     assert result.scan_status is ScanStatus.COMPLETED
 
 
+def test_scan_lock_is_released_after_adapter_exception(tmp_path: Path) -> None:
+    class FailsOnce:
+        def __init__(self, rules: Path) -> None:
+            self.rules = rules
+
+        def _scan_with_evidence(self, _target: Path, _rules_file: Path):
+            raise RuntimeError("private adapter diagnostic")
+
+    attempts = 0
+
+    def adapter_factory(rules: Path):
+        nonlocal attempts
+        attempts += 1
+        return FailsOnce(rules) if attempts == 1 else FakeAdapter(rules)
+
+    _client_instance, service = _client(tmp_path, adapter_factory)
+    with pytest.raises(ServiceError) as error:
+        service.scan("local-project", "baseline")
+    assert error.value.status_code == 500 and error.value.code == "internal_error"
+    assert service.scan("local-project", "baseline").scan_status is ScanStatus.COMPLETED
+    assert attempts == 2
+
+
 def test_consumer_failure_is_fail_closed(tmp_path: Path, monkeypatch) -> None:
     import ai_code_security_analyzer.services.scan_service as module
 
@@ -191,3 +214,52 @@ def test_target_replacement_with_symlink_is_rejected_before_adapter(tmp_path: Pa
         assert error.code == "target_not_allowed"
     else:
         raise AssertionError("changed target path must fail closed")
+
+
+@pytest.mark.parametrize("limit_name,limit_value,child", [
+    ("_MAX_TARGET_ENTRIES", 0, "nested/file.js"),
+    ("_TARGET_PREFLIGHT_TIMEOUT_SECONDS", 0, None),
+])
+def test_target_preflight_limits_fail_closed_before_semgrep(
+    tmp_path: Path, monkeypatch, limit_name: str, limit_value: int, child: str | None,
+) -> None:
+    import ai_code_security_analyzer.services.scan_service as module
+
+    client, service = _client(tmp_path)
+    if child:
+        nested = service.settings.target_directory / child
+        nested.parent.mkdir(parents=True)
+        nested.write_text("synthetic")
+    adapter_calls = 0
+
+    class CountingAdapter(FakeAdapter):
+        def _scan_with_evidence(self, target: Path, rules_file: Path):
+            nonlocal adapter_calls
+            adapter_calls += 1
+            return super()._scan_with_evidence(target, rules_file)
+
+    service.adapter_factory = CountingAdapter
+    monkeypatch.setattr(module, limit_name, limit_value)
+    with pytest.raises(ServiceError) as error:
+        service.scan("local-project", "baseline")
+    assert error.value.status_code == 400 and error.value.code == "target_not_allowed"
+    assert adapter_calls == 0
+
+
+def test_deleted_target_is_rejected_without_starting_adapter(tmp_path: Path) -> None:
+    _client_instance, service = _client(tmp_path)
+    target = service.settings.target_directory
+    target.rmdir()
+    adapter_calls = 0
+
+    class CountingAdapter(FakeAdapter):
+        def _scan_with_evidence(self, target: Path, rules_file: Path):
+            nonlocal adapter_calls
+            adapter_calls += 1
+            return super()._scan_with_evidence(target, rules_file)
+
+    service.adapter_factory = CountingAdapter
+    with pytest.raises(ServiceError) as error:
+        service.scan("local-project", "baseline")
+    assert error.value.status_code == 400 and error.value.code == "target_not_allowed"
+    assert adapter_calls == 0

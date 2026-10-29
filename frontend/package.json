@@ -11,6 +11,8 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:browser": "playwright test",
+    "test:browser:real": "playwright test --config playwright.real.config.ts",
+    "test:e2e:real": "node scripts/run-real-semgrep-e2e.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
