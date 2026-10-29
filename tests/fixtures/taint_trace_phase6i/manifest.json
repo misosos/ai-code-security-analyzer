@@ -1,0 +1,262 @@
+{
+  "dataset_version": "phase6i-trace-feasibility-dev-v1",
+  "purpose": "Semgrep OSS trace schema feasibility characterization; synthetic development data, not a generalization benchmark",
+  "vulnerability_confirmation": "NOT_EVALUATED",
+  "cases": [
+    {
+      "case_id": "E01_eval_same_expression",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 2,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "E02_eval_split_lines",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 2,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "E03_eval_assignment",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 2,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "E04_eval_two_sources",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 2,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "E05_eval_two_sinks",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 4,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "E06_eval_source_only",
+      "category": "eval",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "negative",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "E07_eval_sink_only",
+      "category": "eval",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "negative",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "E08_eval_generic_record",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 2,
+      "rule_signal": "positive",
+      "source_context": "generic_object_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "E09_eval_express_route",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-source-context",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 3,
+      "rule_signal": "positive",
+      "source_context": "framework_context_observed",
+      "security_review_relevance": "review_worthy"
+    },
+    {
+      "case_id": "E10_eval_synthetic_sanitizer",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 1,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "C01_exec_direct",
+      "category": "command",
+      "expected_rule_ids": [
+        "experimental.javascript-command-injection-taint"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 1,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "C02_execsync_assignment",
+      "category": "command",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "out_of_scope",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "review_worthy",
+      "label_note": "The require result is assigned to local alias cp; current sink patterns do not establish that alias binding."
+    },
+    {
+      "case_id": "C03_exec_named_alias",
+      "category": "command",
+      "expected_rule_ids": [
+        "experimental.javascript-command-injection-taint"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 1,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "C04_spawn_shell_true",
+      "category": "command",
+      "expected_rule_ids": [
+        "experimental.javascript-command-injection-taint"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 1,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "C05_spawn_shell_false",
+      "category": "command",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "negative",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "C06_exec_constant_disconnected",
+      "category": "command",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "negative",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "B01_eval_cross_function",
+      "category": "eval",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "out_of_scope",
+      "source_context": "out_of_scope",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "B02_eval_unregistered_callback",
+      "category": "eval",
+      "expected_rule_ids": [
+        "experimental.javascript-eval-taint",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer"
+      ],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 2,
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    },
+    {
+      "case_id": "B03_command_source_without_sink",
+      "category": "command",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "negative",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "B04_eval_generic_disconnected",
+      "category": "eval",
+      "expected_rule_ids": [],
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "expected_finding_count": 0,
+      "rule_signal": "negative",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "lower_priority"
+    },
+    {
+      "case_id": "C07_execsync_supported_binding",
+      "category": "command",
+      "expected_rule_ids": [
+        "experimental.javascript-command-injection-taint"
+      ],
+      "expected_finding_count": 1,
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rule_signal": "positive",
+      "source_context": "insufficient_context",
+      "security_review_relevance": "undetermined"
+    }
+  ],
+  "oracle_revision_history": [
+    {
+      "case_id": "C02_execsync_assignment",
+      "initial_expectation": "one command-injection rule signal",
+      "observed": "no finding for cp alias assigned from node:child_process",
+      "revision": "out_of_scope",
+      "reason": "the existing explicit sink patterns do not include this local module alias shape; the code remains in the corpus as a coverage boundary, not as a negative or safe case"
+    }
+  ]
+}
