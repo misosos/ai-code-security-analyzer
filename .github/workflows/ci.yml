@@ -105,6 +105,7 @@ jobs:
         run: >-
           uv run --locked python -m pytest -q -s
           tests/test_detection_benchmark_integration.py
+          tests/test_firestore_rule_hardening.py
 
   frontend:
     name: React dashboard

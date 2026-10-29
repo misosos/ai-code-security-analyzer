@@ -1,0 +1,8 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /records/{recordId} {
+      let example = "allow write: if true;";
+      allow write: if request.auth != null;
+    }
+  }
+}

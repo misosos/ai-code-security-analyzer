@@ -1,0 +1,276 @@
+{
+  "dataset_version": "firestore-hardening-v1",
+  "case_count": 27,
+  "cases": [
+    {
+      "case_id": "P01_write",
+      "label": "positive",
+      "path": "cases/P01_write/firestore.rules",
+      "rationale": "single write permission",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P02_create",
+      "label": "positive",
+      "path": "cases/P02_create/firestore.rules",
+      "rationale": "single create permission",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P03_update",
+      "label": "positive",
+      "path": "cases/P03_update/firestore.rules",
+      "rationale": "single update permission",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P04_delete",
+      "label": "positive",
+      "path": "cases/P04_delete/firestore.rules",
+      "rationale": "single delete permission",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P05_create_update",
+      "label": "positive",
+      "path": "cases/P05_create_update/firestore.rules",
+      "rationale": "multiple write permissions",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P06_create_update_delete",
+      "label": "positive",
+      "path": "cases/P06_create_update_delete/firestore.rules",
+      "rationale": "the Phase 6A missed multi-operation form",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P07_read_write",
+      "label": "positive",
+      "path": "cases/P07_read_write/firestore.rules",
+      "rationale": "read and write alias combination",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P08_read_create",
+      "label": "positive",
+      "path": "cases/P08_read_create/firestore.rules",
+      "rationale": "read and create combination",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P09_get_update",
+      "label": "positive",
+      "path": "cases/P09_get_update/firestore.rules",
+      "rationale": "get and update combination",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P10_read_create_update_delete",
+      "label": "positive",
+      "path": "cases/P10_read_create_update_delete/firestore.rules",
+      "rationale": "read and all write operations",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P11_delete_list_create",
+      "label": "positive",
+      "path": "cases/P11_delete_list_create/firestore.rules",
+      "rationale": "write operations around a read operation",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P12_tabs_spacing",
+      "label": "positive",
+      "path": "cases/P12_tabs_spacing/firestore.rules",
+      "rationale": "tabs and varied comma spacing",
+      "expected_match_lines": [
+        4
+      ],
+      "expected_cardinality": 1,
+      "exploratory": false
+    },
+    {
+      "case_id": "P13_two_declarations",
+      "label": "positive",
+      "path": "cases/P13_two_declarations/firestore.rules",
+      "rationale": "two independent write declarations in one file",
+      "expected_match_lines": [
+        4,
+        5
+      ],
+      "expected_cardinality": 2,
+      "exploratory": false
+    },
+    {
+      "case_id": "N01_read_only",
+      "label": "negative",
+      "path": "cases/N01_read_only/firestore.rules",
+      "rationale": "public read without write permission",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N02_get_only",
+      "label": "negative",
+      "path": "cases/N02_get_only/firestore.rules",
+      "rationale": "public get without write permission",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N03_list_only",
+      "label": "negative",
+      "path": "cases/N03_list_only/firestore.rules",
+      "rationale": "public list without write permission",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N04_get_list",
+      "label": "negative",
+      "path": "cases/N04_get_list/firestore.rules",
+      "rationale": "read-only operation list",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N05_write_false",
+      "label": "negative",
+      "path": "cases/N05_write_false/firestore.rules",
+      "rationale": "write condition is false",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N06_authenticated_writes",
+      "label": "negative",
+      "path": "cases/N06_authenticated_writes/firestore.rules",
+      "rationale": "write condition has authentication guard",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N07_function_condition",
+      "label": "negative",
+      "path": "cases/N07_function_condition/firestore.rules",
+      "rationale": "write condition is not literal true",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N08_read_write_false",
+      "label": "negative",
+      "path": "cases/N08_read_write_false/firestore.rules",
+      "rationale": "combined access condition is false",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N09_compound_true",
+      "label": "negative",
+      "path": "cases/N09_compound_true/firestore.rules",
+      "rationale": "compound condition is not the literal true form",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N10_line_comment",
+      "label": "negative",
+      "path": "cases/N10_line_comment/firestore.rules",
+      "rationale": "line comment followed by guarded active rule",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N11_string_literal",
+      "label": "negative",
+      "path": "cases/N11_string_literal/firestore.rules",
+      "rationale": "string literal followed by guarded active rule",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N12_other_filename",
+      "label": "negative",
+      "path": "cases/N12_other_filename/notes.txt",
+      "rationale": "rule-like content in a file outside firestore.rules scope",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N13_similar_permission_name",
+      "label": "negative",
+      "path": "cases/N13_similar_permission_name/firestore.rules",
+      "rationale": "permission-like identifier is not a declared operation",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": false
+    },
+    {
+      "case_id": "N14_multiline_block_comment",
+      "label": "negative",
+      "path": "cases/N14_multiline_block_comment/firestore.rules",
+      "rationale": "exploratory block comment: regex is not a Firestore parser",
+      "expected_match_lines": [],
+      "expected_cardinality": 0,
+      "exploratory": true
+    }
+  ]
+}

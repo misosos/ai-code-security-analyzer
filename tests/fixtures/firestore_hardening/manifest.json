@@ -1,0 +1,141 @@
+{
+  "dataset_version": "firestore-hardening-v1",
+  "case_count": 27,
+  "cases": [
+    {
+      "case_id": "P01_write",
+      "label": "positive",
+      "path": "cases/P01_write/firestore.rules"
+    },
+    {
+      "case_id": "P02_create",
+      "label": "positive",
+      "path": "cases/P02_create/firestore.rules"
+    },
+    {
+      "case_id": "P03_update",
+      "label": "positive",
+      "path": "cases/P03_update/firestore.rules"
+    },
+    {
+      "case_id": "P04_delete",
+      "label": "positive",
+      "path": "cases/P04_delete/firestore.rules"
+    },
+    {
+      "case_id": "P05_create_update",
+      "label": "positive",
+      "path": "cases/P05_create_update/firestore.rules"
+    },
+    {
+      "case_id": "P06_create_update_delete",
+      "label": "positive",
+      "path": "cases/P06_create_update_delete/firestore.rules"
+    },
+    {
+      "case_id": "P07_read_write",
+      "label": "positive",
+      "path": "cases/P07_read_write/firestore.rules"
+    },
+    {
+      "case_id": "P08_read_create",
+      "label": "positive",
+      "path": "cases/P08_read_create/firestore.rules"
+    },
+    {
+      "case_id": "P09_get_update",
+      "label": "positive",
+      "path": "cases/P09_get_update/firestore.rules"
+    },
+    {
+      "case_id": "P10_read_create_update_delete",
+      "label": "positive",
+      "path": "cases/P10_read_create_update_delete/firestore.rules"
+    },
+    {
+      "case_id": "P11_delete_list_create",
+      "label": "positive",
+      "path": "cases/P11_delete_list_create/firestore.rules"
+    },
+    {
+      "case_id": "P12_tabs_spacing",
+      "label": "positive",
+      "path": "cases/P12_tabs_spacing/firestore.rules"
+    },
+    {
+      "case_id": "P13_two_declarations",
+      "label": "positive",
+      "path": "cases/P13_two_declarations/firestore.rules"
+    },
+    {
+      "case_id": "N01_read_only",
+      "label": "negative",
+      "path": "cases/N01_read_only/firestore.rules"
+    },
+    {
+      "case_id": "N02_get_only",
+      "label": "negative",
+      "path": "cases/N02_get_only/firestore.rules"
+    },
+    {
+      "case_id": "N03_list_only",
+      "label": "negative",
+      "path": "cases/N03_list_only/firestore.rules"
+    },
+    {
+      "case_id": "N04_get_list",
+      "label": "negative",
+      "path": "cases/N04_get_list/firestore.rules"
+    },
+    {
+      "case_id": "N05_write_false",
+      "label": "negative",
+      "path": "cases/N05_write_false/firestore.rules"
+    },
+    {
+      "case_id": "N06_authenticated_writes",
+      "label": "negative",
+      "path": "cases/N06_authenticated_writes/firestore.rules"
+    },
+    {
+      "case_id": "N07_function_condition",
+      "label": "negative",
+      "path": "cases/N07_function_condition/firestore.rules"
+    },
+    {
+      "case_id": "N08_read_write_false",
+      "label": "negative",
+      "path": "cases/N08_read_write_false/firestore.rules"
+    },
+    {
+      "case_id": "N09_compound_true",
+      "label": "negative",
+      "path": "cases/N09_compound_true/firestore.rules"
+    },
+    {
+      "case_id": "N10_line_comment",
+      "label": "negative",
+      "path": "cases/N10_line_comment/firestore.rules"
+    },
+    {
+      "case_id": "N11_string_literal",
+      "label": "negative",
+      "path": "cases/N11_string_literal/firestore.rules"
+    },
+    {
+      "case_id": "N12_other_filename",
+      "label": "negative",
+      "path": "cases/N12_other_filename/notes.txt"
+    },
+    {
+      "case_id": "N13_similar_permission_name",
+      "label": "negative",
+      "path": "cases/N13_similar_permission_name/firestore.rules"
+    },
+    {
+      "case_id": "N14_multiline_block_comment",
+      "label": "negative",
+      "path": "cases/N14_multiline_block_comment/firestore.rules"
+    }
+  ]
+}

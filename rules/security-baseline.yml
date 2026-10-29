@@ -26,4 +26,4 @@ rules:
     message: A Firestore write permission has an unconditional true condition; review its match scope.
     metadata:
       cwe: "CWE-284: Improper Access Control"
-    pattern-regex: '(?m)^[ \t]*allow[ \t]+(?:read[ \t]*,[ \t]*write|write|create|update|delete)[ \t]*:[ \t]*if[ \t]+true[ \t]*;'
+    pattern-regex: '(?m)^[ \t]*allow[ \t]+(?:(?:read|get|list|write|create|update|delete)[ \t]*,[ \t]*)*(?:write|create|update|delete)(?:[ \t]*,[ \t]*(?:read|get|list|write|create|update|delete))*[ \t]*:[ \t]*if[ \t]+true[ \t]*;'
