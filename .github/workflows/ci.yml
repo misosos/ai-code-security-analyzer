@@ -102,6 +102,11 @@ jobs:
           tests/test_react_html_phase6g.py
           tests/test_eval_taint_phase6h.py
           tests/test_taint_trace_phase6i.py
+      - name: Render Phase 6J trace-free analyst review material
+        env:
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+        run: uv run --locked python tests/phase6j_review_material.py
       - name: Run independent synthetic detection benchmark
         env:
           SEMGREP_REQUIRED: '1'
