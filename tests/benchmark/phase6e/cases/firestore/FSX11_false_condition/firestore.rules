@@ -1,0 +1,1 @@
+service cloud.firestore { match /databases/{database}/documents { match /drafts/{id} { allow delete: if false; } } }

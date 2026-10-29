@@ -1,0 +1,1593 @@
+{
+  "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+  "case_count": 60,
+  "label_definitions": {
+    "rule_signal": [
+      "positive",
+      "negative",
+      "out_of_scope"
+    ],
+    "security_review_relevance": [
+      "review_worthy",
+      "lower_priority",
+      "undetermined"
+    ],
+    "security_coverage_gap": [
+      "in_scope",
+      "unsupported_pattern",
+      "unsupported_flow",
+      "unsupported_context",
+      "insufficient_information"
+    ],
+    "vulnerability_confirmation": "NOT_EVALUATED"
+  },
+  "oracle_frozen_before_semgrep": true,
+  "cases": [
+    {
+      "case_id": "EJX01_invoice_preview",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX01_invoice_preview",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/preview.js",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "Direct eval receives a function argument in an application-like preview flow.",
+      "limitations": [
+        "Call reachability and caller control are not established."
+      ]
+    },
+    {
+      "case_id": "EJX02_fixed_formula",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX02_fixed_formula",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/formula.ts",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The direct Function constructor is in the configured syntactic rule scope, while its body is fixed.",
+      "limitations": [
+        "The constructor does not establish attacker control or runtime reachability."
+      ]
+    },
+    {
+      "case_id": "EJX03_legacy_console",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX03_legacy_console",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/legacy.js",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A fixed literal is passed to direct eval.",
+      "limitations": [
+        "Review priority depends on surrounding legacy execution context."
+      ]
+    },
+    {
+      "case_id": "EJX04_worker_transform",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX04_worker_transform",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/worker.js",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "Direct Function construction uses a supplied function argument.",
+      "limitations": [
+        "Source provenance and invocation are not evaluated."
+      ]
+    },
+    {
+      "case_id": "EJX05_import_map_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX05_import_map_expression",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/resolve.ts",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "Direct eval appears in a configuration resolver.",
+      "limitations": [
+        "Whether configuration is trusted is not established."
+      ]
+    },
+    {
+      "case_id": "EJX06_migration_constant",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX06_migration_constant",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": [
+          {
+            "path": "src/migrate.js",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "Direct eval syntax is present with a constant expression.",
+      "limitations": [
+        "Function execution and deployment context are unknown."
+      ]
+    },
+    {
+      "case_id": "EJX07_comment_documentation",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX07_comment_documentation",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The dangerous-looking text is only a line comment.",
+      "limitations": [
+        "Comments are not evaluated as JavaScript."
+      ]
+    },
+    {
+      "case_id": "EJX08_method_name",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX08_method_name",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A method named eval returns data and does not invoke the global evaluator.",
+      "limitations": [
+        "The method implementation is included, but wider callers are not."
+      ]
+    },
+    {
+      "case_id": "EJX09_text_template",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX09_text_template",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The token sequence is part of a template string.",
+      "limitations": [
+        "No runtime template evaluation is inferred."
+      ]
+    },
+    {
+      "case_id": "EJX10_safe_parser",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX10_safe_parser",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "JSON.parse is not a direct eval or Function-constructor pattern.",
+      "limitations": [
+        "The meaning and validation of the parsed data are outside this rule."
+      ]
+    },
+    {
+      "case_id": "EJX11_alias_constructor",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX11_alias_constructor",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "An alias to the Function constructor may execute dynamic code, but the configured pattern targets direct construction.",
+      "limitations": [
+        "Alias resolution and actual invocation are outside the direct syntax rule."
+      ]
+    },
+    {
+      "case_id": "EJX12_deferred_wrapper",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/EJX12_deferred_wrapper",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The evaluator is reached through a wrapper/helper shape not represented by the direct rule.",
+      "limitations": [
+        "Actual call sites and input trust are not supplied."
+      ]
+    },
+    {
+      "case_id": "RHX01_profile_bio",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX01_profile_bio",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/Profile.jsx",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "JSX passes a component property through the configured dangerous HTML attribute.",
+      "limitations": [
+        "The property origin and any upstream sanitization are unknown."
+      ]
+    },
+    {
+      "case_id": "RHX02_static_help",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX02_static_help",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/Help.tsx",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The exact JSX attribute pattern is present with a fixed literal.",
+      "limitations": [
+        "The tool does not validate the literal or deployment context."
+      ]
+    },
+    {
+      "case_id": "RHX03_ticket_body",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX03_ticket_body",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/Ticket.jsx",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The exact JSX sink receives a component property.",
+      "limitations": [
+        "Runtime input provenance and sanitization are not proven."
+      ]
+    },
+    {
+      "case_id": "RHX04_notice_content",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX04_notice_content",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The sink is mediated through a prebuilt props object, outside the inline object pattern.",
+      "limitations": [
+        "Component call sites and noticeText provenance are absent."
+      ]
+    },
+    {
+      "case_id": "RHX05_static_policy",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX05_static_policy",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/Policy.jsx",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A literal HTML value appears in the configured JSX sink shape.",
+      "limitations": [
+        "No claim is made about the rendering policy or constant source."
+      ]
+    },
+    {
+      "case_id": "RHX06_sanitized_profile",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX06_sanitized_profile",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": [
+          {
+            "path": "src/SanitizedProfile.jsx",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The rule matches the inline dangerous HTML property regardless of sanitizer naming.",
+      "limitations": [
+        "The sanitizer implementation and its correctness are not provided."
+      ]
+    },
+    {
+      "case_id": "RHX07_text_render",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX07_text_render",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "Ordinary React text interpolation is outside the dangerous HTML attribute rule.",
+      "limitations": [
+        "Other rendering paths are not included."
+      ]
+    },
+    {
+      "case_id": "RHX08_similar_prop",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX08_similar_prop",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The property name is not React dangerouslySetInnerHTML.",
+      "limitations": [
+        "Framework behavior beyond this JSX property is not evaluated."
+      ]
+    },
+    {
+      "case_id": "RHX09_dom_api",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX09_dom_api",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A non-React DOM sink may warrant review but is not the supported React JSX rule.",
+      "limitations": [
+        "The DOM node origin and runtime use are unknown."
+      ]
+    },
+    {
+      "case_id": "RHX10_create_element",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX10_create_element",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "React.createElement uses the dangerous property outside the configured JSX syntax.",
+      "limitations": [
+        "The React runtime and value provenance are not analyzed."
+      ]
+    },
+    {
+      "case_id": "RHX11_plain_string",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX11_plain_string",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The input is rendered as text in JSX, without the configured HTML sink.",
+      "limitations": [
+        "The application does not establish all other uses of html."
+      ]
+    },
+    {
+      "case_id": "RHX12_child_component",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/RHX12_child_component",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "insufficient_information",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A property flows to another component, but the receiving implementation is not supplied.",
+      "limitations": [
+        "No sink exists in this file and component behavior is unavailable."
+      ]
+    },
+    {
+      "case_id": "FSX01_account_create",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX01_account_create",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A real allow declaration grants create under a literal true condition.",
+      "limitations": [
+        "Deployment and effective inherited match scope are not checked."
+      ]
+    },
+    {
+      "case_id": "FSX02_nested_multiwrite",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX02_nested_multiwrite",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A nested real declaration includes write operations and literal true.",
+      "limitations": [
+        "No deployed project or final access evaluation is available."
+      ]
+    },
+    {
+      "case_id": "FSX03_write_alias",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX03_write_alias",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": [
+          {
+            "path": "firestore.rules",
+            "line": 4
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A write permission is unconditionally allowed in a real rules file.",
+      "limitations": [
+        "The target database and deployment status are unknown."
+      ]
+    },
+    {
+      "case_id": "FSX04_read_public",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX04_read_public",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "This rule targets write permissions, while the declaration is read-only.",
+      "limitations": [
+        "Whether public reading is acceptable depends on application policy."
+      ]
+    },
+    {
+      "case_id": "FSX05_auth_guard",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX05_auth_guard",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The update declaration has an authentication condition rather than literal true.",
+      "limitations": [
+        "Authentication alone may not be sufficient authorization."
+      ]
+    },
+    {
+      "case_id": "FSX06_block_comment",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX06_block_comment",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The write-like text is commented out; the actual declaration is read-only.",
+      "limitations": [
+        "Firestore lexical validation is bounded and does not compile rules."
+      ]
+    },
+    {
+      "case_id": "FSX07_string_sample",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX07_string_sample",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A write-like phrase is inside a string; actual permission is read-only.",
+      "limitations": [
+        "String parsing does not establish deployability."
+      ]
+    },
+    {
+      "case_id": "FSX08_conditional_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX08_conditional_write",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "Write permissions are conditional and do not match the literal-true target.",
+      "limitations": [
+        "The full policy and identity assumptions are not evaluated."
+      ]
+    },
+    {
+      "case_id": "FSX09_alt_filename",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX09_alt_filename",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_context",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The content resembles a Firestore rules declaration but the supported path is firestore.rules.",
+      "limitations": [
+        "The file type and deployment role cannot be established from content alone."
+      ]
+    },
+    {
+      "case_id": "FSX10_unclosed_comment",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX10_unclosed_comment",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "out_of_scope"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "insufficient_information",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The input is incomplete and lexical context does not establish a closed real declaration.",
+      "limitations": [
+        "No Firebase parser or deployment validation is used."
+      ]
+    },
+    {
+      "case_id": "FSX11_false_condition",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX11_false_condition",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The write permission is explicitly false, not the configured literal true pattern.",
+      "limitations": [
+        "Other allow declarations and parent conditions are absent."
+      ]
+    },
+    {
+      "case_id": "FSX12_review_function",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/FSX12_review_function",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "expected_matches": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The declaration is conditional through a helper rather than literal true.",
+      "limitations": [
+        "The helper and deployed policy semantics are not independently validated."
+      ]
+    },
+    {
+      "case_id": "ETX01_route_preview",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX01_route_preview",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/routes/preview.js",
+            "line": 3
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/routes/preview.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled query.code source reaches direct eval through a local alias.",
+      "limitations": [
+        "The identifier req is syntactically modeled; HTTP origin, validation, route registration and reachability are unverified."
+      ]
+    },
+    {
+      "case_id": "ETX02_body_calculator",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX02_body_calculator",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/controllers/calc.ts",
+            "line": 1
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/controllers/calc.ts",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled body.code expression is passed directly to eval.",
+      "limitations": [
+        "A variable named req is not proof of an actual request object."
+      ]
+    },
+    {
+      "case_id": "ETX03_generic_record",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX03_generic_record",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/tools/record.js",
+            "line": 1
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/tools/record.js",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The declared Semgrep source is any object query.code, not only a framework request.",
+      "limitations": [
+        "Actual external input provenance is not known."
+      ]
+    },
+    {
+      "case_id": "ETX04_synthetic_filter",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX04_synthetic_filter",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/demo/filter.js",
+            "line": 3
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The base taint rule models this source-to-sink; the second rule models syntheticSafe as a sanitizer.",
+      "limitations": [
+        "syntheticSafe is an evaluation-only assumption, not a validated sanitizer."
+      ]
+    },
+    {
+      "case_id": "ETX05_no_sink",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX05_no_sink",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled source is read but is not passed to eval.",
+      "limitations": [
+        "Other sinks outside this rule are not examined."
+      ]
+    },
+    {
+      "case_id": "ETX06_unrelated_local",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX06_unrelated_local",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/math/evaluate.js",
+            "line": 2
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/math/evaluate.js",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The rule source is syntactic and matches this local object field.",
+      "limitations": [
+        "This does not demonstrate a request or attacker-controlled value."
+      ]
+    },
+    {
+      "case_id": "ETX07_alternate_field",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX07_alternate_field",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "out_of_scope",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A query field reaches eval but the configured source property is query.code.",
+      "limitations": [
+        "No broader source modeling is performed."
+      ]
+    },
+    {
+      "case_id": "ETX08_helper_boundary",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX08_helper_boundary",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "out_of_scope",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_flow",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A modeled source is passed to an external helper whose implementation is unavailable.",
+      "limitations": [
+        "Interprocedural reachability is not established."
+      ]
+    },
+    {
+      "case_id": "ETX09_other_object",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX09_other_object",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/tasks/offline.js",
+            "line": 1
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/tasks/offline.js",
+            "line": 1
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The taint source pattern uses an arbitrary receiver identifier with query.code.",
+      "limitations": [
+        "The code may be a local job record; no request provenance is established."
+      ]
+    },
+    {
+      "case_id": "ETX10_cross_file",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX10_cross_file",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "out_of_scope",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_flow",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A modeled source crosses a helper boundary into a separate file.",
+      "limitations": [
+        "The helper implementation and cross-file flow are not part of this case scan oracle."
+      ]
+    },
+    {
+      "case_id": "ETX11_not_eval",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX11_not_eval",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled source is used as data without an eval sink.",
+      "limitations": [
+        "The behavior of downstream consumers is not provided."
+      ]
+    },
+    {
+      "case_id": "ETX12_synthetic_unknown",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/ETX12_synthetic_unknown",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-eval-taint": [
+          {
+            "path": "src/middleware/clean.js",
+            "line": 3
+          }
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          {
+            "path": "src/middleware/clean.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The configured source-to-eval pattern is present and no modeled sanitizer is used.",
+      "limitations": [
+        "normalize implementation and external input source are unknown."
+      ]
+    },
+    {
+      "case_id": "CIX01_export_route",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX01_export_route",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/routes/export.js",
+            "line": 3
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The configured request field flows into the first argument of child_process.exec under supported require syntax.",
+      "limitations": [
+        "Actual HTTP reachability and shell behavior are not executed."
+      ]
+    },
+    {
+      "case_id": "CIX02_sync_admin",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX02_sync_admin",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/tasks/rebuild.ts",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled body.cmd is passed to the first execSync argument using supported namespace import.",
+      "limitations": [
+        "Caller reachability and runtime authorization are unknown."
+      ]
+    },
+    {
+      "case_id": "CIX03_named_alias",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX03_named_alias",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": [
+          {
+            "path": "src/ops/archive.ts",
+            "line": 2
+          }
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A supported named alias sink receives a command string containing the modeled field.",
+      "limitations": [
+        "Quoting and execution context are not validated."
+      ]
+    },
+    {
+      "case_id": "CIX04_static_command",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX04_static_command",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The supported sink receives a constant and contains no modeled taint source.",
+      "limitations": [
+        "The command’s effect and runtime access are not evaluated."
+      ]
+    },
+    {
+      "case_id": "CIX05_regex_exec",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX05_regex_exec",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "lower_priority",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "RegExp.exec is not a child_process sink.",
+      "limitations": [
+        "No shell API is present in the fixture."
+      ]
+    },
+    {
+      "case_id": "CIX06_option_only",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX06_option_only",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "in_scope",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled field occurs only in the options argument, not the command string.",
+      "limitations": [
+        "Other execution option risks are outside this rule’s command-string target."
+      ]
+    },
+    {
+      "case_id": "CIX07_spawn_api",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX07_spawn_api",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The input reaches an API outside the configured exec/execSync sink set.",
+      "limitations": [
+        "spawn options such as shell behavior are not assessed."
+      ]
+    },
+    {
+      "case_id": "CIX08_helper_boundary",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX08_helper_boundary",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_flow",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The modeled input is passed to a helper with no implementation in the scanned case.",
+      "limitations": [
+        "No child_process call is included in this fixture."
+      ]
+    },
+    {
+      "case_id": "CIX09_other_property",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX09_other_property",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The value reaches a supported-like sink, but query.term is not a modeled source.",
+      "limitations": [
+        "No broader request-property source modeling is claimed."
+      ]
+    },
+    {
+      "case_id": "CIX10_mock",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX10_mock",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "unsupported_context",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "The object shadows the module name and is not imported from child_process.",
+      "limitations": [
+        "Static scope resolution and test intent are not evaluated."
+      ]
+    },
+    {
+      "case_id": "CIX11_local_alias",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX11_local_alias",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "review_worthy",
+      "security_coverage_gap": "unsupported_pattern",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A module alias is used, but the supported namespace variable name is child_process.",
+      "limitations": [
+        "Alias identity and runtime path are outside configured patterns."
+      ]
+    },
+    {
+      "case_id": "CIX12_cross_file",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/CIX12_cross_file",
+      "evaluation_set_version": "phase6e-heldout-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "out_of_scope"
+      },
+      "expected_matches": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "security_review_relevance": "undetermined",
+      "security_coverage_gap": "unsupported_flow",
+      "vulnerability_confirmation": "NOT_EVALUATED",
+      "rationale": "A value is passed to a separate service with no implementation in this case.",
+      "limitations": [
+        "Whether the service invokes a shell is unavailable."
+      ]
+    }
+  ]
+}

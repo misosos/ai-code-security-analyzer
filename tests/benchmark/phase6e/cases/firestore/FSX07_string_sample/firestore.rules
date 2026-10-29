@@ -1,0 +1,1 @@
+service cloud.firestore { match /databases/{database}/documents { match /help/{id} { function sample() { return "allow write: if true;"; } allow get: if true; } } }
