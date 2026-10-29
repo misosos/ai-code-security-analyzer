@@ -1,0 +1,7 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /imports/{importId} {
+      allow write: if true;
+    }
+  }
+}

@@ -97,6 +97,14 @@ jobs:
           tests/test_command_injection_taint.py
           tests/test_command_injection_hardening.py
           tests/test_api_semgrep_e2e.py
+      - name: Run independent synthetic detection benchmark
+        env:
+          SEMGREP_REQUIRED: '1'
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+        run: >-
+          uv run --locked python -m pytest -q -s
+          tests/test_detection_benchmark_integration.py
 
   frontend:
     name: React dashboard

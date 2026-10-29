@@ -1,0 +1,1223 @@
+{
+  "evaluation_set_version": "phase6a-synthetic-v1",
+  "case_count": 50,
+  "cases": [
+    {
+      "case_id": "C01_route_command",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C02_imported_task",
+      "category": "command_injection",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C03_destructured_worker",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C04_named_alias",
+      "category": "command_injection",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C05_option_boundary",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C06_regex_method",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C07_mock_process",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C08_other_request_object",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C09_static_shell",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "C10_input_without_sink",
+      "category": "command_injection",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-command-injection-taint": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.cmd / req.body.cmd to child_process exec/execSync model; runtime reachability is unknown.",
+      "expected_match_locations": {
+        "experimental.javascript-command-injection-taint": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-command-injection-taint": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T01_query_direct",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [
+          2
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T02_body_alias",
+      "category": "eval_taint",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [
+          3
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T03_two_assignments",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [
+          4
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T04_generic_context",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [
+          2
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T05_modeled_sanitizer",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "positive",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [
+          3
+        ],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 1,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "syntheticSafe is a synthetic rule-model sanitizer, not a verified security sanitizer.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T06_other_query_property",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T07_source_unused",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T08_params_field",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T09_comment_only",
+      "category": "eval_taint",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "T10_disconnected_variables",
+      "category": "eval_taint",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "experimental.javascript-eval-taint": "negative",
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the declared req.query.code / req.body.code to eval model; syntheticSafe is only a rule-model assumption.",
+      "expected_match_locations": {
+        "experimental.javascript-eval-taint": [],
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": []
+      },
+      "expected_cardinality": {
+        "experimental.javascript-eval-taint": 0,
+        "experimental.javascript-eval-taint-with-synthetic-sanitizer": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Taint flow labels do not prove runtime reachability or confirmed exploitability."
+      ]
+    },
+    {
+      "case_id": "F01_public_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F02_nested_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F03_combined_access",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F04_explicit_update",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F05_write_collections",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": [
+          4
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F06_authenticated_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F07_public_read",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F08_comment_example",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F09_conditional_access",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "F10_other_documentation",
+      "category": "firestore",
+      "language": "text",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.firestore-unconditional-write": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect the baseline regex and file-path scope only. Deployment, inherited rules, and effective authorization are unknown.",
+      "expected_match_locations": {
+        "baseline.firestore-unconditional-write": []
+      },
+      "expected_cardinality": {
+        "baseline.firestore-unconditional-write": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed.",
+        "Firestore deployment and effective match-scope composition were not verified."
+      ]
+    },
+    {
+      "case_id": "E01_route_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E02_query_filter",
+      "category": "js_eval",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E03_template_builder",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E04_admin_preview",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E05_constant_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "positive"
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E06_comment_only",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E07_log_message",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E08_object_method",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E09_safe_parser",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "E10_named_evaluator",
+      "category": "js_eval",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.javascript-dynamic-eval": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect direct eval/new Function syntax only. Runtime input control and deployment context are outside this oracle.",
+      "expected_match_locations": {
+        "baseline.javascript-dynamic-eval": []
+      },
+      "expected_cardinality": {
+        "baseline.javascript-dynamic-eval": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R01_profile_card",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R02_message_panel",
+      "category": "react_html",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "security_review_relevance": "review_worthy",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R03_help_content",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": [
+          3
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R04_preview",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R05_legacy_notice",
+      "category": "react_html",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "positive"
+      },
+      "security_review_relevance": "lower_priority",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": [
+          2
+        ]
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 1
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R06_text_node",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R07_similar_property",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R08_string_preview",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R09_dom_text",
+      "category": "react_html",
+      "language": "typescript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    },
+    {
+      "case_id": "R10_static_markup",
+      "category": "react_html",
+      "language": "javascript",
+      "evaluation_set_version": "phase6a-synthetic-v1",
+      "expected_rule_signals": {
+        "baseline.react-dangerous-html": "negative"
+      },
+      "security_review_relevance": "undetermined",
+      "rationale": "Rule Signal labels reflect JSX dangerouslySetInnerHTML usage only. Data origin and sanitization are not established.",
+      "expected_match_locations": {
+        "baseline.react-dangerous-html": []
+      },
+      "expected_cardinality": {
+        "baseline.react-dangerous-html": 0
+      },
+      "known_limitations": [
+        "Synthetic benchmark case; not a production vulnerability verdict.",
+        "Rule Signal is evaluated separately from security review relevance.",
+        "No runtime execution, framework configuration, or deployment validation was performed."
+      ]
+    }
+  ]
+}

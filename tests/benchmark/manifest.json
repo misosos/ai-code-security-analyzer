@@ -1,0 +1,306 @@
+{
+  "evaluation_set_version": "phase6a-synthetic-v1",
+  "case_count": 50,
+  "cases": [
+    {
+      "case_id": "C01_route_command",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C01_route_command.js"
+    },
+    {
+      "case_id": "C02_imported_task",
+      "category": "command_injection",
+      "language": "typescript",
+      "path": "cases/command_injection/C02_imported_task.ts"
+    },
+    {
+      "case_id": "C03_destructured_worker",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C03_destructured_worker.js"
+    },
+    {
+      "case_id": "C04_named_alias",
+      "category": "command_injection",
+      "language": "typescript",
+      "path": "cases/command_injection/C04_named_alias.ts"
+    },
+    {
+      "case_id": "C05_option_boundary",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C05_option_boundary.js"
+    },
+    {
+      "case_id": "C06_regex_method",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C06_regex_method.js"
+    },
+    {
+      "case_id": "C07_mock_process",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C07_mock_process.js"
+    },
+    {
+      "case_id": "C08_other_request_object",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C08_other_request_object.js"
+    },
+    {
+      "case_id": "C09_static_shell",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C09_static_shell.js"
+    },
+    {
+      "case_id": "C10_input_without_sink",
+      "category": "command_injection",
+      "language": "javascript",
+      "path": "cases/command_injection/C10_input_without_sink.js"
+    },
+    {
+      "case_id": "T01_query_direct",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T01_query_direct.js"
+    },
+    {
+      "case_id": "T02_body_alias",
+      "category": "eval_taint",
+      "language": "typescript",
+      "path": "cases/eval_taint/T02_body_alias.ts"
+    },
+    {
+      "case_id": "T03_two_assignments",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T03_two_assignments.js"
+    },
+    {
+      "case_id": "T04_generic_context",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T04_generic_context.js"
+    },
+    {
+      "case_id": "T05_modeled_sanitizer",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T05_modeled_sanitizer.js"
+    },
+    {
+      "case_id": "T06_other_query_property",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T06_other_query_property.js"
+    },
+    {
+      "case_id": "T07_source_unused",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T07_source_unused.js"
+    },
+    {
+      "case_id": "T08_params_field",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T08_params_field.js"
+    },
+    {
+      "case_id": "T09_comment_only",
+      "category": "eval_taint",
+      "language": "javascript",
+      "path": "cases/eval_taint/T09_comment_only.js"
+    },
+    {
+      "case_id": "T10_disconnected_variables",
+      "category": "eval_taint",
+      "language": "typescript",
+      "path": "cases/eval_taint/T10_disconnected_variables.ts"
+    },
+    {
+      "case_id": "F01_public_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F01_public_write/firestore.rules"
+    },
+    {
+      "case_id": "F02_nested_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F02_nested_write/firestore.rules"
+    },
+    {
+      "case_id": "F03_combined_access",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F03_combined_access/firestore.rules"
+    },
+    {
+      "case_id": "F04_explicit_update",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F04_explicit_update/firestore.rules"
+    },
+    {
+      "case_id": "F05_write_collections",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F05_write_collections/firestore.rules"
+    },
+    {
+      "case_id": "F06_authenticated_write",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F06_authenticated_write/firestore.rules"
+    },
+    {
+      "case_id": "F07_public_read",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F07_public_read/firestore.rules"
+    },
+    {
+      "case_id": "F08_comment_example",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F08_comment_example/firestore.rules"
+    },
+    {
+      "case_id": "F09_conditional_access",
+      "category": "firestore",
+      "language": "firestore_rules",
+      "path": "cases/firestore/F09_conditional_access/firestore.rules"
+    },
+    {
+      "case_id": "F10_other_documentation",
+      "category": "firestore",
+      "language": "text",
+      "path": "cases/firestore/F10_other_documentation.txt"
+    },
+    {
+      "case_id": "E01_route_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E01_route_expression.js"
+    },
+    {
+      "case_id": "E02_query_filter",
+      "category": "js_eval",
+      "language": "typescript",
+      "path": "cases/js_eval/E02_query_filter.ts"
+    },
+    {
+      "case_id": "E03_template_builder",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E03_template_builder.js"
+    },
+    {
+      "case_id": "E04_admin_preview",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E04_admin_preview.js"
+    },
+    {
+      "case_id": "E05_constant_expression",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E05_constant_expression.js"
+    },
+    {
+      "case_id": "E06_comment_only",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E06_comment_only.js"
+    },
+    {
+      "case_id": "E07_log_message",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E07_log_message.js"
+    },
+    {
+      "case_id": "E08_object_method",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E08_object_method.js"
+    },
+    {
+      "case_id": "E09_safe_parser",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E09_safe_parser.js"
+    },
+    {
+      "case_id": "E10_named_evaluator",
+      "category": "js_eval",
+      "language": "javascript",
+      "path": "cases/js_eval/E10_named_evaluator.js"
+    },
+    {
+      "case_id": "R01_profile_card",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R01_profile_card.jsx"
+    },
+    {
+      "case_id": "R02_message_panel",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/R02_message_panel.tsx"
+    },
+    {
+      "case_id": "R03_help_content",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R03_help_content.jsx"
+    },
+    {
+      "case_id": "R04_preview",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R04_preview.jsx"
+    },
+    {
+      "case_id": "R05_legacy_notice",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/R05_legacy_notice.tsx"
+    },
+    {
+      "case_id": "R06_text_node",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R06_text_node.jsx"
+    },
+    {
+      "case_id": "R07_similar_property",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R07_similar_property.jsx"
+    },
+    {
+      "case_id": "R08_string_preview",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R08_string_preview.jsx"
+    },
+    {
+      "case_id": "R09_dom_text",
+      "category": "react_html",
+      "language": "typescript",
+      "path": "cases/react_html/R09_dom_text.tsx"
+    },
+    {
+      "case_id": "R10_static_markup",
+      "category": "react_html",
+      "language": "javascript",
+      "path": "cases/react_html/R10_static_markup.jsx"
+    }
+  ]
+}
