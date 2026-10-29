@@ -25,6 +25,7 @@ test('browser loads dashboard, accepts token in memory, and displays validated e
   await page.getByLabel('로컬 API 토큰').fill(token);
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await page.getByText('기술 근거와 제한 자세히 보기').click();
   await expect(page.getByText('신뢰된 taint 규칙 매치 보고')).toBeVisible();
   await expect(page.getByText(/trace가 제공되지 않았습니다/)).toBeVisible();
   await expect(page.getByRole('img')).toHaveCount(0);

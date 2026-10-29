@@ -22,6 +22,73 @@ describe('Analyst dashboard',()=>{
   beforeEach(()=>{vi.stubGlobal('fetch',vi.fn()); vi.spyOn(Storage.prototype,'setItem');});
   afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
+  it('shows a beginner quick start even when the API is offline',async()=>{
+    vi.mocked(fetch).mockRejectedValue(new Error('offline'));
+    const user=userEvent.setup(); render(<App/>);
+    expect(await screen.findByRole('alert')).toHaveTextContent('로컬 API에 연결할 수 없습니다');
+    const quickStart=screen.getByText('처음 시작하기').closest('details')!;
+    expect(quickStart).toBeInTheDocument(); expect(quickStart).not.toHaveAttribute('open');
+    await user.click(screen.getByText('처음 시작하기'));
+    expect(quickStart).toHaveAttribute('open');
+    expect(within(quickStart).getByText(/AI_CODE_SECURITY_TARGET/)).toBeInTheDocument();
+    expect(within(quickStart).getByText(/secrets\.token_urlsafe\(48\)/)).toBeInTheDocument();
+    expect(within(quickStart).getAllByText(/127\.0\.0\.1:8765/).length).toBeGreaterThan(0);
+    expect(within(quickStart).getAllByText(/127\.0\.0\.1:5173/).length).toBeGreaterThan(0);
+  });
+
+  it('explains the token, allowlisted project, rule profile, and experimental scope in plain Korean',async()=>{
+    vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
+    render(<App/>); await screen.findByText(/연결됨/);
+    expect(screen.getByText(/내 컴퓨터의 검사 서버에 요청할 권한/)).toBeInTheDocument();
+    expect(screen.getByText(/GitHub에 커밋하거나 다른 사람과 공유하지 마세요/)).toBeInTheDocument();
+    expect(screen.getByText(/토큰을 지우면 화면의 입력값만 제거됩니다/)).toBeInTheDocument();
+    expect(screen.getByText(/미리 등록된 프로젝트만 선택/)).toBeInTheDocument();
+    expect(screen.getByText(/보안 문제.*검사 규칙 묶음/)).toBeInTheDocument();
+    await userEvent.setup().selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
+    expect(screen.getByText(/일반적인 정확도가 충분히 검증됐다는 뜻은 아닙니다/)).toBeInTheDocument();
+  });
+
+  it('shows beginner result summaries and maps known status codes without hiding technical codes',async()=>{
+    vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
+    await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
+    queueScan(scan([finding()],{issues:['semgrep_timeout']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
+    expect(await screen.findByText(/보안상 확인이 필요한 코드가 발견됐습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/실제 취약점인지는 아직 확인되지 않았습니다/)).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:'검사 시간이 초과됐습니다.'})).toBeInTheDocument();
+    expect(screen.getByText(/허용된 시간 안에 검사가 끝나지 않았습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/프로젝트의 검사 범위와 실행 환경을 확인한 뒤 다시 검사/)).toBeInTheDocument();
+    expect(screen.getByText('semgrep_timeout')).toBeInTheDocument();
+  });
+
+  it('keeps zero, partial, and failed summaries tied to the returned scan status',async()=>{
+    vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
+    await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
+    queueScan(scan([])); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
+    expect(await screen.findByText('이번 검사에서 보고된 검토 후보가 없습니다. 프로젝트가 안전하다는 뜻은 아닙니다.')).toBeInTheDocument();
+    cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
+    await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
+    queueScan(scan([finding()],{scan_status:'partial',completed:false,limitations:['scan_partial'],issues:['evidence_unavailable']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
+    expect(await screen.findByText('검사가 일부만 완료됐습니다. 검사되지 않은 부분의 안전성은 확인할 수 없습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:'분석 근거 일부를 확인할 수 없습니다.'})).toBeInTheDocument();
+    cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
+    await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
+    queueScan(scan([],{scan_status:'timed_out',completed:false,limitations:['scan_failed'],issues:['semgrep_timeout']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
+    expect(await screen.findByText('검사를 완료하지 못했습니다. 검사 결과로 프로젝트의 안전성을 판단하지 마세요.')).toBeInTheDocument();
+  });
+
+  it('places advanced evidence behind an accessible disclosure while keeping key limits visible',async()=>{
+    vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
+    await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); queueScan(scan()); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
+    const technical=await screen.findByText('기술 근거와 제한 자세히 보기');
+    expect(technical.closest('details')).not.toHaveAttribute('open');
+    expect(screen.getByText(/이 결과는 검토 후보이며 실제 취약점으로 확정되지 않았습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/Source\/Sink 위치와 전체 데이터 전달 경로는 확인되지 않았을 수 있습니다/)).toBeInTheDocument();
+    await userEvent.setup().click(technical);
+    expect(technical.closest('details')).toHaveAttribute('open');
+    expect(screen.getByText('확인된 구조적 근거')).toBeInTheDocument();
+    expect(screen.getByText('실제 Source 위치 정보가 제공되지 않았습니다.')).toBeInTheDocument();
+  });
+
   it('loads actual API options, labels experimental profiles, requires a token, and sends it only in the request header',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
     const user=userEvent.setup(); render(<App/>);
@@ -50,7 +117,7 @@ describe('Analyst dashboard',()=>{
     expect(screen.getByText('실제 Source 위치 정보가 제공되지 않았습니다.')).toBeInTheDocument();
     expect(screen.getByText(/trace가 제공되지 않았습니다/)).toBeInTheDocument();
     expect(screen.getByText(/취약점 확정에는 별도의 확인/)).toBeInTheDocument();
-    expect(screen.getByText('상태: 미검증')).toBeInTheDocument();
+    expect(screen.getAllByText('미검증 후보').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(within(screen.getByLabelText('선택한 Finding 상세')).getByText('src/<img src=x onerror=alert(1)>.js:8')).toBeInTheDocument();
   });
@@ -60,10 +127,10 @@ describe('Analyst dashboard',()=>{
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
     queueScan(scan([finding()],{scan_status:'partial',completed:false,limitations:['scan_partial']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
     expect(await screen.findByRole('heading',{name:'부분 검사'})).toBeInTheDocument();
-    expect(screen.getByText(/전체 검사가 완료된 것으로 해석하지 마세요/)).toBeInTheDocument();
+    expect(screen.getByText(/검사되지 않은 부분의 안전성은 확인할 수 없습니다/)).toBeInTheDocument();
     cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); queueScan(scan([],{scan_status:'timed_out',completed:false,limitations:['scan_failed']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByRole('heading',{name:'시간 초과'})).toBeInTheDocument(); expect(screen.getByText(/분석이 실패했습니다/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading',{name:'시간 초과'})).toBeInTheDocument(); expect(screen.getByText(/검사를 완료하지 못했습니다\. 검사 결과로 프로젝트의 안전성을 판단하지 마세요/)).toBeInTheDocument();
   });
 
   it('handles zero findings and filters only the returned finding set',async()=>{
@@ -157,7 +224,8 @@ describe('Analyst dashboard',()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); queueScan(scan(findings)); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
     const pattern = await screen.findByRole('button',{name:/baseline.test-pattern/}); await userEvent.setup().click(pattern);
-    expect(screen.getByRole('note')).toHaveTextContent('지원된 주장은 표시하지 않습니다');
+    expect(screen.getByText(/근거 검증이 통과하지 않았습니다/)).toHaveTextContent('지원된 주장은 표시하지 않습니다');
+    expect(screen.getByText(/근거 연결을 검증하지 못해 지원된 근거는 표시하지 않습니다/)).toBeInTheDocument();
     expect(screen.queryByText('Semgrep 규칙 매치 보고')).not.toBeInTheDocument();
     await userEvent.setup().selectOptions(screen.getByLabelText('유형'),'pattern'); expect(within(screen.getByLabelText('Finding 목록')).getByRole('button',{name:/baseline.test-pattern/})).toBeInTheDocument();
   });

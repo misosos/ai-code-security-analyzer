@@ -63,11 +63,13 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
 
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   await expect(page.getByText('experimental.javascript-command-injection-taint').first()).toBeVisible();
+  await expect(page.getByText('미검증 후보').first()).toBeVisible();
+  await page.getByText('기술 근거와 제한 자세히 보기').click();
   await expect(page.getByText('신뢰된 taint 규칙 매치 보고')).toBeVisible();
   await expect(page.getByText(/실제 Source 위치 정보가 제공되지 않았습니다/)).toBeVisible();
   await expect(page.getByText(/Sink 인자 위치 정보가 제공되지 않았습니다/)).toBeVisible();
   await expect(page.getByText(/trace가 제공되지 않았습니다/)).toBeVisible();
-  await expect(page.getByText('상태: 미검증')).toBeVisible();
+  await expect(page.getByText('unverified', { exact: true })).toBeVisible();
   await expect(page.getByText(canary)).toHaveCount(0);
 
   const downloadPromise = page.waitForEvent('download');
