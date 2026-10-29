@@ -3,7 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../src/app/App';
 
-const options = { targets:[{id:'local-project',label:'Local Project'}], rule_profiles:[{id:'baseline',label:'Baseline Rules',experimental:false},{id:'command-injection-experimental',label:'Experimental Command Injection',experimental:true}] };
+const options = { targets:[{id:'local-project',label:'Local Project'},{id:'other-project',label:'Other Local Project'}], rule_profiles:[{id:'baseline',label:'Baseline Rules',experimental:false},{id:'command-injection-experimental',label:'Experimental Command Injection',experimental:true}] };
 const finding = (overrides:Record<string,unknown>={}) => ({
   finding_id:'semgrep:0123456789abcdef01234567',rule_id:'experimental.command-injection',severity:'high',verification_status:'unverified',finding_kind:'taint',file_path:'src/<img src=x onerror=alert(1)>.js',line_number:8,evidence_validation_status:'validated',
   supported_claims:['match_reported','taint_rule_match_reported','source_pattern_declared','sink_pattern_declared','match_location_observed'],
@@ -121,6 +121,35 @@ describe('Analyst dashboard',()=>{
     expect(within(screen.getByText('생략된 결과').closest('.metric')!).getByText('1')).toBeInTheDocument();
     expect(screen.getByText('omitted_findings_not_individually_validated')).toBeInTheDocument();
     expect(screen.getByText(/필터는 이 응답에 표시된 최대 50건에만 적용됩니다/)).toBeInTheDocument();
+  });
+
+  it('keeps the request-time scan context when current settings change and exports only on click',async()=>{
+    vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
+    const user=userEvent.setup(); await user.type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
+    const create=vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:review-test'); const revoke=vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});
+    vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
+    queueScan(scan()); await user.click(screen.getByRole('button',{name:'검사 실행'}));
+    expect(await screen.findByText(/이 결과를 생성한 검사 설정/)).toBeInTheDocument();
+    expect(within(screen.getByLabelText('이 결과를 생성한 검사 설정')).getByText('Baseline Rules')).toBeInTheDocument();
+    await user.selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
+    await user.selectOptions(screen.getAllByRole('combobox')[0],'other-project');
+    expect(screen.getByRole('alert')).toHaveTextContent('표시된 결과는 이전 검사 설정(Local Project · Baseline Rules)에 속합니다');
+    expect(screen.getByRole('alert')).toHaveTextContent('현재 선택한 설정(Other Local Project · Experimental · Experimental Command Injection)');
+    expect(screen.getByRole('heading',{name:'정상 완료'})).toBeInTheDocument();
+    expect(create).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button',{name:'현재 검사 결과 내보내기'}));
+    expect(create).toHaveBeenCalledOnce();
+    const blob=create.mock.calls[0][0] as Blob; const content=await blob.text();
+    expect(content).toContain('Baseline Rules'); expect(content).not.toContain('Experimental · Command Injection');
+    expect(content).toContain('Semgrep 규칙 매치 보고'); expect(content).not.toContain('test-local-token-which-is-not-persisted');
+    await user.click(screen.getByRole('button',{name:'결과 지우기'}));
+    expect(screen.queryByRole('heading',{name:'정상 완료'})).not.toBeInTheDocument();
+    expect(screen.queryByText(/이 결과를 생성한 검사 설정/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('로컬 API 토큰')).toHaveValue('test-local-token-which-is-not-persisted');
+    queueScan(scan()); await user.click(screen.getByRole('button',{name:'검사 실행'}));
+    expect(await screen.findByRole('heading',{name:'정상 완료'})).toBeInTheDocument();
+    expect(screen.getByLabelText('심각도')).toHaveValue('all');
+    await new Promise((resolve)=>setTimeout(resolve,0)); expect(revoke).toHaveBeenCalledWith('blob:review-test');
   });
 
   it('does not show supported claims on evidence validation failure and selects rows accessibly',async()=>{

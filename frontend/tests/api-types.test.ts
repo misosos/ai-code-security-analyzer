@@ -14,7 +14,7 @@ describe('closed Phase 5A API response contract',()=>{
     ['unknown claim',{...valid,findings:[{...valid.findings[0],supported_claims:['MATCH_REPORTED']}]}],
     ['unknown reason',{...valid,findings:[{...valid.findings[0],restricted_claims:[{claim_type:'flow_trace_available',decision:'unavailable',reason_codes:['secret_reason']}]}]}],
     ['unknown issue',{...valid,issues:['new_issue']}],
-    ['extra Finding field',{...valid,findings:[{...valid.findings[0],message:'raw code'}]}],
+    ['extra Finding field with a synthetic canary',{...valid,findings:[{...valid.findings[0],message:'SYNTHETIC-CANARY-DO-NOT-EXPOSE raw code'}]}],
     ['duplicate finding id',{...valid,findings:[valid.findings[0],valid.findings[0]],finding_count:2,displayed_finding_count:2,severity_counts:{critical:0,high:2,medium:0,low:0,info:0}}],
     ['contradictory claim',{...valid,findings:[{...valid.findings[0],supported_claims:['flow_trace_available']}]}],
   ] as const)('rejects %s',(_label,payload)=>{ expect(()=>parseScan(payload)).toThrow('invalid_api_response'); });

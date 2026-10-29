@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
+import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
 const severityOrder: Severity[] = ['critical','high','medium','low','info'];
@@ -56,6 +57,8 @@ export function App() {
   const [state, setState] = useState<RequestState>('ready');
   const [message, setMessage] = useState('');
   const [scan, setScan] = useState<ScanResponse | null>(null);
+  const [scanContext, setScanContext] = useState<ScanContext | null>(null);
+  const [exportMessage, setExportMessage] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [kindFilter, setKindFilter] = useState('all');
@@ -80,16 +83,32 @@ export function App() {
   async function runScan(event: React.FormEvent) {
     event.preventDefault();
     if (!token || !targetId || !profileId || state === 'scanning') return;
-    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setSelectedId('');
+    const target = options?.targets.find((item) => item.id === targetId);
+    const profile = options?.rule_profiles.find((item) => item.id === profileId);
+    if (!target || !profile) return;
+    const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
+    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setSelectedId(''); setExportMessage(''); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
-      setScan(result); setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed');
+      setScan(result); setScanContext({ ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() }); setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed');
       setMessage(result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`);
     } catch (error) { const result = safeError(error); setState(result.state); setMessage(result.message); }
   }
   function clearToken() { setToken(''); setState('ready'); setMessage('토큰을 지웠습니다. 토큰은 이 페이지 메모리에만 보관됩니다.'); }
+  function resetFilters() { setSeverityFilter('all'); setKindFilter('all'); setVerificationFilter('all'); }
+  function clearResults() {
+    if (state === 'scanning') return;
+    setScan(null); setScanContext(null); setSelectedId(''); resetFilters(); setExportMessage(''); setMessage('화면의 검사 결과와 관련 임시 상태를 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
+    if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
+  }
+  function exportResults() {
+    if (!scan || !scanContext) return;
+    try { downloadReviewMarkdown(createReviewMarkdown(scanContext, scan)); setExportMessage('현재 API 응답에 포함된 Finding 요약을 다운로드했습니다.'); }
+    catch { setExportMessage('요약을 내보낼 수 없습니다. 출력 크기 제한을 확인하세요.'); }
+  }
 
   const selectedProfile = options?.rule_profiles.find((item) => item.id === profileId);
+  const contextChanged = Boolean(scanContext && (targetId !== scanContext.targetId || profileId !== scanContext.ruleProfileId));
   return <div className="app-shell">
     <header className="topbar"><div className="brand-mark" aria-hidden="true">AC</div><div className="brand-copy"><h1>AI Code Security Analyzer</h1><p>Local Analysis Dashboard</p></div><div className="header-status"><span className={`status-dot ${health}`} aria-hidden="true" /> API {health === 'connected' ? '연결됨' : health === 'checking' ? '확인 중' : '연결 안 됨'}<span className="header-divider" />{state === 'scanning' ? '검사 진행 중' : scan ? statusLabels[scan.scan_status] : requestStateLabels[state] ?? '요청 실패'}</div></header>
     <main>
@@ -107,6 +126,8 @@ export function App() {
       </section>
       <div className="live-message" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {scan && <>
+        {scanContext && <section className="scan-context panel" aria-label="이 결과를 생성한 검사 설정"><div><p className="eyebrow">RESULT CONTEXT</p><h2>이 결과를 생성한 검사 설정</h2><p>대상: <strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code> · 프로필: <strong>{scanContext.experimental ? 'Experimental · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신 시각 (브라우저 로컬 기록): {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" onClick={exportResults}>현재 검사 결과 내보내기</button><button type="button" className="button secondary" onClick={clearResults}>결과 지우기</button></div><p className="export-note">내보내기는 화면에 수신된 최대 50개 결과만 포함하는 UI 요약입니다. 다운로드 파일은 로컬에 남을 수 있으니 저장·공유 전 확인하세요.</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
+        {contextChanged && scanContext && <div className="alert warning" role="alert">표시된 결과는 이전 검사 설정({scanContext.targetLabel} · {scanContext.experimental ? 'Experimental · ' : ''}{scanContext.ruleProfileLabel})에 속합니다. 현재 선택한 설정({options?.targets.find((item) => item.id === targetId)?.label ?? targetId} · {selectedProfile?.experimental ? 'Experimental · ' : ''}{selectedProfile?.label ?? profileId})으로 검사하려면 새 검사를 실행해야 합니다.</div>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div><p className="eyebrow">SCAN RESULT · {scan.semgrep_version ? `SEMGREP ${scan.semgrep_version}` : 'VERSION UNKNOWN'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2><p>{scan.scan_status === 'completed' ? '검사가 완료됐습니다. 탐지 결과가 0건이어도 코드가 안전하다는 뜻은 아닙니다.' : scan.scan_status === 'partial' ? '일부 경로 또는 규칙이 누락됐을 수 있습니다. 전체 검사가 완료된 것으로 해석하지 마세요.' : '분석이 실패했습니다. 결과를 안전성 판단이나 취약점 부재 증명으로 사용할 수 없습니다.'}</p></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '부분 완료' : '실패'}</span></section>
         <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수가 아닙니다"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답에 포함됨"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 검증 상태 미확인"/><div className="panel severity-card"><h3>심각도 분류</h3><div className="severity-counts">{severityOrder.map((severity) => <span key={severity}><i className={`severity-dot ${severity}`} aria-hidden="true" />{severityLabels[severity]} <b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep의 분류이며 실제 악용 가능성 판정이 아닙니다.</small></div></section>
         {(scan.limitations.length > 0 || scan.issues.length > 0) && <section className="limitations panel"><h3>검사 제한 및 안내</h3><div>{scan.limitations.map((item) => <span className="code-chip" key={item}>{item}</span>)}{scan.issues.map((item) => <span className="code-chip" key={item}>{item}</span>)}</div></section>}
