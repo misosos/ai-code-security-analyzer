@@ -166,7 +166,7 @@ describe('Analyst dashboard',()=>{
     for (const [status,code,message] of [[401,'unauthorized','토큰을 확인하세요'],[403,'origin_not_allowed','브라우저 출처'],[409,'scan_already_running','이미 검사가 진행 중'],[413,'response_limit_exceeded','응답이 허용 크기']] as const) {
       cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):String(input).endsWith('/options')?json(options):json({error:code},status));
       render(<App/>); await screen.findByText(/연결됨/); await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-      expect(await screen.findByText(new RegExp(message))).toBeInTheDocument();
+      expect(await screen.findByRole('alert')).toHaveTextContent(new RegExp(message));
       expect(vi.mocked(fetch).mock.calls.filter((call)=>String(call[0]).endsWith('/scans'))).toHaveLength(1);
     }
   });
@@ -180,7 +180,7 @@ describe('Analyst dashboard',()=>{
         return json(result.body,result.status);
       });
       render(<App/>); await screen.findByText(/연결됨/); await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-      expect(await screen.findByText(result.status===0?'로컬 API에 연결할 수 없습니다.':'서버 내부 오류가 발생했습니다.')).toBeInTheDocument();
+      expect(await screen.findByRole('alert')).toHaveTextContent(result.status===0?'로컬 API에 연결할 수 없습니다.':'서버 내부 오류가 발생했습니다.');
       expect(vi.mocked(fetch).mock.calls.filter((call)=>String(call[0]).endsWith('/scans'))).toHaveLength(1);
     }
   });

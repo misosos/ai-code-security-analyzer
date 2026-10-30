@@ -138,7 +138,8 @@ export function App() {
     <main id="main-content" className="dashboard-main">
       <div className="workspace-title"><div><p className="eyebrow">SECURITY REVIEW / LOCAL</p><h1>보안 분석 워크스페이스</h1></div><p>등록된 프로젝트의 검사 결과와 근거를 살펴보세요.</p></div>
       <QuickStart />
-      <section className="scan-toolbar panel" aria-labelledby="scan-config-title">
+      <div className={`control-stage ${scan ? 'has-results' : 'is-launching'}`}>
+      <section className={`scan-toolbar panel floating-controls ${scan ? 'compact-controls' : ''}`} aria-labelledby="scan-config-title">
         <div className="toolbar-heading"><span className="toolbar-icon" aria-hidden="true"><Icon name="sliders"/></span><div><p className="eyebrow">SCAN CONFIGURATION</p><h2 id="scan-config-title">검사 설정</h2></div></div>
         <form onSubmit={runScan} className="toolbar-form">
           <label>검사 대상<select value={targetId} onChange={(e) => setTargetId(e.target.value)} disabled={!options || state === 'scanning'} required>{options?.targets.map((target) => <option key={target.id} value={target.id}>{target.label} ({target.id})</option>)}</select><small>검사 대상이며, 서버에 미리 등록된 프로젝트만 선택할 수 있습니다.</small></label>
@@ -147,22 +148,58 @@ export function App() {
           <button className="button primary run-button" type="submit" disabled={!options || !token || !targetId || !profileId || state === 'scanning'}>{state === 'scanning' ? <><span className="spinner" aria-hidden="true" /> 검사 중</> : <><Icon name="play"/> 검사 실행</>}</button>
         </form>
       </section>
+      {!scan && <section className="welcome launch-hud" aria-labelledby="launch-title">
+        <div className="launch-copy">
+          <p className="eyebrow">LOCAL CODE SECURITY / EVIDENCE FIRST</p>
+          <h2 id="launch-title">코드를 살펴보고,<br/><span>근거로 검토합니다.</span></h2>
+          <p className="launch-description">서버에 등록된 로컬 프로젝트를 선택해 보안 규칙으로 검사하세요. 결과에는 검토할 파일 위치와 확인된 근거가 표시됩니다.</p>
+          <div className="launch-caution"><span className="caution-mark" aria-hidden="true">!</span><p><strong>발견 항목은 검토 후보입니다.</strong><br/>실제 취약점이나 프로젝트의 안전성을 확정하지 않습니다.</p></div>
+        </div>
+        <div className="launch-visual" aria-hidden="true">
+          <svg viewBox="0 0 360 300" focusable="false">
+            <defs>
+              <linearGradient id="launch-core" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#ff4bd1"/><stop offset=".52" stopColor="#9b76ff"/><stop offset="1" stopColor="#54e8ff"/></linearGradient>
+              <radialGradient id="launch-glow"><stop stopColor="#54e8ff" stopOpacity=".2"/><stop offset="1" stopColor="#54e8ff" stopOpacity="0"/></radialGradient>
+            </defs>
+            <circle cx="190" cy="146" r="128" fill="url(#launch-glow)"/>
+            <path className="launch-orbit orbit-a" d="M31 150c0-69 66-125 148-125s148 56 148 125-66 125-148 125S31 219 31 150Z"/>
+            <path className="launch-orbit orbit-b" d="M55 150c0-51 56-92 125-92s125 41 125 92-56 92-125 92-125-41-125-92Z"/>
+            <path className="launch-orbit orbit-c" d="m70 67 222 166M76 232 287 66"/>
+            <path className="launch-core" d="m190 88 47 27v55l-47 28-47-28v-55z"/>
+            <path className="launch-core-inner" d="m190 108 29 17v34l-29 17-29-17v-34z"/>
+            <circle className="launch-core-dot" cx="190" cy="142" r="6"/>
+            <path className="launch-tick" d="M190 16v26M190 258v26M33 150h24M303 150h24"/>
+            <circle className="launch-node node-a" cx="62" cy="81" r="4"/><circle className="launch-node node-b" cx="298" cy="212" r="4"/>
+          </svg>
+          <span className="visual-caption">LOCAL ANALYSIS / NO REMOTE UPLOAD</span>
+        </div>
+        <div className="launch-sequence">
+          <div className="sequence-heading"><span className="sequence-mark" aria-hidden="true"><Icon name="radar"/></span><div><p className="eyebrow">검토 흐름</p><h3>검사 후 확인할 내용</h3></div></div>
+          <ol>
+            <li><b>01</b><span><strong>프로젝트 검사</strong><small>등록된 대상과 규칙 사용</small></span></li>
+            <li><b>02</b><span><strong>후보 살펴보기</strong><small>파일 위치와 위험 분류 확인</small></span></li>
+            <li><b>03</b><span><strong>근거를 직접 검토</strong><small>한계와 다음 확인 작업 확인</small></span></li>
+          </ol>
+          <div className="sequence-foot"><span className="foot-line"/><span>검사 서버는 별도로 실행됩니다</span></div>
+        </div>
+      </section>}
+      </div>
       {bootstrapError && <div className="alert error" role="alert">{bootstrapError}</div>}
+      {message && ['unauthorized','scan_already_running','connection_error','failed'].includes(state) && <div className="alert error request-feedback" role="alert">{message}</div>}
       <div className="help-strip"><details className="help-disclosure"><summary><Icon name="book"/> 보안 용어 도움말</summary><SecurityGlossary expanded /></details><p className="toolbar-help">토큰은 이 브라우저 메모리에만 보관되며 인증 헤더로 전송됩니다.</p></div>
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {scan && <>
-        {scanContext && <section className="scan-context panel" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">RESULT CONTEXT</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답의 최대 50건만 내보냅니다. 파일을 공유하기 전에 내용을 확인하세요.</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
+        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">RESULT CONTEXT</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답의 최대 50건만 내보냅니다. 파일을 공유하기 전에 내용을 확인하세요.</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
         {contextChanged && scanContext && <div className="alert warning" role="alert">현재 화면의 결과는 이전 검사 설정({scanContext.targetLabel} · {scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel})에서 생성됐습니다. 현재 선택한 설정({options?.targets.find((target) => target.id === targetId)?.label ?? '알 수 없는 대상'} · {selectedProfile?.experimental ? 'Experimental · ' : ''}{selectedProfile?.label ?? '알 수 없는 규칙'})의 결과는 아직 없습니다. 확인하려면 새 검사를 실행하세요.</div>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
-        <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수가 아닙니다"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답에 포함"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 상태 미확인"/><div className="panel severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep의 분류입니다. 실제 악용 가능성을 확정하지 않습니다.</small></div></section>
+        <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수가 아닙니다"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답에 포함"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 상태 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep의 분류입니다. 실제 악용 가능성을 확정하지 않습니다.</small></div></section>
         <section className="findings-section" aria-labelledby="findings-heading">
           <div className="results-heading"><div className="results-title"><p className="eyebrow">FINDING REVIEW</p><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2><p>이 검사 응답에 포함된 최대 50건을 표시합니다.</p></div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
-          {scan.finding_count === 0 ? <div className="empty-state panel"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>보고된 발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았다는 뜻입니다. 프로젝트가 안전하다고 확인된 것은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list panel" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} selected={selected?.finding_id === finding.finding_id} onSelect={() => setSelectedId(finding.finding_id)} />)}</section>
-            <section className="detail-panel panel" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.</p></div>}</section></div>}
+          {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>보고된 발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았다는 뜻입니다. 프로젝트가 안전하다고 확인된 것은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} selected={selected?.finding_id === finding.finding_id} onSelect={() => setSelectedId(finding.finding_id)} />)}</section>
+            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.</p></div>}</section></div>}
         </section>
       </>}
-      {!scan && <section className="welcome panel"><span className="welcome-icon" aria-hidden="true"><Icon name="radar"/></span><div><p className="eyebrow">EVIDENCE-FIRST REVIEW</p><h2>검사 결과를 이곳에서 확인합니다</h2><p>등록된 프로젝트와 규칙을 선택하고 로컬 API 토큰을 입력한 뒤 검사를 시작하세요. 결과에 코드 원문은 포함되지 않습니다.</p></div><div className="welcome-points"><span><b>01</b> 탐지 근거</span><span><b>02</b> 확인되지 않은 내용</span><span><b>03</b> 다음 검토 작업</span></div></section>}
       <footer><span>로컬 분석 · 발견 항목은 취약점 미확인 상태</span><span>정상 완료 또는 0건은 안전성 보증이 아닙니다.</span></footer>
     </main>
   </div>;

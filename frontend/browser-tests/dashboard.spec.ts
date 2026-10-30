@@ -96,7 +96,7 @@ test('browser preserves scan context, downloads the current summary on click, an
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue(token);
   await page.reload();
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue('');
-  await expect(page.getByRole('heading', { name: '검사 결과를 이곳에서 확인합니다' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '코드를 살펴보고, 근거로 검토합니다.' })).toBeVisible();
 });
 
 test('cyberpunk workspace stays usable without horizontal overflow across desktop, tablet, and mobile viewports', async ({ page }) => {
@@ -160,8 +160,8 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });
 
-test('captures synthetic acceptance screens after the readability refinement', async ({ page }) => {
-  const output = resolve(process.cwd(), '../docs/assets/ui-cyberpunk-acceptance-36-9b');
+test('captures cyberpunk HUD launch, review, filtered, partial, and error states using synthetic data', async ({ page }) => {
+  const output = resolve(process.cwd(), '../docs/assets/ui-cyberpunk-hud-refinement-36-9b-v');
   await mkdir(output, { recursive: true });
   const token = 'phase-36-9b-synthetic-visual-token';
   const completed = {
@@ -174,13 +174,26 @@ test('captures synthetic acceptance screens after the readability refinement', a
     ],
   };
   let nextResponse: typeof completed | { scan_status: string; completed: boolean; semgrep_version: string; finding_count: number; displayed_finding_count: number; omitted_finding_count: number; severity_counts: typeof completed.severity_counts; issues: string[]; limitations: string[]; findings: never[] } = completed;
+  let failNext = false;
   await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
   await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
     targets: [{ id: 'synthetic-review', label: '합성 검수 프로젝트' }],
     rule_profiles: [{ id: 'baseline', label: '기본 보안 규칙', experimental: false }],
   } }));
-  await page.route('**/api/v1/scans', (route) => route.fulfill({ json: nextResponse }));
+  await page.route('**/api/v1/scans', (route) => failNext ? route.fulfill({ status: 503, json: { detail: 'synthetic unavailable' } }) : route.fulfill({ json: nextResponse }));
   await page.goto('/');
+  const startDirectory = resolve(output, 'start');
+  await mkdir(startDirectory, { recursive: true });
+  await expect(page.getByRole('heading', { name: '코드를 살펴보고, 근거로 검토합니다.' })).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.screenshot({ path: resolve(startDirectory, 'launch-1440x900.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: resolve(startDirectory, 'launch-390x844.png'), animations: 'disabled' });
+  await expect(page.locator('.launch-visual svg')).toHaveAttribute('focusable', 'false');
+  const launchShape = await page.locator('.launch-hud').evaluate((element) => ({ radius: getComputedStyle(element).borderRadius, clip: getComputedStyle(element).clipPath, cols: getComputedStyle(element).gridTemplateColumns, focusableDescendants: [...element.querySelectorAll('button,a,input,select,[tabindex]')].length }));
+  expect(launchShape.radius).toContain('25px');
+  expect(launchShape.clip).toContain('polygon');
+  expect(launchShape.focusableDescendants).toBe(0);
   await page.getByLabel('로컬 API 토큰').fill(token);
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
@@ -195,70 +208,10 @@ test('captures synthetic acceptance screens after the readability refinement', a
     await page.setViewportSize(viewport);
     await page.screenshot({ path: resolve(output, `${viewport.name}.png`), animations: 'disabled' });
   }
-
-  const beforeDirectory = resolve(output, 'before');
-  await mkdir(beforeDirectory, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
-  const previousTypography = await page.addStyleTag({ content: `
-    .workspace-title > p { font-size: 13px; }
-    .toolbar-form label, .filter-row label { font-size: 12px; }
-    .toolbar-form label small { font-size: 12px; }
-    select, input { font-size: 13px; }
-    .button { font-size: 13px; }
-    .toolbar-help { font-size: 12px; }
-    .alert { font-size: 13px; }
-    .beginner-summary h3 { font-size: 13px; }
-    .beginner-summary p { font-size: 12px; }
-    .metric-label { font-size: 12px; }
-    .severity-heading h3 { font-size: 12px; }
-    .results-title > p:last-child { font-size: 12px; }
-    .filter-row label { font-size: 10px; }
-    .filter-row select, .filter-row input { font-size: 12px; }
-    .list-caption { font-size: 12px; }
-    .severity-label { font-size: 10px; }
-    .row-kind { font-size: 12px; }
-    .unverified-badge { font-size: 11px; }
-    .row-location { font-size: 13px; }
-    .detail-location > span { font-size: 11px; }
-    .detail-location strong { font-size: 13px; }
-    .detail-location small { font-size: 12px; }
-    .analyst-tasks h3 { font-size: 13px; }
-    .analyst-tasks > p, .analyst-tasks li { font-size: 12px; }
-    .basic-evidence-limit p { font-size: 11px; }
-    .reason, .detail-footnote { font-size: 12px; }
-    @media (max-width: 420px) {
-      .header-status { font-size: 9px; }
-      .filter-row label:not(.search-field) { font-size: 11px; }
-      .filter-row select, .filter-row input { font-size: 12px; }
-      .row-location { font-size: 12px; }
-      .row-kind, .unverified-badge { font-size: 11px; }
-    }
-  ` });
-  const oldSubtitles = await page.evaluate(() => {
-    const title = document.querySelector('.workspace-title > p');
-    const summary = document.querySelector('.beginner-summary p');
-    const current = { title: title?.textContent ?? '', summary: summary?.textContent ?? '' };
-    if (title) title.textContent = '발견 항목은 취약점 확정이 아닌 검토 후보입니다.';
-    if (summary) summary.textContent = '아래 후보는 추가 검토가 필요합니다. 이 도구가 취약점을 확정한 것은 아닙니다.';
-    return current;
-  });
-  for (const viewport of [
-    { width: 1440, height: 900, name: 'completed-1440x900' },
-    { width: 1280, height: 800, name: 'completed-1280x800' },
-    { width: 390, height: 844, name: 'completed-390x844' },
-  ]) {
-    await page.setViewportSize(viewport);
-    await page.screenshot({ path: resolve(beforeDirectory, `${viewport.name}.png`), animations: 'disabled' });
-  }
-  await previousTypography.evaluate((element) => element.remove());
-  await page.evaluate((previous) => {
-    const title = document.querySelector('.workspace-title > p');
-    const summary = document.querySelector('.beginner-summary p');
-    if (title) title.textContent = previous.title;
-    if (summary) summary.textContent = previous.summary;
-  }, oldSubtitles);
-
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator('.detail-panel').evaluate((element) => { element.scrollTop = 0; });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.locator('.detail-panel').screenshot({ path: resolve(output, 'finding-detail-panel.png'), animations: 'disabled' });
   await page.getByLabel('심각도').selectOption('high');
   await page.screenshot({ path: resolve(output, 'filtered-high.png'), animations: 'disabled' });
   await page.getByLabel('심각도').selectOption('all');
@@ -275,5 +228,10 @@ test('captures synthetic acceptance screens after the readability refinement', a
   await page.screenshot({ path: resolve(output, 'partial-zero-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve(output, 'partial-zero-390x844.png'), animations: 'disabled' });
+  failNext = true;
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await expect(page.getByRole('alert')).toContainText('요청이 거부되었습니다');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.screenshot({ path: resolve(output, 'request-error-1440x900.png'), animations: 'disabled' });
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });
