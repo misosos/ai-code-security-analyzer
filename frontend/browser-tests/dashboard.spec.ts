@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 test('browser loads dashboard, accepts token in memory, and displays validated evidence safely', async ({ page }) => {
@@ -43,8 +43,12 @@ test('mobile layout fits 320px and token controls are keyboard reachable', async
   await expect(page.getByLabel('로컬 API 토큰')).toBeVisible();
   const dimensions = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+  await page.getByLabel('검사 대상').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.getByLabel('검사 규칙 모음')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByLabel('로컬 API 토큰')).toBeFocused();
   await page.getByLabel('로컬 API 토큰').fill('keyboard-smoke-token');
-  await page.getByLabel('로컬 API 토큰').focus();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: '화면의 API 토큰 지우기' })).toBeFocused();
 });
@@ -96,7 +100,7 @@ test('browser preserves scan context, downloads the current summary on click, an
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue(token);
   await page.reload();
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue('');
-  await expect(page.getByRole('heading', { name: '코드를 살펴보고, 근거로 검토합니다.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '보안 분석 워크스페이스' })).toBeVisible();
 });
 
 test('cyberpunk workspace stays usable without horizontal overflow across desktop, tablet, and mobile viewports', async ({ page }) => {
@@ -129,7 +133,7 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
       const firstRow = document.querySelector('.finding-row');
       const detail = document.querySelector('.detail-panel');
       const title = firstRow?.querySelector('.row-main > strong');
-      const toolbarLabel = document.querySelector('.toolbar-form label');
+      const toolbarLabel = document.querySelector('.mission-form .mission-control');
       const filterLabel = document.querySelector('.filter-row label:not(.search-field)');
       const rowLocation = firstRow?.querySelector('.row-location');
       const detailCopy = document.querySelector('.detail-location small');
@@ -161,7 +165,7 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
 });
 
 test('captures cyberpunk HUD launch, review, filtered, partial, and error states using synthetic data', async ({ page }) => {
-  const output = resolve(process.cwd(), '../docs/assets/ui-cyberpunk-hud-refinement-36-9b-v');
+  const output = resolve(process.cwd(), '../docs/assets/ui-cyberpunk-control-deck-36-9b-x');
   await mkdir(output, { recursive: true });
   const token = 'phase-36-9b-synthetic-visual-token';
   const completed = {
@@ -175,8 +179,9 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
   };
   let nextResponse: typeof completed | { scan_status: string; completed: boolean; semgrep_version: string; finding_count: number; displayed_finding_count: number; omitted_finding_count: number; severity_counts: typeof completed.severity_counts; issues: string[]; limitations: string[]; findings: never[] } = completed;
   let failNext = false;
-  await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
-  await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
+  let apiUnavailable = false;
+  await page.route('**/api/v1/health', (route) => apiUnavailable ? route.abort() : route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+  await page.route('**/api/v1/options', (route) => apiUnavailable ? route.abort() : route.fulfill({ json: {
     targets: [{ id: 'synthetic-review', label: '합성 검수 프로젝트' }],
     rule_profiles: [{ id: 'baseline', label: '기본 보안 규칙', experimental: false }],
   } }));
@@ -184,16 +189,40 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
   await page.goto('/');
   const startDirectory = resolve(output, 'start');
   await mkdir(startDirectory, { recursive: true });
-  await expect(page.getByRole('heading', { name: '코드를 살펴보고, 근거로 검토합니다.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '보안 분석 워크스페이스' })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.screenshot({ path: resolve(startDirectory, 'launch-1440x900.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.screenshot({ path: resolve(startDirectory, 'launch-1920x1080.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve(startDirectory, 'launch-390x844.png'), animations: 'disabled' });
-  await expect(page.locator('.launch-visual svg')).toHaveAttribute('focusable', 'false');
-  const launchShape = await page.locator('.launch-hud').evaluate((element) => ({ radius: getComputedStyle(element).borderRadius, clip: getComputedStyle(element).clipPath, cols: getComputedStyle(element).gridTemplateColumns, focusableDescendants: [...element.querySelectorAll('button,a,input,select,[tabindex]')].length }));
-  expect(launchShape.radius).toContain('25px');
-  expect(launchShape.clip).toContain('polygon');
-  expect(launchShape.focusableDescendants).toBe(0);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator('.launch-emblem svg')).toHaveAttribute('focusable', 'false');
+  const launchMetrics = await page.evaluate(() => {
+    const box = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return { top: Math.round(rect.top), height: Math.round(rect.height), bottom: Math.round(rect.bottom), width: Math.round(rect.width) };
+    };
+    const brief = document.querySelector('.launch-brief');
+    const children = brief ? [...brief.querySelectorAll(':scope > *')] : [];
+    const contentBottom = Math.max(...children.map((element) => element.getBoundingClientRect().bottom));
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      header: box('.topbar'), title: box('.workspace-title'), quickStart: box('.quick-start'),
+      missionDeck: box('.mission-deck'), launchBrief: box('.launch-brief'),
+      launchBriefContentBottom: Math.round(contentBottom),
+      launchBriefBlankBelowContent: Math.round(brief!.getBoundingClientRect().bottom - contentBottom),
+      focusableDecorativeDescendants: [...document.querySelectorAll('.launch-emblem svg button, .launch-emblem svg a, .launch-emblem svg [tabindex]')].length,
+    };
+  });
+  expect(launchMetrics.missionDeck?.height).toBeLessThan(240);
+  expect(launchMetrics.launchBrief?.height).toBeLessThan(240);
+  expect(launchMetrics.launchBriefBlankBelowContent).toBeLessThan(40);
+  expect(launchMetrics.focusableDecorativeDescendants).toBe(0);
+  await writeFile(resolve(output, 'bounding-box-1440x900.json'), JSON.stringify(launchMetrics, null, 2));
+  console.log('[Mission Control bounding boxes]', JSON.stringify(launchMetrics));
   await page.getByLabel('로컬 API 토큰').fill(token);
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
@@ -233,5 +262,16 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
   await expect(page.getByRole('alert')).toContainText('요청이 거부되었습니다');
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.screenshot({ path: resolve(output, 'request-error-1440x900.png'), animations: 'disabled' });
+  apiUnavailable = true;
+  await page.reload();
+  await expect(page.getByRole('alert')).toContainText('검사 서버를 실행하고');
+  await expect(page.getByRole('combobox', { name: '검사 대상' })).toBeDisabled();
+  await expect(page.getByRole('option', { name: '서버 연결 후 목록을 불러옵니다' })).toHaveCount(2);
+  await page.screenshot({ path: resolve(output, 'api-offline-1440x900.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: resolve(output, 'api-offline-390x844.png'), animations: 'disabled' });
+  apiUnavailable = false;
+  await page.getByRole('button', { name: '다시 연결' }).click();
+  await expect(page.getByText('옵션 불러옴')).toBeVisible();
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });

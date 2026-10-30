@@ -60,6 +60,7 @@ function safeError(error: unknown): { state: RequestState; message: string } {
 
 export function App() {
   const [health, setHealth] = useState<'checking'|'connected'|'offline'>('checking');
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
   const [options, setOptions] = useState<Options | null>(null);
   const [bootstrapError, setBootstrapError] = useState('');
   const [token, setToken] = useState('');
@@ -78,13 +79,15 @@ export function App() {
 
   useEffect(() => {
     let active = true;
+    setHealth('checking'); setBootstrapError('');
+    if (connectionAttempt > 0) { setOptions(null); setTargetId(''); setProfileId(''); }
     Promise.all([api.health(), api.options()]).then(([_, data]) => {
       if (!active) return;
       setHealth('connected'); setOptions(data);
       setTargetId(data.targets[0]?.id ?? ''); setProfileId(data.rule_profiles[0]?.id ?? '');
-    }).catch(() => { if (active) { setHealth('offline'); setBootstrapError('로컬 API에 연결할 수 없습니다. FastAPI 서버와 허용 Origin 설정을 확인하세요.'); } });
+    }).catch(() => { if (active) { setHealth('offline'); setBootstrapError('로컬 API에 연결할 수 없습니다. 검사 서버를 실행하고 브라우저 출처 허용 설정을 확인한 뒤 다시 연결하세요.'); } });
     return () => { active = false; };
-  }, []);
+  }, [connectionAttempt]);
 
   const visibleFindings = useMemo(() => (scan?.findings ?? []).filter((finding) =>
     (severityFilter === 'all' || finding.severity === severityFilter) &&
@@ -138,53 +141,17 @@ export function App() {
     <main id="main-content" className="dashboard-main">
       <div className="workspace-title"><div><p className="eyebrow">SECURITY REVIEW / LOCAL</p><h1>보안 분석 워크스페이스</h1></div><p>등록된 프로젝트의 검사 결과와 근거를 살펴보세요.</p></div>
       <QuickStart />
-      <div className={`control-stage ${scan ? 'has-results' : 'is-launching'}`}>
-      <section className={`scan-toolbar panel floating-controls ${scan ? 'compact-controls' : ''}`} aria-labelledby="scan-config-title">
-        <div className="toolbar-heading"><span className="toolbar-icon" aria-hidden="true"><Icon name="sliders"/></span><div><p className="eyebrow">SCAN CONFIGURATION</p><h2 id="scan-config-title">검사 설정</h2></div></div>
-        <form onSubmit={runScan} className="toolbar-form">
-          <label>검사 대상<select value={targetId} onChange={(e) => setTargetId(e.target.value)} disabled={!options || state === 'scanning'} required>{options?.targets.map((target) => <option key={target.id} value={target.id}>{target.label} ({target.id})</option>)}</select><small>검사 대상이며, 서버에 미리 등록된 프로젝트만 선택할 수 있습니다.</small></label>
-          <label>검사 규칙 모음<select value={profileId} onChange={(e) => setProfileId(e.target.value)} disabled={!options || state === 'scanning'} required>{options?.rule_profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.experimental ? 'Experimental · ' : ''}{profile.label}</option>)}</select><small>{selectedProfile?.experimental ? '실험 규칙이며 일반적인 정확도가 충분히 검증됐다는 뜻은 아닙니다.' : '어떤 보안 문제를 찾을지 정하는 검사 규칙 묶음입니다.'}</small></label>
-          <label className="token-field">로컬 API 토큰<div className="token-control"><input aria-label="로컬 API 토큰" type="password" autoComplete="off" spellCheck={false} value={token} onChange={(e) => setToken(e.target.value)} placeholder="서버에 설정한 토큰" aria-describedby="token-help token-security-help" disabled={state === 'scanning'} /><button type="button" className="button clear-token" onClick={clearToken} disabled={!token || state === 'scanning'} aria-label="화면의 API 토큰 지우기">지우기</button></div><small id="token-help">대시보드와 검사 서버가 서로 확인하는 비밀값입니다.</small><details className="token-security-help"><summary>토큰 보호 안내</summary><p id="token-security-help">서버 실행 시 설정한 값과 같은 토큰을 입력하세요. GitHub에 커밋하거나 다른 사람과 공유하지 마세요. 브라우저를 새로고침하면 입력값이 사라집니다. 지우기 버튼은 화면의 입력값만 제거하며 서버 설정은 바꾸지 않습니다.</p></details></label>
-          <button className="button primary run-button" type="submit" disabled={!options || !token || !targetId || !profileId || state === 'scanning'}>{state === 'scanning' ? <><span className="spinner" aria-hidden="true" /> 검사 중</> : <><Icon name="play"/> 검사 실행</>}</button>
+      <section className={`mission-deck ${scan ? 'mission-deck-compact' : ''}`} aria-labelledby="scan-config-title">
+        <div className="deck-heading"><div><p className="eyebrow">LOCAL SECURITY / MISSION CONTROL</p><h2 id="scan-config-title">검사 제어</h2></div><span className={`deck-signal ${health}`}><span aria-hidden="true"/>{health === 'connected' ? '옵션 불러옴' : health === 'checking' ? '연결 확인 중' : '서버 연결 필요'}</span></div>
+        <form onSubmit={runScan} className="mission-form">
+          <label className="mission-control project-control"><span className="control-label"><Icon name="folder"/> 검사 대상</span><span className="select-control"><select aria-label="검사 대상" value={targetId} onChange={(e) => setTargetId(e.target.value)} disabled={!options || options.targets.length === 0 || state === 'scanning'} required aria-describedby="target-help"><option value="" disabled>{options ? '등록된 프로젝트가 없습니다' : '서버 연결 후 목록을 불러옵니다'}</option>{options?.targets.map((target) => <option key={target.id} value={target.id}>{target.label} ({target.id})</option>)}</select><span className="select-caret" aria-hidden="true"/></span><small id="target-help">서버에 미리 등록된 프로젝트만 선택할 수 있습니다.</small></label>
+          <label className="mission-control rules-control"><span className="control-label"><Icon name="layers"/> 규칙 모음</span><span className="select-control"><select aria-label="검사 규칙 모음" value={profileId} onChange={(e) => setProfileId(e.target.value)} disabled={!options || options.rule_profiles.length === 0 || state === 'scanning'} required aria-describedby="profile-help"><option value="" disabled>{options ? '사용 가능한 규칙이 없습니다' : '서버 연결 후 목록을 불러옵니다'}</option>{options?.rule_profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.experimental ? 'Experimental · ' : ''}{profile.label}</option>)}</select><span className="select-caret" aria-hidden="true"/></span><small id="profile-help">{selectedProfile?.experimental ? '실험 규칙입니다. 정확도가 충분히 검증됐다는 뜻은 아닙니다.' : '찾을 보안 문제의 규칙 묶음입니다.'}</small></label>
+          <label className="mission-control token-control-group"><span className="control-label"><Icon name="key"/> 로컬 API 토큰</span><span className="token-control token-input-control"><input aria-label="로컬 API 토큰" type="password" autoComplete="off" spellCheck={false} value={token} onChange={(e) => setToken(e.target.value)} placeholder="서버에 설정한 토큰" aria-describedby="token-help token-security-help" disabled={state === 'scanning'} /><button type="button" className="button clear-token" onClick={clearToken} disabled={!token || state === 'scanning'} aria-label="화면의 API 토큰 지우기">지우기</button></span><small id="token-help">새로고침하면 사라지며, 요청 헤더로만 전송됩니다.</small><details className="token-security-help"><summary>토큰 보호 안내</summary><p id="token-security-help">서버 실행 시 설정한 값과 같은 토큰을 입력하세요. GitHub에 커밋하거나 다른 사람과 공유하지 마세요. 새로고침하면 입력값이 사라집니다. 지우기는 화면의 입력값만 제거합니다.</p></details></label>
+          <button className="button primary run-button launch-action" type="submit" disabled={!options || !targetId || !profileId || !token || state === 'scanning'}>{state === 'scanning' ? <><span className="spinner" aria-hidden="true" /> 검사 중</> : <><Icon name="play"/> 검사 실행</>}</button>
         </form>
       </section>
-      {!scan && <section className="welcome launch-hud" aria-labelledby="launch-title">
-        <div className="launch-copy">
-          <p className="eyebrow">LOCAL CODE SECURITY / EVIDENCE FIRST</p>
-          <h2 id="launch-title">코드를 살펴보고,<br/><span>근거로 검토합니다.</span></h2>
-          <p className="launch-description">서버에 등록된 로컬 프로젝트를 선택해 보안 규칙으로 검사하세요. 결과에는 검토할 파일 위치와 확인된 근거가 표시됩니다.</p>
-          <div className="launch-caution"><span className="caution-mark" aria-hidden="true">!</span><p><strong>발견 항목은 검토 후보입니다.</strong><br/>실제 취약점이나 프로젝트의 안전성을 확정하지 않습니다.</p></div>
-        </div>
-        <div className="launch-visual" aria-hidden="true">
-          <svg viewBox="0 0 360 300" focusable="false">
-            <defs>
-              <linearGradient id="launch-core" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#ff4bd1"/><stop offset=".52" stopColor="#9b76ff"/><stop offset="1" stopColor="#54e8ff"/></linearGradient>
-              <radialGradient id="launch-glow"><stop stopColor="#54e8ff" stopOpacity=".2"/><stop offset="1" stopColor="#54e8ff" stopOpacity="0"/></radialGradient>
-            </defs>
-            <circle cx="190" cy="146" r="128" fill="url(#launch-glow)"/>
-            <path className="launch-orbit orbit-a" d="M31 150c0-69 66-125 148-125s148 56 148 125-66 125-148 125S31 219 31 150Z"/>
-            <path className="launch-orbit orbit-b" d="M55 150c0-51 56-92 125-92s125 41 125 92-56 92-125 92-125-41-125-92Z"/>
-            <path className="launch-orbit orbit-c" d="m70 67 222 166M76 232 287 66"/>
-            <path className="launch-core" d="m190 88 47 27v55l-47 28-47-28v-55z"/>
-            <path className="launch-core-inner" d="m190 108 29 17v34l-29 17-29-17v-34z"/>
-            <circle className="launch-core-dot" cx="190" cy="142" r="6"/>
-            <path className="launch-tick" d="M190 16v26M190 258v26M33 150h24M303 150h24"/>
-            <circle className="launch-node node-a" cx="62" cy="81" r="4"/><circle className="launch-node node-b" cx="298" cy="212" r="4"/>
-          </svg>
-          <span className="visual-caption">LOCAL ANALYSIS / NO REMOTE UPLOAD</span>
-        </div>
-        <div className="launch-sequence">
-          <div className="sequence-heading"><span className="sequence-mark" aria-hidden="true"><Icon name="radar"/></span><div><p className="eyebrow">검토 흐름</p><h3>검사 후 확인할 내용</h3></div></div>
-          <ol>
-            <li><b>01</b><span><strong>프로젝트 검사</strong><small>등록된 대상과 규칙 사용</small></span></li>
-            <li><b>02</b><span><strong>후보 살펴보기</strong><small>파일 위치와 위험 분류 확인</small></span></li>
-            <li><b>03</b><span><strong>근거를 직접 검토</strong><small>한계와 다음 확인 작업 확인</small></span></li>
-          </ol>
-          <div className="sequence-foot"><span className="foot-line"/><span>검사 서버는 별도로 실행됩니다</span></div>
-        </div>
-      </section>}
-      </div>
-      {bootstrapError && <div className="alert error" role="alert">{bootstrapError}</div>}
+      {!scan && <section className="launch-brief" aria-labelledby="launch-title"><div className="launch-brief-copy"><p className="eyebrow">LOCAL CODE REVIEW / EVIDENCE FIRST</p><h2 id="launch-title">코드를 살펴보고, 근거로 검토합니다.</h2><p>결과에는 규칙 매치, 파일 위치, 확인된 근거가 표시됩니다. 매치는 실제 취약점 확정이나 프로젝트 안전성 증명이 아닙니다.</p></div><ol className="launch-steps" aria-label="실제 검사 흐름"><li><b>01</b><span>등록 프로젝트 선택</span></li><li><b>02</b><span>허용 규칙으로 검사</span></li><li><b>03</b><span>근거와 제한 검토</span></li></ol><div className="launch-emblem" aria-hidden="true"><svg viewBox="0 0 120 120" focusable="false"><path d="M60 5 102 29v62l-42 24L18 91V29zM60 19 90 36v48L60 101 30 84V36z"/><circle cx="60" cy="60" r="5"/></svg></div></section>}
+      {bootstrapError && <div className="alert error connection-alert" role="alert"><span>{bootstrapError}</span><button className="button secondary retry-button" type="button" onClick={() => { setHealth('checking'); setConnectionAttempt((attempt) => attempt + 1); }} disabled={health === 'checking'}>{health === 'checking' ? '연결 확인 중' : '다시 연결'}</button></div>}
       {message && ['unauthorized','scan_already_running','connection_error','failed'].includes(state) && <div className="alert error request-feedback" role="alert">{message}</div>}
       <div className="help-strip"><details className="help-disclosure"><summary><Icon name="book"/> 보안 용어 도움말</summary><SecurityGlossary expanded /></details><p className="toolbar-help">토큰은 이 브라우저 메모리에만 보관되며 인증 헤더로 전송됩니다.</p></div>
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
@@ -205,13 +172,16 @@ export function App() {
   </div>;
 }
 
-function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'check'|'cursor'|'radar'}) {
+function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'check'|'cursor'|'radar'|'folder'|'layers'|'key'}) {
   const paths:Record<string,React.ReactNode>={
     sliders:<><path d="M4 7h8m4 0h4M4 17h4m4 0h8"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></>,play:<path d="m8 5 11 7-11 7z"/>,
     book:<><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M4 5.5v14A2.5 2.5 0 0 1 6.5 17H20"/></>,
     download:<><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 17v4h14v-4"/></>,pulse:<><path d="M3 12h4l3-8 4 16 3-8h4"/><circle cx="12" cy="12" r="9"/></>,
     search:<><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></>,check:<path d="m5 12 4 4L19 6"/>,cursor:<path d="m5 3 14 9-7 1-3 7z"/>,
     radar:<><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="m12 12 6-6"/><circle cx="12" cy="12" r="1"/></>,
+    folder:<><path d="M3 6.5h7l2 2h9v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 8.5h18"/></>,
+    layers:<><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
+    key:<><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-3 3 3 3m-6 0 3 3"/></>,
   };
   return <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }

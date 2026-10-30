@@ -37,21 +37,41 @@ describe('Analyst dashboard',()=>{
     expect(within(quickStart).getAllByText(/127\.0\.0\.1:5173/).length).toBeGreaterThan(0);
   });
 
+  it('explains unavailable target and rule lists and retries the real API connection on request',async()=>{
+    let offline = true;
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input);
+      if (offline) throw new Error('offline');
+      return url.endsWith('/health') ? json({status:'ok',service:'ai-code-security-analyzer'}) : json(options);
+    });
+    const user = userEvent.setup(); render(<App/>);
+    expect(await screen.findByRole('alert')).toHaveTextContent('검사 서버를 실행하고');
+    expect(screen.getByRole('combobox',{name:'검사 대상'})).toBeDisabled();
+    expect(screen.getAllByRole('option',{name:'서버 연결 후 목록을 불러옵니다'})).toHaveLength(2);
+    expect(screen.getByRole('button',{name:'다시 연결'})).toBeEnabled();
+    offline = false;
+    await user.click(screen.getByRole('button',{name:'다시 연결'}));
+    expect(await screen.findByText('옵션 불러옴')).toBeInTheDocument();
+    expect(screen.getByRole('combobox',{name:'검사 대상'})).toBeEnabled();
+    expect(screen.getByRole('combobox',{name:'검사 규칙 모음'})).toBeEnabled();
+    expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
+  });
+
   it('explains the token, allowlisted project, rule profile, and experimental scope in plain Korean',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
     render(<App/>); await screen.findByText(/연결됨/);
-    expect(screen.getByText(/대시보드와 검사 서버가 서로 확인하는 비밀값/)).toBeInTheDocument();
+    expect(screen.getByText(/서버 실행 시 설정한 값과 같은 토큰/)).toBeInTheDocument();
     const tokenHelp = screen.getByText('토큰 보호 안내').closest('details')!;
     expect(tokenHelp).not.toHaveAttribute('open');
     await userEvent.setup().click(screen.getByText('토큰 보호 안내'));
     expect(within(tokenHelp).getByText(/GitHub에 커밋하거나 다른 사람과 공유하지 마세요/)).toBeInTheDocument();
-    expect(within(tokenHelp).getByText(/브라우저를 새로고침하면 입력값이 사라집니다/)).toBeInTheDocument();
-    expect(within(tokenHelp).getByText(/화면의 입력값만 제거하며 서버 설정은 바꾸지 않습니다/)).toBeInTheDocument();
+    expect(within(tokenHelp).getByText(/새로고침하면 입력값이 사라집니다/)).toBeInTheDocument();
+    expect(within(tokenHelp).getByText(/지우기는 화면의 입력값만 제거합니다/)).toBeInTheDocument();
     expect(screen.getByText(/서버에 미리 등록된 프로젝트만 선택/)).toBeInTheDocument();
     expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
-    expect(screen.getByText(/보안 문제.*검사 규칙 묶음/)).toBeInTheDocument();
+    expect(screen.getByText(/찾을 보안 문제의 규칙 묶음/)).toBeInTheDocument();
     await userEvent.setup().selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
-    expect(screen.getByText(/일반적인 정확도가 충분히 검증됐다는 뜻은 아닙니다/)).toBeInTheDocument();
+    expect(screen.getByText(/실험 규칙입니다. 정확도가 충분히 검증됐다는 뜻은 아닙니다/)).toBeInTheDocument();
   });
 
   it('shows beginner result summaries and maps known status codes without hiding technical codes',async()=>{
