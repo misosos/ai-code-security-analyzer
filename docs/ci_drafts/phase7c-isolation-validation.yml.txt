@@ -1,0 +1,120 @@
+# INACTIVE REFERENCE DRAFT — this file is outside .github/workflows/.
+# Do not move or copy into an active workflow until the separate image-trust
+# gate and Ubuntu runtime probes are approved. No image pull/run is authorized.
+name: Phase 7C isolated worker validation (inactive draft)
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  isolated-worker:
+    # Deliberately disabled, and future approval must still be on default main.
+    if: ${{ false && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    permissions: {}
+    env:
+      SEMGREP_IMAGE: semgrep/semgrep@sha256:cfb298aae2cc36faf33fd47038dd619365bd78582398810f0cd1c39c94d940c5
+      IMAGE_TRUST_GATE: BLOCKED_UNVERIFIED
+    steps:
+      - name: Image trust gate (intentionally blocks)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Semgrep image signature/provenance and approved trust identity remain UNVERIFIED."
+          echo "::error::No Docker pull or run is permitted by this draft."
+          exit 1
+
+      # FUTURE EXAMPLE ONLY — comments do not execute.
+      # First, a separately reviewed verifier must prove signer/issuer identity,
+      # transparency evidence, SBOM and subject digest for the ARM64 manifest.
+      # Only after external evidence and explicit approval may a reviewed change
+      # replace the blocking step above. Do not set a string flag to bypass it.
+      #
+      # - name: Pull the approved ARM64 manifest (future, after verified trust)
+      #   shell: bash
+      #   run: docker pull --quiet --platform=linux/arm64 "$SEMGREP_IMAGE"
+      #
+      # - name: Verify runner and image identity before any scan (future)
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+      #     test "$RUNNER_ARCH" = ARM64
+      #     test "$(uname -m)" = aarch64
+      #     docker info --format 'OSType={{.OSType}} Architecture={{.Architecture}} CgroupVersion={{.CgroupVersion}} SecurityOptions={{json .SecurityOptions}} Warnings={{json .Warnings}}'
+      #     docker image inspect "$SEMGREP_IMAGE" --format 'ID={{.Id}} OS={{.Os}} Arch={{.Architecture}} Size={{.Size}}'
+      #     test -r /sys/fs/cgroup/cgroup.controllers
+      #     test "$(docker image inspect "$SEMGREP_IMAGE" --format '{{.Os}}/{{.Architecture}}')" = linux/arm64
+      #
+      # - name: Create synthetic inputs (future)
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+      #     fixture="$RUNNER_TEMP/phase7c-synthetic"
+      #     install -d -m 0700 "$fixture/project"
+      #     cat > "$fixture/rules.yml" <<'RULES'
+      #     rules:
+      #       - id: phase7c.synthetic_eval
+      #         languages: [python]
+      #         message: Synthetic static pattern match
+      #         severity: WARNING
+      #         pattern: eval(...)
+      #     RULES
+      #     cat > "$fixture/project/sample.py" <<'SOURCE'
+      #     # Synthetic only. Never execute this file.
+      #     # Marker: PHASE7C_SYNTHETIC_CANARY
+      #     def candidate(value):
+      #         return eval(value)
+      #     SOURCE
+      #     chmod -R a-w "$fixture"
+      #
+      # - name: Run only the fixed isolated synthetic worker (future)
+      #   shell: bash
+      #   timeout-minutes: 2
+      #   run: |
+      #     set -euo pipefail
+      #     # A reviewed bounded host collector must cap combined stdout/stderr
+      #     # at 2 MiB, enforce a 60 s timeout, parse JSON in memory, print only a
+      #     # sanitized count/rule-id summary, and never upload raw output.
+      #     # Container execution must use the exact ARM64 manifest and must not
+      #     # use any host bind mount, host home/project mount, or socket mount.
+      #     # After docker create (before start), copy only these generated
+      #     # synthetic files into the stopped container's /mnt directory with
+      #     # mode 0444; start with --read-only, then verify reads succeed and
+      #     # writes fail. Validate this docker-cp/read-only behavior on Ubuntu
+      #     # before enabling the draft. No untrusted host project is copied.
+      #     # Fail before create if SEMGREP_IN_DOCKER is present in the host env;
+      #     # Docker's bare --env form unsets it only when absent on the host.
+      #     # After create, inspect Config.Env and refuse start if it is present.
+      #     if [[ ${SEMGREP_IN_DOCKER+x} ]]; then
+      #       echo '::error::SEMGREP_IN_DOCKER must be absent from runner environment.'
+      #       exit 1
+      #     fi
+      #     # docker create --name phase7c-worker-${GITHUB_RUN_ID} \
+      #     #   --pull=never --platform=linux/arm64 --network=none --read-only \
+      #     #   --cap-drop=ALL --security-opt=no-new-privileges \
+      #     #   --user=1000:1000 --cpus=1 --memory=512m --memory-swap=512m \
+      #     #   --pids-limit=32 --restart=no \
+      #     #   --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m,mode=1777 \
+      #     #   --tmpfs /home/semgrep/.semgrep:rw,noexec,nosuid,nodev,size=4m,mode=0700,uid=1000,gid=1000 \
+      #     #   --env SEMGREP_ENABLE_VERSION_CHECK=0 \
+      #     #   --env SEMGREP_SEND_METRICS=off --env SEMGREP_IN_DOCKER \
+      #     #   "$SEMGREP_IMAGE" semgrep scan --json --metrics=off \
+      #     #   --disable-version-check --oss-only --no-autofix \
+      #     #   --config /mnt/synthetic/rules.yml -- /mnt/synthetic/project
+      #     # Use a fixed cleanup trap for this named container only; never run
+      #     # docker system prune. A timeout/cancel must fail the job.
+      #
+      # - name: Verify sanitized result and cleanup (future)
+      #   if: always()
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+      #     # Require exactly one expected rule match, JSON validity, no canary,
+      #     # no raw code/path in logs, no artifact, and no remaining named
+      #     # container. Remove only this run's container and runner.temp fixture.
+      #     # Fail closed when runtime facts, evidence or cleanup are ambiguous.
+      #
+      # No upload-artifact, cache, external repo, secret, LLM or remote rules.
