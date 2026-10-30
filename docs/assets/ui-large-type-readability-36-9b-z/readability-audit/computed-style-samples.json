@@ -1,0 +1,113 @@
+[
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "typography": {
+      "title": 36,
+      "body": 17,
+      "sidebar": 16,
+      "label": 16,
+      "select": 16,
+      "button": 17,
+      "paragraphLineHeight": "27.2px",
+      "sidebarWidth": 248,
+      "selectHeight": 52,
+      "launchHeight": 54,
+      "viewportWidth": 1920,
+      "documentWidth": 1920
+    }
+  },
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "typography": {
+      "title": 30.96,
+      "body": 17,
+      "sidebar": 16,
+      "label": 16,
+      "select": 16,
+      "button": 17,
+      "paragraphLineHeight": "27.2px",
+      "sidebarWidth": 248,
+      "selectHeight": 52,
+      "launchHeight": 54,
+      "viewportWidth": 1440,
+      "documentWidth": 1440
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "typography": {
+      "title": 30,
+      "body": 17,
+      "sidebar": 16,
+      "label": 16,
+      "select": 16,
+      "button": 17,
+      "paragraphLineHeight": "27.2px",
+      "sidebarWidth": 248,
+      "selectHeight": 52,
+      "launchHeight": 54,
+      "viewportWidth": 1280,
+      "documentWidth": 1280
+    }
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "typography": {
+      "title": 30,
+      "body": 17,
+      "sidebar": 16,
+      "label": 16,
+      "select": 16,
+      "button": 17,
+      "paragraphLineHeight": "27.2px",
+      "sidebarWidth": 218,
+      "selectHeight": 52,
+      "launchHeight": 54,
+      "viewportWidth": 768,
+      "documentWidth": 768
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "typography": {
+      "title": 30,
+      "body": 16,
+      "sidebar": 16,
+      "label": 16,
+      "select": 16,
+      "button": 17,
+      "paragraphLineHeight": "25.6px",
+      "sidebarWidth": 310,
+      "selectHeight": 52,
+      "launchHeight": 54,
+      "viewportWidth": 390,
+      "documentWidth": 390
+    }
+  },
+  {
+    "viewport": {
+      "width": 720,
+      "height": 450,
+      "note": "200% 확대 대응 대체 CSS viewport; 실제 브라우저 확대 기능은 아님"
+    },
+    "zoomLayout": {
+      "viewport": 720,
+      "content": 720
+    }
+  }
+]

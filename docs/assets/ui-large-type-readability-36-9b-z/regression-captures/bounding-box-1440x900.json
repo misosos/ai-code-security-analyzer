@@ -1,0 +1,39 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "header": {
+    "top": 0,
+    "height": 72,
+    "bottom": 72,
+    "width": 1440
+  },
+  "title": {
+    "top": 104,
+    "height": 88,
+    "bottom": 192,
+    "width": 1120
+  },
+  "quickStart": {
+    "top": 513,
+    "height": 53,
+    "bottom": 566,
+    "width": 1120
+  },
+  "missionDeck": {
+    "top": 216,
+    "height": 268,
+    "bottom": 485,
+    "width": 1120
+  },
+  "launchBrief": {
+    "top": 588,
+    "height": 195,
+    "bottom": 783,
+    "width": 1120
+  },
+  "launchBriefContentBottom": 756,
+  "launchBriefBlankBelowContent": 27,
+  "focusableDecorativeDescendants": 0
+}

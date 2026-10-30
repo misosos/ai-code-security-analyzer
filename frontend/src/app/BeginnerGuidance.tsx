@@ -25,9 +25,9 @@ export function describeStatusCode(code: string): HelpText {
   };
 }
 
-export function QuickStart() {
+export function QuickStart({ expanded = false }: { expanded?: boolean }) {
   return <section className="quick-start panel" aria-label="처음 시작하기 안내">
-    <details>
+    <details open={expanded}>
       <summary>처음 시작하기</summary>
       <div className="quick-start-content">
         <p>이 대시보드는 서버를 직접 실행하거나 임의 폴더를 열지 않습니다. 검사 서버에 미리 등록된 로컬 프로젝트만 검사합니다.</p>

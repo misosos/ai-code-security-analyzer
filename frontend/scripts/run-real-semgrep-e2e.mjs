@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const frontendDirectory = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const repositoryDirectory = resolve(frontendDirectory, '..');
-const port = 8765;
-const origin = `http://127.0.0.1:${port}`;
+let port;
+let origin;
 const temporaryDirectory = await mkdtemp(join(await realpath(tmpdir()), 'aicsa-real-browser-e2e-'));
 const targetDirectory = join(temporaryDirectory, 'synthetic-project');
 const secondTargetDirectory = join(temporaryDirectory, 'synthetic-project-selected');
@@ -18,11 +18,18 @@ const token = randomBytes(32).toString('base64url');
 const canary = 'SYNTHETIC_BROWSER_CANARY_MUST_NOT_LEAK';
 let server;
 
-function assertPortFree() {
+function allocateLoopbackPort() {
   return new Promise((resolvePromise, reject) => {
     const probe = net.createServer();
     probe.once('error', () => reject(new Error('e2e_loopback_port_unavailable')));
-    probe.listen(port, '127.0.0.1', () => probe.close((error) => error ? reject(new Error('e2e_loopback_port_unavailable')) : resolvePromise()));
+    probe.listen(0, '127.0.0.1', () => {
+      const address = probe.address();
+      if (!address || typeof address === 'string') {
+        probe.close(() => reject(new Error('e2e_loopback_port_unavailable')));
+        return;
+      }
+      probe.close((error) => error ? reject(new Error('e2e_loopback_port_unavailable')) : resolvePromise(address.port));
+    });
   });
 }
 
@@ -58,7 +65,8 @@ try {
   if (process.env.SEMGREP_REQUIRED !== '1') throw new Error('SEMGREP_REQUIRED_must_be_1');
   const semgrep = spawnSync('semgrep', ['--version'], { cwd: repositoryDirectory, encoding: 'utf8' });
   if (semgrep.status !== 0 || semgrep.stdout.trim() !== '1.182.1') throw new Error('required_semgrep_1_182_1_unavailable');
-  await assertPortFree();
+  port = await allocateLoopbackPort();
+  origin = `http://127.0.0.1:${port}`;
   await mkdir(targetDirectory);
   await mkdir(secondTargetDirectory);
   await mkdir(join(rulesDirectory, 'experimental'), { recursive: true });
@@ -86,7 +94,12 @@ try {
     '',
   ].join('\n'), { mode: 0o600 });
 
-  server = spawn('uv', ['run', '--locked', 'python', '-m', 'ai_code_security_analyzer.api'], {
+  const isolatedServerEntrypoint = [
+    'import sys, uvicorn',
+    'from ai_code_security_analyzer.api.app import create_app_from_env',
+    "uvicorn.run(create_app_from_env(), host='127.0.0.1', port=int(sys.argv[1]), access_log=False, reload=False)",
+  ].join('; ');
+  server = spawn('uv', ['run', '--locked', 'python', '-c', isolatedServerEntrypoint, String(port)], {
     cwd: repositoryDirectory,
     env: {
       ...process.env,

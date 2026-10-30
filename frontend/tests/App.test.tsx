@@ -57,6 +57,23 @@ describe('Analyst dashboard',()=>{
     expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
   });
 
+  it('switches between start, current-session results, and guidance; collapses the sidebar accessibly',async()=>{
+    vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
+    const user=userEvent.setup(); render(<App/>); await screen.findByText('검사 옵션 준비됨');
+    expect(screen.getByRole('heading',{name:'코드 보안 검사'})).toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:/검사 결과/}));
+    expect(screen.getByRole('heading',{name:'이 세션에는 검사 결과가 없습니다'})).toBeInTheDocument();
+    expect(screen.getByText(/이전 세션의 결과를 서버에서 불러오지는 않습니다/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:'사용 안내'}));
+    expect(screen.getByText(/AI_CODE_SECURITY_TARGETS/)).toBeInTheDocument();
+    expect(screen.getByText('보안 분석 용어 쉽게 보기')).toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:'검사 시작'}));
+    expect(screen.getByRole('combobox',{name:'검사 대상'})).toBeEnabled();
+    const collapse=screen.getByRole('button',{name:'사이드바 접기'}); await user.click(collapse);
+    expect(screen.getByRole('button',{name:'사이드바 펼치기'})).toHaveAttribute('aria-expanded','false');
+    expect(screen.getByRole('button',{name:'검사 시작'})).toHaveAttribute('title','검사 시작');
+  });
+
   it('explains the token, allowlisted project, rule profile, and experimental scope in plain Korean',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
     render(<App/>); await screen.findByText(/연결됨/);
@@ -131,6 +148,7 @@ describe('Analyst dashboard',()=>{
     expect(request[1]?.credentials).toBe('omit'); expect(request[1]?.cache).toBe('no-store');
     expect(new Headers(request[1]?.headers).get('X-Local-API-Token')).toBe('test-local-token-which-is-not-persisted');
     expect(localStorage.setItem).not.toHaveBeenCalled(); expect(sessionStorage.setItem).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button',{name:'검사 시작'}));
     await user.click(screen.getByRole('button',{name:'화면의 API 토큰 지우기'})); expect(screen.getByLabelText('로컬 API 토큰')).toHaveValue(''); expect(screen.getByRole('button',{name:'검사 실행'})).toBeDisabled();
   });
 
@@ -224,10 +242,12 @@ describe('Analyst dashboard',()=>{
     queueScan(scan()); await user.click(screen.getByRole('button',{name:'검사 실행'}));
     expect(await screen.findByLabelText('이 결과를 생성한 검사 설정')).toBeInTheDocument();
     expect(within(screen.getByLabelText('이 결과를 생성한 검사 설정')).getByText('Baseline Rules')).toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:'검사 시작'}));
     await user.selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
     await user.selectOptions(screen.getAllByRole('combobox')[0],'other-project');
     expect(screen.getByRole('alert')).toHaveTextContent('현재 화면의 결과는 이전 검사 설정(Local Project · Baseline Rules)에서 생성됐습니다');
     expect(screen.getByRole('alert')).toHaveTextContent('현재 선택한 설정(Other Local Project · Experimental · Experimental Command Injection)');
+    await user.click(screen.getByRole('button',{name:/검사 결과/}));
     expect(screen.getByRole('heading',{name:'정상 완료'})).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button',{name:'현재 검사 결과 내보내기'}));
@@ -238,6 +258,7 @@ describe('Analyst dashboard',()=>{
     await user.click(screen.getByRole('button',{name:'결과 지우기'}));
     expect(screen.queryByRole('heading',{name:'정상 완료'})).not.toBeInTheDocument();
     expect(screen.queryByText(/이 결과를 생성한 검사 설정/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:/검사 시작으로 이동/}));
     expect(screen.getByLabelText('로컬 API 토큰')).toHaveValue('test-local-token-which-is-not-persisted');
     queueScan(scan()); await user.click(screen.getByRole('button',{name:'검사 실행'}));
     expect(await screen.findByRole('heading',{name:'정상 완료'})).toBeInTheDocument();

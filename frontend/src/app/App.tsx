@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
+type WorkspaceView = 'start' | 'results' | 'guide';
 const severityOrder: Severity[] = ['critical','high','medium','low','info'];
 const severityLabels: Record<Severity,string> = { critical: '매우 높음', high: '높음', medium: '중간', low: '낮음', info: '정보' };
 const kindLabels: Record<FindingKind,string> = { taint: '입력 흐름 분석', pattern: '코드 형태 검사', unclassified: '분류 확인 불가' };
@@ -76,6 +77,27 @@ export function App() {
   const [kindFilter, setKindFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeView, setActiveView] = useState<WorkspaceView>('start');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileMenuButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const sidebar = document.getElementById('workspace-sidebar');
+    const navItems = sidebar?.querySelectorAll<HTMLButtonElement>('.nav-item');
+    navItems?.[0]?.focus();
+    const handleDrawerKeys = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setMobileNavOpen(false); mobileMenuButton.current?.focus(); return; }
+      if (event.key !== 'Tab' || !navItems?.length) return;
+      const first = navItems[0];
+      const last = navItems[navItems.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', handleDrawerKeys);
+    return () => window.removeEventListener('keydown', handleDrawerKeys);
+  }, [mobileNavOpen]);
 
   useEffect(() => {
     let active = true;
@@ -106,7 +128,7 @@ export function App() {
     setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setSelectedId(''); setExportMessage(''); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
-      setScan(result); setScanContext({ ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() }); setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed');
+      setScan(result); setScanContext({ ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() }); setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed'); setActiveView('results');
       setMessage(result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`);
     } catch (error) { const result = safeError(error); setState(result.state); setMessage(result.message); }
   }
@@ -125,11 +147,14 @@ export function App() {
 
   const selectedProfile = options?.rule_profiles.find((item) => item.id === profileId);
   const contextChanged = Boolean(scanContext && (targetId !== scanContext.targetId || profileId !== scanContext.ruleProfileId));
+  const pageTitle = activeView === 'start' ? '코드 보안 검사' : activeView === 'results' ? '검사 결과' : '사용 안내';
+  const navigate = (view: WorkspaceView) => { setActiveView(view); setMobileNavOpen(false); if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches) mobileMenuButton.current?.focus(); };
   return <div className="app-shell">
     <header className="topbar">
+      <button ref={mobileMenuButton} className="sidebar-toggle mobile-menu-toggle" type="button" aria-label="내비게이션 열기" aria-expanded={mobileNavOpen} aria-controls="workspace-sidebar" onClick={() => setMobileNavOpen((open) => !open)}><Icon name="menu"/></button>
       <a className="brand" href="#main-content" aria-label="AI Code Security Analyzer 대시보드로 이동">
         <span className="brand-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 35 11v18l-15 9L5 29V11z"/><path d="m20 9 9 5v12l-9 5-9-5V14z"/><circle cx="20" cy="20" r="3"/></svg></span>
-        <span className="brand-copy"><strong>AI Code Security Analyzer</strong><small>LOCAL ANALYSIS WORKSPACE</small></span>
+        <span className="brand-copy"><strong>AI Code Security Analyzer</strong><small>로컬 분석 워크스페이스</small></span>
       </a>
       <div className="header-status" aria-label="연결 및 검사 상태">
         <span className={`status-indicator ${health}`} aria-hidden="true" />
@@ -138,11 +163,22 @@ export function App() {
         <span className={`header-scan-state ${state}`}>{state === 'scanning' ? '검사 진행 중' : scan ? statusLabels[scan.scan_status] : requestStateLabels[state] ?? '검사 대기'}</span>
       </div>
     </header>
-    <main id="main-content" className="dashboard-main">
-      <div className="workspace-title"><div><p className="eyebrow">SECURITY REVIEW / LOCAL</p><h1>보안 분석 워크스페이스</h1></div><p>등록된 프로젝트의 검사 결과와 근거를 살펴보세요.</p></div>
-      <QuickStart />
+    {mobileNavOpen && <button type="button" className="sidebar-backdrop" aria-label="내비게이션 닫기" onClick={() => setMobileNavOpen(false)}/>}
+    <div className={`workspace-shell ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''} ${mobileNavOpen ? 'mobile-nav-open' : ''}`}>
+      <aside id="workspace-sidebar" className="workspace-sidebar" role={mobileNavOpen ? 'dialog' : 'complementary'} aria-modal={mobileNavOpen || undefined} aria-label="주 메뉴">
+        <div className="sidebar-heading"><span className="sidebar-section-label">작업 공간</span><button className="sidebar-toggle collapse-toggle" type="button" aria-label={sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}><Icon name="collapse"/></button></div>
+        <nav className="sidebar-nav" aria-label="화면 이동">
+          <button type="button" className={`nav-item ${activeView === 'start' ? 'active' : ''}`} aria-current={activeView === 'start' ? 'page' : undefined} title={sidebarCollapsed ? '검사 시작' : undefined} onClick={() => navigate('start')}><Icon name="play"/><span>검사 시작</span></button>
+          <button type="button" className={`nav-item ${activeView === 'results' ? 'active' : ''}`} aria-current={activeView === 'results' ? 'page' : undefined} title={sidebarCollapsed ? '검사 결과' : undefined} onClick={() => navigate('results')}><Icon name="results"/><span>검사 결과</span>{scan && <span className="nav-result-count">{scan.displayed_finding_count}</span>}</button>
+          <button type="button" className={`nav-item ${activeView === 'guide' ? 'active' : ''}`} aria-current={activeView === 'guide' ? 'page' : undefined} title={sidebarCollapsed ? '사용 안내' : undefined} onClick={() => navigate('guide')}><Icon name="book"/><span>사용 안내</span></button>
+        </nav>
+        <div className="sidebar-footnote"><span className={`status-indicator ${health}`} aria-hidden="true"/><span>{health === 'connected' ? '검사 옵션 준비됨' : health === 'checking' ? '연결 확인 중' : '로컬 API 연결 필요'}</span></div>
+      </aside>
+      <main id="main-content" className="dashboard-main">
+      <div className="workspace-title"><div><p className="eyebrow">로컬 보안 분석</p><h1>{pageTitle}</h1></div><p>{activeView === 'start' ? '등록된 프로젝트와 허용 규칙을 선택해 검사합니다.' : activeView === 'results' ? '현재 브라우저 세션에서 받은 결과만 표시합니다.' : '검사 준비부터 결과 해석까지 확인할 수 있습니다.'}</p></div>
+      {activeView === 'start' && <>
       <section className={`mission-deck ${scan ? 'mission-deck-compact' : ''}`} aria-labelledby="scan-config-title">
-        <div className="deck-heading"><div><p className="eyebrow">LOCAL SECURITY / MISSION CONTROL</p><h2 id="scan-config-title">검사 제어</h2></div><span className={`deck-signal ${health}`}><span aria-hidden="true"/>{health === 'connected' ? '옵션 불러옴' : health === 'checking' ? '연결 확인 중' : '서버 연결 필요'}</span></div>
+        <div className="deck-heading"><div><p className="eyebrow">검사 설정</p><h2 id="scan-config-title">검사 제어</h2></div><span className={`deck-signal ${health}`}><span aria-hidden="true"/>{health === 'connected' ? '옵션 불러옴' : health === 'checking' ? '연결 확인 중' : '서버 연결 필요'}</span></div>
         <form onSubmit={runScan} className="mission-form">
           <label className="mission-control project-control"><span className="control-label"><Icon name="folder"/> 검사 대상</span><span className="select-control"><select aria-label="검사 대상" value={targetId} onChange={(e) => setTargetId(e.target.value)} disabled={!options || options.targets.length === 0 || state === 'scanning'} required aria-describedby="target-help"><option value="" disabled>{options ? '등록된 프로젝트가 없습니다' : '서버 연결 후 목록을 불러옵니다'}</option>{options?.targets.map((target) => <option key={target.id} value={target.id}>{target.label} ({target.id})</option>)}</select><span className="select-caret" aria-hidden="true"/></span><small id="target-help">서버에 미리 등록된 프로젝트만 선택할 수 있습니다.</small></label>
           <label className="mission-control rules-control"><span className="control-label"><Icon name="layers"/> 규칙 모음</span><span className="select-control"><select aria-label="검사 규칙 모음" value={profileId} onChange={(e) => setProfileId(e.target.value)} disabled={!options || options.rule_profiles.length === 0 || state === 'scanning'} required aria-describedby="profile-help"><option value="" disabled>{options ? '사용 가능한 규칙이 없습니다' : '서버 연결 후 목록을 불러옵니다'}</option>{options?.rule_profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.experimental ? 'Experimental · ' : ''}{profile.label}</option>)}</select><span className="select-caret" aria-hidden="true"/></span><small id="profile-help">{selectedProfile?.experimental ? '실험 규칙입니다. 정확도가 충분히 검증됐다는 뜻은 아닙니다.' : '찾을 보안 문제의 규칙 묶음입니다.'}</small></label>
@@ -150,29 +186,34 @@ export function App() {
           <button className="button primary run-button launch-action" type="submit" disabled={!options || !targetId || !profileId || !token || state === 'scanning'}>{state === 'scanning' ? <><span className="spinner" aria-hidden="true" /> 검사 중</> : <><Icon name="play"/> 검사 실행</>}</button>
         </form>
       </section>
-      {!scan && <section className="launch-brief" aria-labelledby="launch-title"><div className="launch-brief-copy"><p className="eyebrow">LOCAL CODE REVIEW / EVIDENCE FIRST</p><h2 id="launch-title">코드를 살펴보고, 근거로 검토합니다.</h2><p>결과에는 규칙 매치, 파일 위치, 확인된 근거가 표시됩니다. 매치는 실제 취약점 확정이나 프로젝트 안전성 증명이 아닙니다.</p></div><ol className="launch-steps" aria-label="실제 검사 흐름"><li><b>01</b><span>등록 프로젝트 선택</span></li><li><b>02</b><span>허용 규칙으로 검사</span></li><li><b>03</b><span>근거와 제한 검토</span></li></ol><div className="launch-emblem" aria-hidden="true"><svg viewBox="0 0 120 120" focusable="false"><path d="M60 5 102 29v62l-42 24L18 91V29zM60 19 90 36v48L60 101 30 84V36z"/><circle cx="60" cy="60" r="5"/></svg></div></section>}
+      <QuickStart />
+      <section className="launch-brief" aria-labelledby="launch-title"><div className="launch-brief-copy"><h2 id="launch-title">코드를 살펴보고, 근거로 검토합니다.</h2><p>규칙 매치와 파일 위치를 확인해 직접 검토하세요. 매치는 실제 취약점 확정이나 프로젝트 안전성 증명이 아닙니다.</p></div><ol className="launch-steps" aria-label="실제 검사 흐름"><li><b>01</b><span>등록된 프로젝트 선택</span></li><li><b>02</b><span>검사 규칙 선택</span></li><li><b>03</b><span>근거와 한계 검토</span></li></ol></section>
+      </>}
       {bootstrapError && <div className="alert error connection-alert" role="alert"><span>{bootstrapError}</span><button className="button secondary retry-button" type="button" onClick={() => { setHealth('checking'); setConnectionAttempt((attempt) => attempt + 1); }} disabled={health === 'checking'}>{health === 'checking' ? '연결 확인 중' : '다시 연결'}</button></div>}
       {message && ['unauthorized','scan_already_running','connection_error','failed'].includes(state) && <div className="alert error request-feedback" role="alert">{message}</div>}
-      <div className="help-strip"><details className="help-disclosure"><summary><Icon name="book"/> 보안 용어 도움말</summary><SecurityGlossary expanded /></details><p className="toolbar-help">토큰은 이 브라우저 메모리에만 보관되며 인증 헤더로 전송됩니다.</p></div>
+      {contextChanged && scanContext && <div className="alert warning" role="alert">현재 화면의 결과는 이전 검사 설정({scanContext.targetLabel} · {scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel})에서 생성됐습니다. 현재 선택한 설정({options?.targets.find((target) => target.id === targetId)?.label ?? '알 수 없는 대상'} · {selectedProfile?.experimental ? 'Experimental · ' : ''}{selectedProfile?.label ?? '알 수 없는 규칙'})의 결과는 아직 없습니다. 확인하려면 새 검사를 실행하세요.</div>}
+      {activeView === 'start' && <div className="help-strip"><p className="toolbar-help">토큰은 이 브라우저 메모리에만 보관되며 인증 헤더로 전송됩니다.</p></div>}
+      {activeView === 'guide' && <div className="guide-workspace"><section className="guide-section"><h2>처음 시작하기</h2><QuickStart expanded/></section><section className="guide-section"><h2>보안 용어</h2><SecurityGlossary expanded /></section><section className="guide-limit"><h2>검사 범위와 한계</h2><p>검사 결과는 규칙에 맞는 검토 후보를 보여줍니다. 결과가 0건이어도 프로젝트가 안전하다고 증명하지 않으며, 표시된 항목도 실제 취약점으로 확정된 것은 아닙니다.</p></section></div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
-      {scan && <>
-        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">RESULT CONTEXT</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답의 최대 50건만 내보냅니다. 파일을 공유하기 전에 내용을 확인하세요.</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
-        {contextChanged && scanContext && <div className="alert warning" role="alert">현재 화면의 결과는 이전 검사 설정({scanContext.targetLabel} · {scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel})에서 생성됐습니다. 현재 선택한 설정({options?.targets.find((target) => target.id === targetId)?.label ?? '알 수 없는 대상'} · {selectedProfile?.experimental ? 'Experimental · ' : ''}{selectedProfile?.label ?? '알 수 없는 규칙'})의 결과는 아직 없습니다. 확인하려면 새 검사를 실행하세요.</div>}
+      {activeView === 'results' && !scan && <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '이 세션에는 검사 결과가 없습니다'}</h2><p>{state === 'scanning' ? '검사가 끝나면 현재 세션의 결과가 여기에 표시됩니다.' : '검사를 시작하면 이 브라우저에서 받은 결과가 여기에 표시됩니다. 이전 세션의 결과를 서버에서 불러오지는 않습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작으로 이동</button>}</div></section>}
+      {activeView === 'results' && scan && <>
+        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답의 최대 50건만 내보냅니다. 파일을 공유하기 전에 내용을 확인하세요.</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수가 아닙니다"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답에 포함"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 상태 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep의 분류입니다. 실제 악용 가능성을 확정하지 않습니다.</small></div></section>
         <section className="findings-section" aria-labelledby="findings-heading">
-          <div className="results-heading"><div className="results-title"><p className="eyebrow">FINDING REVIEW</p><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2><p>이 검사 응답에 포함된 최대 50건을 표시합니다.</p></div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
+          <div className="results-heading"><div className="results-title"><p className="eyebrow">발견 항목 검토</p><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2><p>이 검사 응답에 포함된 최대 50건을 표시합니다.</p></div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
           {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>보고된 발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았다는 뜻입니다. 프로젝트가 안전하다고 확인된 것은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} selected={selected?.finding_id === finding.finding_id} onSelect={() => setSelectedId(finding.finding_id)} />)}</section>
             <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.</p></div>}</section></div>}
         </section>
       </>}
       <footer><span>로컬 분석 · 발견 항목은 취약점 미확인 상태</span><span>정상 완료 또는 0건은 안전성 보증이 아닙니다.</span></footer>
-    </main>
+      </main>
+    </div>
   </div>;
 }
 
-function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'check'|'cursor'|'radar'|'folder'|'layers'|'key'}) {
+function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'check'|'cursor'|'radar'|'folder'|'layers'|'key'|'results'|'menu'|'collapse'}) {
   const paths:Record<string,React.ReactNode>={
     sliders:<><path d="M4 7h8m4 0h4M4 17h4m4 0h8"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></>,play:<path d="m8 5 11 7-11 7z"/>,
     book:<><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M4 5.5v14A2.5 2.5 0 0 1 6.5 17H20"/></>,
@@ -182,6 +223,9 @@ function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'
     folder:<><path d="M3 6.5h7l2 2h9v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 8.5h18"/></>,
     layers:<><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
     key:<><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-3 3 3 3m-6 0 3 3"/></>,
+    results:<><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="7" cy="5" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="7" cy="19" r="1"/></>,
+    menu:<><path d="M4 6h16M4 12h16M4 18h16"/></>,
+    collapse:<><path d="M4 5h16v14H4zM9 5v14m4-9 3 2-3 2"/></>,
   };
   return <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }

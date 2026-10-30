@@ -13,7 +13,7 @@ try {
 }
 if (
   parsedBaseURL.protocol !== 'http:' || parsedBaseURL.hostname !== '127.0.0.1' ||
-  parsedBaseURL.port !== '8765' || parsedBaseURL.pathname !== '/' ||
+  !parsedBaseURL.port || parsedBaseURL.pathname !== '/' ||
   parsedBaseURL.username || parsedBaseURL.password || parsedBaseURL.search || parsedBaseURL.hash
 ) {
   throw new Error('real_browser_semgrep_e2e_must_use_loopback');

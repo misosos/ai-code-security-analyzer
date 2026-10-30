@@ -1,0 +1,21 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "sidebar": {
+    "x": 0,
+    "y": 72,
+    "width": 248,
+    "height": 828
+  },
+  "main": {
+    "x": 248,
+    "y": 72,
+    "width": 1192,
+    "height": 875
+  },
+  "bodyText": "17px",
+  "inputHeight": 52,
+  "overflow": 0
+}
