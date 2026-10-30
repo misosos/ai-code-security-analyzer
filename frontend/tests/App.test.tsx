@@ -40,10 +40,14 @@ describe('Analyst dashboard',()=>{
   it('explains the token, allowlisted project, rule profile, and experimental scope in plain Korean',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
     render(<App/>); await screen.findByText(/연결됨/);
-    expect(screen.getByText(/내 컴퓨터의 검사 서버에 요청할 권한/)).toBeInTheDocument();
-    expect(screen.getByText(/GitHub에 커밋하거나 다른 사람과 공유하지 마세요/)).toBeInTheDocument();
-    expect(screen.getByText(/토큰을 지우면 화면의 입력값만 제거됩니다/)).toBeInTheDocument();
-    expect(screen.getByText(/서버 운영자가 등록한 프로젝트만 선택/)).toBeInTheDocument();
+    expect(screen.getByText(/대시보드와 검사 서버가 서로 확인하는 비밀값/)).toBeInTheDocument();
+    const tokenHelp = screen.getByText('토큰 보호 안내').closest('details')!;
+    expect(tokenHelp).not.toHaveAttribute('open');
+    await userEvent.setup().click(screen.getByText('토큰 보호 안내'));
+    expect(within(tokenHelp).getByText(/GitHub에 커밋하거나 다른 사람과 공유하지 마세요/)).toBeInTheDocument();
+    expect(within(tokenHelp).getByText(/브라우저를 새로고침하면 입력값이 사라집니다/)).toBeInTheDocument();
+    expect(within(tokenHelp).getByText(/화면의 입력값만 제거하며 서버 설정은 바꾸지 않습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/서버에 미리 등록된 프로젝트만 선택/)).toBeInTheDocument();
     expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
     expect(screen.getByText(/보안 문제.*검사 규칙 묶음/)).toBeInTheDocument();
     await userEvent.setup().selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
@@ -107,7 +111,7 @@ describe('Analyst dashboard',()=>{
     expect(request[1]?.credentials).toBe('omit'); expect(request[1]?.cache).toBe('no-store');
     expect(new Headers(request[1]?.headers).get('X-Local-API-Token')).toBe('test-local-token-which-is-not-persisted');
     expect(localStorage.setItem).not.toHaveBeenCalled(); expect(sessionStorage.setItem).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button',{name:'지우기'})); expect(screen.getByLabelText('로컬 API 토큰')).toHaveValue(''); expect(screen.getByRole('button',{name:'검사 실행'})).toBeDisabled();
+    await user.click(screen.getByRole('button',{name:'화면의 API 토큰 지우기'})); expect(screen.getByLabelText('로컬 API 토큰')).toHaveValue(''); expect(screen.getByRole('button',{name:'검사 실행'})).toBeDisabled();
   });
 
   it('separates supported and restricted evidence, keeps unverified status, and renders API strings as text',async()=>{
@@ -138,7 +142,7 @@ describe('Analyst dashboard',()=>{
   it('handles zero findings and filters only the returned finding set',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); queueScan(scan([])); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText('보고된 Finding이 없습니다')).toBeInTheDocument(); expect(screen.getByText(/안전하다는 증명이 아닙니다/)).toBeInTheDocument();
+    expect(await screen.findByText('보고된 발견 항목이 없습니다')).toBeInTheDocument(); expect(screen.getByText(/프로젝트가 안전하다고 확인된 것은 아닙니다/)).toBeInTheDocument();
   });
 
   it('disables repeat scan submissions while the synchronous request is pending',async()=>{
@@ -189,7 +193,7 @@ describe('Analyst dashboard',()=>{
     expect(await screen.findByText('표시된 결과')).toBeInTheDocument();
     expect(within(screen.getByText('생략된 결과').closest('.metric')!).getByText('1')).toBeInTheDocument();
     expect(screen.getByText('omitted_findings_not_individually_validated')).toBeInTheDocument();
-    expect(screen.getByText(/필터는 이 응답에 표시된 최대 50건에만 적용됩니다/)).toBeInTheDocument();
+    expect(screen.getByText(/이 검사 응답에 포함된 최대 50건을 표시합니다/)).toBeInTheDocument();
   });
 
   it('keeps the request-time scan context when current settings change and exports only on click',async()=>{
@@ -198,11 +202,11 @@ describe('Analyst dashboard',()=>{
     const create=vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:review-test'); const revoke=vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});
     vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
     queueScan(scan()); await user.click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText(/이 결과를 생성한 검사 설정/)).toBeInTheDocument();
+    expect(await screen.findByLabelText('이 결과를 생성한 검사 설정')).toBeInTheDocument();
     expect(within(screen.getByLabelText('이 결과를 생성한 검사 설정')).getByText('Baseline Rules')).toBeInTheDocument();
     await user.selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
     await user.selectOptions(screen.getAllByRole('combobox')[0],'other-project');
-    expect(screen.getByRole('alert')).toHaveTextContent('표시된 결과는 이전 검사 설정(Local Project · Baseline Rules)에 속합니다');
+    expect(screen.getByRole('alert')).toHaveTextContent('현재 화면의 결과는 이전 검사 설정(Local Project · Baseline Rules)에서 생성됐습니다');
     expect(screen.getByRole('alert')).toHaveTextContent('현재 선택한 설정(Other Local Project · Experimental · Experimental Command Injection)');
     expect(screen.getByRole('heading',{name:'정상 완료'})).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();

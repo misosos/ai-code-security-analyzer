@@ -44,7 +44,7 @@ test('mobile layout fits 320px and token controls are keyboard reachable', async
   await page.getByLabel('로컬 API 토큰').fill('keyboard-smoke-token');
   await page.getByLabel('로컬 API 토큰').focus();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: '지우기' })).toBeFocused();
+  await expect(page.getByRole('button', { name: '화면의 API 토큰 지우기' })).toBeFocused();
 });
 
 test('browser preserves scan context, downloads the current summary on click, and clears only in-memory results', async ({ page }) => {
@@ -71,7 +71,7 @@ test('browser preserves scan context, downloads the current summary on click, an
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   await expect(page.getByLabel('이 결과를 생성한 검사 설정')).toContainText('Baseline Rules');
-  await page.getByLabel('규칙 프로필').selectOption('command-injection-experimental');
+  await page.getByLabel('검사 규칙 모음').selectOption('command-injection-experimental');
   await expect(page.getByRole('alert')).toContainText('이전 검사 설정(Local Project · Baseline Rules)');
 
   const downloadPromise = page.waitForEvent('download');
@@ -94,5 +94,54 @@ test('browser preserves scan context, downloads the current summary on click, an
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue(token);
   await page.reload();
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue('');
-  await expect(page.getByText('검사 결과가 여기에 표시됩니다')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '검사 결과를 이곳에서 확인합니다' })).toBeVisible();
+});
+
+test('cyberpunk workspace stays usable without horizontal overflow across desktop, tablet, and mobile viewports', async ({ page }) => {
+  await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+  await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
+    targets: [{ id: 'synthetic-app', label: 'Synthetic Review Project' }],
+    rule_profiles: [{ id: 'baseline', label: 'Baseline Rules', experimental: false }],
+  } }));
+  await page.route('**/api/v1/scans', (route) => route.fulfill({ json: {
+    scan_status: 'completed', completed: true, semgrep_version: '1.182.1', finding_count: 2, displayed_finding_count: 2, omitted_finding_count: 0,
+    severity_counts: { critical: 0, high: 1, medium: 1, low: 0, info: 0 }, issues: [], limitations: ['scan_result_is_not_safety_proof'],
+    findings: [
+      { finding_id: 'semgrep:0123456789abcdef01234567', rule_id: 'synthetic.eval-example', severity: 'high', verification_status: 'unverified', finding_kind: 'pattern', file_path: 'src/routes/<fixture>.js', line_number: 12, evidence_validation_status: 'validated', supported_claims: ['match_reported'], restricted_claims: [{ claim_type: 'vulnerability_confirmed', decision: 'unsupported_claim', reason_codes: ['independent_confirmation_required'] }], validation_error_code: null },
+      { finding_id: 'semgrep:1123456789abcdef01234567', rule_id: 'synthetic.html-example', severity: 'medium', verification_status: 'unverified', finding_kind: 'pattern', file_path: 'src/ui/Notice.tsx', line_number: 28, evidence_validation_status: 'validated', supported_claims: ['match_reported'], restricted_claims: [{ claim_type: 'vulnerability_confirmed', decision: 'unsupported_claim', reason_codes: ['independent_confirmation_required'] }], validation_error_code: null },
+    ],
+  } }));
+  await page.goto('/');
+  await page.getByLabel('로컬 API 토큰').fill('synthetic-viewport-token');
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+
+  for (const viewport of [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 768, height: 1024 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    const dimensions = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
+    expect(dimensions.content, `horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(dimensions.viewport);
+    await expect(page.getByRole('heading', { name: '발견 항목' })).toBeVisible();
+    await expect(page.getByLabel('Finding 목록')).toBeVisible();
+    await expect(page.getByLabel('선택한 Finding 상세')).toBeVisible();
+    const presentation = await page.evaluate(() => {
+      const firstRow = document.querySelector('.finding-row');
+      const detail = document.querySelector('.detail-panel');
+      const title = firstRow?.querySelector('.row-main > strong');
+      return {
+        firstRowTop: firstRow?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY,
+        detailTop: detail?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY,
+        rowTitleSize: Number.parseFloat(title ? getComputedStyle(title).fontSize : '0'),
+      };
+    });
+    expect(presentation.rowTitleSize).toBeGreaterThanOrEqual(14);
+    if (viewport.width >= 1280) {
+      expect(presentation.firstRowTop).toBeLessThan(viewport.height);
+      expect(presentation.detailTop).toBeLessThan(viewport.height);
+    }
+  }
+
+  await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').fill('synthetic.html-example');
+  await expect(page.getByLabel('Finding 목록').getByRole('button')).toHaveCount(1);
+  await expect(page.getByText('src/routes/<fixture>.js:12')).toHaveCount(0);
+  expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });

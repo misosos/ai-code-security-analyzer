@@ -36,7 +36,7 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   await page.getByLabel('로컬 API 토큰').fill(token);
   expect(await page.evaluate(() => [localStorage.length, sessionStorage.length])).toEqual([0, 0]);
   await page.getByLabel('검사 대상').selectOption('synthetic-selected');
-  await page.getByLabel('규칙 프로필').selectOption('command-injection-experimental');
+  await page.getByLabel('검사 규칙 모음').selectOption('command-injection-experimental');
   const scanResponsePromise = page.waitForResponse((response) => response.url().endsWith('/api/v1/scans'));
   await page.getByRole('button', { name: '검사 실행' }).click();
   const scanResponse = await scanResponsePromise;
