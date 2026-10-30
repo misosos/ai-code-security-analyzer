@@ -136,7 +136,7 @@ export function App() {
       </div>
     </header>
     <main id="main-content" className="dashboard-main">
-      <div className="workspace-title"><div><p className="eyebrow">SECURITY REVIEW / LOCAL</p><h1>보안 분석 워크스페이스</h1></div><p>발견 항목은 취약점 확정이 아닌 검토 후보입니다.</p></div>
+      <div className="workspace-title"><div><p className="eyebrow">SECURITY REVIEW / LOCAL</p><h1>보안 분석 워크스페이스</h1></div><p>등록된 프로젝트의 검사 결과와 근거를 살펴보세요.</p></div>
       <QuickStart />
       <section className="scan-toolbar panel" aria-labelledby="scan-config-title">
         <div className="toolbar-heading"><span className="toolbar-icon" aria-hidden="true"><Icon name="sliders"/></span><div><p className="eyebrow">SCAN CONFIGURATION</p><h2 id="scan-config-title">검사 설정</h2></div></div>

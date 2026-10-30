@@ -92,7 +92,7 @@ export function ScanStatusGuidance({ scan }: { scan: ScanResponse }) {
   return <>
     <section className={`beginner-summary ${scan.scan_status === 'partial' ? 'partial' : !scan.completed ? 'failed' : ''}`} aria-label="쉬운 검사 결과 설명">
       <span className="summary-mark" aria-hidden="true">{scan.scan_status === 'partial' ? '!' : scan.completed ? 'i' : '×'}</span>
-      <div><h3>{statusText}</h3>{scan.completed && scan.finding_count > 0 && <p>아래 후보는 추가 검토가 필요합니다. 이 도구가 취약점을 확정한 것은 아닙니다.</p>}</div>
+      <div><h3>{statusText}</h3>{scan.completed && scan.finding_count > 0 && <p>선택한 항목에서 확인 위치와 제한을 살펴보세요.</p>}</div>
     </section>
     {codes.length > 0 && <details className="limitations panel" aria-label="검사 상태와 다음 행동">
       <summary>검사 제한 및 다음 행동 <span>{codes.length}</span></summary>
