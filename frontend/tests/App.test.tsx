@@ -27,10 +27,13 @@ describe('Analyst dashboard',()=>{
     const user=userEvent.setup(); render(<App/>);
     expect(await screen.findByRole('alert')).toHaveTextContent('로컬 API에 연결할 수 없습니다');
     await user.click(screen.getByRole('button', { name: '사용 안내' }));
-    const guide = screen.getByRole('heading', { name: '처음 시작하기' }).closest('section')!;
+    const guide = screen.getByRole('region', { name: '사용 방법' });
     expect(guide).toBeInTheDocument();
+    expect(within(guide).getByText('서버 관리자 설정')).toBeInTheDocument();
+    expect(within(guide).getByText(/AI_CODE_SECURITY_TARGETS/)).not.toBeVisible();
+    await user.click(within(guide).getByText('서버 관리자 설정'));
     expect(within(guide).getByText(/AI_CODE_SECURITY_TARGETS/)).toBeInTheDocument();
-    expect(within(guide).getByText(/서버를 재시작해야 등록 변경이 적용됩니다/)).toBeInTheDocument();
+    expect(within(guide).getByText(/서버에서.*토큰/)).toBeInTheDocument();
     expect(within(guide).getByText(/secrets\.token_urlsafe\(48\)/)).toBeInTheDocument();
     expect(within(guide).getAllByText(/127\.0\.0\.1:8765/).length).toBeGreaterThan(0);
     expect(within(guide).getAllByText(/127\.0\.0\.1:5173/).length).toBeGreaterThan(0);
@@ -50,7 +53,7 @@ describe('Analyst dashboard',()=>{
     expect(screen.getByRole('button',{name:'다시 연결'})).toBeEnabled();
     offline = false;
     await user.click(screen.getByRole('button',{name:'다시 연결'}));
-    expect(await screen.findByText('옵션 불러옴')).toBeInTheDocument();
+    expect(await screen.findByText('API 연결됨')).toBeInTheDocument();
     expect(screen.getByRole('combobox',{name:'검사 대상'})).toBeEnabled();
     expect(screen.getByRole('combobox',{name:'검사 규칙 모음'})).toBeEnabled();
     expect(screen.getByRole('option',{name:'Local Project'})).toBeInTheDocument();
@@ -58,14 +61,14 @@ describe('Analyst dashboard',()=>{
 
   it('switches between start, current-session results, and guidance; collapses the sidebar accessibly',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
-    const user=userEvent.setup(); render(<App/>); await screen.findByText('검사 옵션 준비됨');
+    const user=userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨');
     expect(screen.getByRole('heading',{name:'코드 보안 검사'})).toBeInTheDocument();
     await user.click(screen.getByRole('button',{name:/검사 결과/}));
-    expect(screen.getByRole('heading',{name:'이 세션에는 검사 결과가 없습니다'})).toBeInTheDocument();
-    expect(screen.getByText(/이전 세션의 결과를 서버에서 불러오지는 않습니다/)).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:'아직 검사 결과가 없습니다.'})).toBeInTheDocument();
+    expect(screen.getByText('현재 브라우저 세션의 결과만 표시합니다.')).toBeInTheDocument();
     await user.click(screen.getByRole('button',{name:'사용 안내'}));
-    expect(screen.getByText(/AI_CODE_SECURITY_TARGETS/)).toBeInTheDocument();
-    expect(screen.getByText('보안 분석 용어 쉽게 보기')).toBeInTheDocument();
+    expect(screen.getByText('서버 관리자 설정')).toBeInTheDocument();
+    expect(screen.getByText('전문 분석 용어 보기')).toBeInTheDocument();
     await user.click(screen.getByRole('button',{name:'검사 시작'}));
     expect(screen.getByRole('combobox',{name:'검사 대상'})).toBeEnabled();
     const collapse=screen.getByRole('button',{name:'사이드바 접기'}); await user.click(collapse);
@@ -76,26 +79,25 @@ describe('Analyst dashboard',()=>{
   it('explains the token, allowlisted project, rule profile, and experimental scope in plain Korean',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options));
     render(<App/>); await screen.findByText(/연결됨/);
-    expect(screen.getByText(/서버 실행 시 설정한 값과 같은 토큰/)).toBeInTheDocument();
-    const tokenHelp = screen.getByText('토큰 보호 안내').closest('details')!;
+    expect(screen.getByText('서버에서 발급한 토큰을 입력하세요.')).toBeInTheDocument();
+    const tokenHelp = screen.getByText('토큰 보관 및 전송').closest('details')!;
     expect(tokenHelp).not.toHaveAttribute('open');
-    await userEvent.setup().click(screen.getByText('토큰 보호 안내'));
-    expect(within(tokenHelp).getByText(/GitHub에 커밋하거나 다른 사람과 공유하지 마세요/)).toBeInTheDocument();
-    expect(within(tokenHelp).getByText(/새로고침하면 입력값이 사라집니다/)).toBeInTheDocument();
-    expect(within(tokenHelp).getByText(/지우기는 화면의 입력값만 제거합니다/)).toBeInTheDocument();
-    expect(screen.getByText(/서버에 미리 등록된 프로젝트만 선택/)).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByText('토큰 보관 및 전송'));
+    expect(within(tokenHelp).getByText(/커밋하거나 공유하지 마세요/)).toBeInTheDocument();
+    expect(within(tokenHelp).getByText(/새로고침하면 사라지며/)).toBeInTheDocument();
+    expect(screen.getByText(/등록된 프로젝트만 검사할 수 있습니다/)).toBeInTheDocument();
     expect(screen.getByRole('option',{name:'Local Project'})).toBeInTheDocument();
-    expect(screen.getByText(/찾을 보안 문제의 규칙 묶음/)).toBeInTheDocument();
+    expect(screen.queryByText(/찾을 보안 문제의 규칙 묶음/)).not.toBeInTheDocument();
     await userEvent.setup().selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
-    expect(screen.getByText(/실험 규칙입니다. 정확도가 충분히 검증됐다는 뜻은 아닙니다/)).toBeInTheDocument();
+    expect(screen.getByText(/실험 규칙이며 정확도는 충분히 검증되지 않았습니다/)).toBeInTheDocument();
   });
 
   it('shows beginner result summaries and maps known status codes without hiding technical codes',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
     queueScan(scan([finding()],{issues:['semgrep_timeout']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText(/보안상 확인이 필요한 코드가 발견됐습니다/)).toBeInTheDocument();
-    expect(screen.getByText(/실제 취약점인지는 아직 확인되지 않았습니다/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('쉬운 검사 결과 설명')).not.toBeInTheDocument();
+    expect(screen.getByText(/취약점 확정 수 아님/)).toBeInTheDocument();
     expect(screen.getByRole('heading',{name:'검사 시간이 초과됐습니다.'})).toBeInTheDocument();
     expect(screen.getByText(/허용된 시간 안에 검사가 끝나지 않았습니다/)).toBeInTheDocument();
     expect(screen.getByText(/프로젝트의 검사 범위와 실행 환경을 확인한 뒤 다시 검사/)).toBeInTheDocument();
@@ -106,16 +108,16 @@ describe('Analyst dashboard',()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
     queueScan(scan([])); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText('이번 검사에서 보고된 검토 후보가 없습니다. 프로젝트가 안전하다는 뜻은 아닙니다.')).toBeInTheDocument();
+    expect(await screen.findByText('이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.')).toBeInTheDocument();
     cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
     queueScan(scan([finding()],{scan_status:'partial',completed:false,limitations:['scan_partial'],issues:['evidence_unavailable']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText('검사가 일부만 완료됐습니다. 검사되지 않은 부분의 안전성은 확인할 수 없습니다.')).toBeInTheDocument();
+    expect(await screen.findByText('부분 검사입니다. 일부 파일이나 규칙의 결과가 빠졌을 수 있습니다.')).toBeInTheDocument();
     expect(screen.getByRole('heading',{name:'분석 근거 일부를 확인할 수 없습니다.'})).toBeInTheDocument();
     cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
     queueScan(scan([],{scan_status:'timed_out',completed:false,limitations:['scan_failed'],issues:['semgrep_timeout']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText('검사를 완료하지 못했습니다. 검사 결과로 프로젝트의 안전성을 판단하지 마세요.')).toBeInTheDocument();
+    expect(await screen.findByText('검사를 완료하지 못했습니다. 이 결과만으로 안전성을 판단할 수 없습니다.')).toBeInTheDocument();
   });
 
   it('places advanced evidence behind an accessible disclosure while keeping key limits visible',async()=>{
@@ -170,16 +172,16 @@ describe('Analyst dashboard',()=>{
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted');
     queueScan(scan([finding()],{scan_status:'partial',completed:false,limitations:['scan_partial']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
     expect(await screen.findByRole('heading',{name:'부분 검사'})).toBeInTheDocument();
-    expect(screen.getByText(/검사되지 않은 부분의 안전성은 확인할 수 없습니다/)).toBeInTheDocument();
+    expect(screen.getAllByText(/일부 파일이나 규칙의 결과가 빠졌을 수 있습니다/).length).toBeGreaterThan(0);
     cleanup(); vi.mocked(fetch).mockReset(); vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); queueScan(scan([],{scan_status:'timed_out',completed:false,limitations:['scan_failed']})); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByRole('heading',{name:'시간 초과'})).toBeInTheDocument(); expect(screen.getByText(/검사를 완료하지 못했습니다\. 검사 결과로 프로젝트의 안전성을 판단하지 마세요/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading',{name:'시간 초과'})).toBeInTheDocument(); expect(screen.getByText(/검사를 완료하지 못했습니다\. 이 결과만으로 안전성을 판단할 수 없습니다/)).toBeInTheDocument();
   });
 
   it('handles zero findings and filters only the returned finding set',async()=>{
     vi.mocked(fetch).mockImplementation(async (input)=>String(input).endsWith('/health')?json({status:'ok',service:'ai-code-security-analyzer'}):json(options)); render(<App/>); await screen.findByText(/연결됨/);
     await userEvent.setup().type(screen.getByLabelText('로컬 API 토큰'),'test-local-token-which-is-not-persisted'); queueScan(scan([])); await userEvent.setup().click(screen.getByRole('button',{name:'검사 실행'}));
-    expect(await screen.findByText('보고된 발견 항목이 없습니다')).toBeInTheDocument(); expect(screen.getByText(/프로젝트가 안전하다고 확인된 것은 아닙니다/)).toBeInTheDocument();
+    expect(await screen.findByText('발견 항목이 없습니다')).toBeInTheDocument(); expect(screen.getByText(/검사되지 않은 문제까지 안전하다는 뜻은 아닙니다/)).toBeInTheDocument();
   });
 
   it('disables repeat scan submissions while the synchronous request is pending',async()=>{
@@ -230,7 +232,7 @@ describe('Analyst dashboard',()=>{
     expect(await screen.findByText('표시된 결과')).toBeInTheDocument();
     expect(within(screen.getByText('생략된 결과').closest('.metric')!).getByText('1')).toBeInTheDocument();
     expect(screen.getByText('omitted_findings_not_individually_validated')).toBeInTheDocument();
-    expect(screen.getByText('현재 응답 최대 50건')).toBeInTheDocument();
+    expect(screen.getByText('목록에는 최대 50건까지 표시됩니다.')).toBeInTheDocument();
   });
 
   it('keeps the request-time scan context when current settings change and exports only on click',async()=>{
@@ -257,7 +259,7 @@ describe('Analyst dashboard',()=>{
     await user.click(screen.getByRole('button',{name:'결과 지우기'}));
     expect(screen.queryByRole('heading',{name:'정상 완료'})).not.toBeInTheDocument();
     expect(screen.queryByText(/이 결과를 생성한 검사 설정/)).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button',{name:/검사 시작으로 이동/}));
+    await user.click(within(screen.getByRole('navigation',{name:'화면 이동'})).getByRole('button',{name:'검사 시작'}));
     expect(screen.getByLabelText('로컬 API 토큰')).toHaveValue('test-local-token-which-is-not-persisted');
     queueScan(scan()); await user.click(screen.getByRole('button',{name:'검사 실행'}));
     expect(await screen.findByRole('heading',{name:'정상 완료'})).toBeInTheDocument();

@@ -142,7 +142,7 @@ test('UI-D3 result review preserves hierarchy and common actions at desktop and 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole('button', { name: '결과 지우기' }).click();
   await page.getByRole('button', { name: '검사 결과' }).click();
-  await expect(page.getByRole('heading', { name: '이 세션에는 검사 결과가 없습니다' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '아직 검사 결과가 없습니다.' })).toBeVisible();
   await capture(page, 'empty-results-1440x900.png');
 });
 
@@ -152,7 +152,7 @@ test('UI-D3 partial response remains explicitly partial', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('로컬 API 토큰').fill('synthetic-ui-d3-partial-token');
   await page.getByRole('button', { name: '검사 실행' }).click();
-  await expect(page.getByRole('heading', { name: '부분 검사' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '부분 검사', exact: true })).toBeVisible();
   await capture(page, 'partial-results-1440x900.png');
 });
 
@@ -164,7 +164,7 @@ test('UI-D3 zero findings and API failure remain clearly distinguished', async (
   await page.getByLabel('로컬 API 토큰').fill('synthetic-ui-d3-empty-token');
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: '보고된 발견 항목이 없습니다' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '발견 항목이 없습니다' })).toBeVisible();
   await capture(page, 'zero-findings-1440x900.png');
 
   await page.route('**/api/v1/health', (route) => route.abort());

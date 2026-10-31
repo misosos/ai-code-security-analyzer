@@ -25,77 +25,78 @@ export function describeStatusCode(code: string): HelpText {
   };
 }
 
-export function QuickStart({ expanded = false }: { expanded?: boolean }) {
-  return <section className="quick-start panel" aria-label="처음 시작하기 안내">
-    <details open={expanded}>
-      <summary>처음 시작하기</summary>
+export function QuickStart() {
+  return <section className="quick-start panel" aria-label="사용 방법">
+    <div className="quick-start-content">
+      <ol>
+        <li>검사 대상과 규칙 모음을 선택합니다.</li>
+        <li>서버에서 발급한 토큰을 입력하고 검사를 실행합니다.</li>
+        <li>발견 항목의 파일 위치와 근거를 확인합니다.</li>
+      </ol>
+      <p className="quick-start-note">검사할 수 있는 대상은 서버에 등록된 프로젝트로 제한됩니다.</p>
+    </div>
+    <details className="advanced-setup">
+      <summary>서버 관리자 설정</summary>
       <div className="quick-start-content">
-        <p>이 대시보드는 서버를 직접 실행하거나 임의 폴더를 열지 않습니다. 검사 서버에 미리 등록된 로컬 프로젝트만 검사합니다.</p>
-        <ol>
-          <li>검사할 프로젝트를 서버 관리자가 정하고, 서버 실행 전에 그 경로를 등록합니다.</li>
-          <li>저장소 루트에서 서버를 실행할 터미널을 엽니다.</li>
-          <li>아래 예시처럼 서버 운영자가 프로젝트 ID, 표시 이름, 절대 경로를 등록하고 무작위 토큰을 서버 환경에 설정합니다.</li>
-          <li>빌드된 대시보드는 <code>http://127.0.0.1:8765</code>에서 열립니다. 개발용 Vite 화면은 아래 별도 안내를 따릅니다.</li>
-          <li>대시보드에 같은 토큰을 입력하고, 등록된 검사 대상과 규칙 묶음을 선택해 검사를 시작합니다.</li>
-          <li>표시된 파일과 위치를 확인하고, 후보인지 취약점이 확인된 것인지 구분해 검토합니다.</li>
-        </ol>
-        <h3>빌드된 대시보드로 실행</h3>
-        <p>저장소 루트에서 먼저 화면 파일을 빌드합니다.</p>
+        <h3>빌드된 대시보드와 분석 서버</h3>
+        <p>저장소 루트에서 화면과 서버 의존성을 준비합니다.</p>
         <pre><code>{'cd frontend\nnpm ci\nnpm run build\ncd ..\nuv sync --locked --dev'}</code></pre>
-        <p>그다음 저장소 루트의 서버 터미널에서 실행합니다. 아래 JSON의 예시 ID, 이름, 경로를 운영자가 등록할 프로젝트에 맞게 바꾸세요. 서버를 재시작해야 등록 변경이 적용됩니다. 생성된 토큰은 터미널에 한 번 표시되므로 로컬에서 복사해 대시보드에 입력하고, 저장소에 커밋하거나 공유하지 마세요.</p>
+        <p>서버 환경에 프로젝트 ID, 표시 이름, 절대 경로와 무작위 토큰을 설정한 뒤 재시작하세요. 생성된 토큰은 터미널에서 한 번 복사해 대시보드에 입력하고, 커밋하거나 공유하지 마세요.</p>
         <pre><code>{`export AI_CODE_SECURITY_TARGETS='[{"id":"app","label":"Application","path":"/absolute/path/to/approved/project"},{"id":"worker","label":"Worker","path":"/absolute/path/to/another/project"}]'
 export AI_CODE_SECURITY_API_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
 printf '%s\\n' "$AI_CODE_SECURITY_API_TOKEN"
 export AI_CODE_SECURITY_ALLOWED_ORIGINS="http://127.0.0.1:8765"
 uv run python -m ai_code_security_analyzer.api`}</code></pre>
-        <p>기존 단일 프로젝트 설정을 사용하는 경우에는 <code>AI_CODE_SECURITY_TARGET</code> 환경 변수도 계속 사용할 수 있습니다. 두 설정을 동시에 지정하면 서버는 모호한 설정으로 거부합니다.</p>
-        <h3>개발용 Vite 화면으로 실행</h3>
-        <p>서버 환경의 허용 출처를 <code>http://127.0.0.1:5173</code>으로 설정한 뒤, 다른 터미널에서 실행합니다.</p>
+        <p>기본 화면은 <code>http://127.0.0.1:8765</code>에서 제공합니다. 기존 단일 프로젝트 설정인 <code>AI_CODE_SECURITY_TARGET</code>도 지원하지만, 두 프로젝트 설정을 동시에 지정하면 서버가 거부합니다.</p>
+        <h3>개발용 Vite 화면</h3>
+        <p>서버의 허용 출처에 <code>http://127.0.0.1:5173</code>을 추가하고 다른 터미널에서 실행합니다.</p>
         <pre><code>{'cd frontend\nnpm ci\nnpm run dev'}</code></pre>
-        <p>브라우저에서 <code>http://127.0.0.1:5173</code>을 여세요. 두 실행 방식 모두 서버는 <code>127.0.0.1:8765</code>에만 바인딩됩니다. 서버는 UI가 자동 실행하지 않습니다.</p>
+        <p>두 방식 모두 분석 서버는 <code>127.0.0.1:8765</code>에만 바인딩됩니다. 화면이 서버를 자동 실행하지 않습니다.</p>
       </div>
     </details>
   </section>;
 }
 
-export function SecurityGlossary({ expanded = false }: { expanded?: boolean }) {
-  const terms = [
-    ['Finding', '검사 규칙이 찾아낸 검토 후보입니다. 실제 취약점인지 추가 확인이 필요합니다.'],
-    ['Severity', '검사 도구가 규칙에 따라 붙인 위험도 분류입니다. 실제 악용 가능성을 확정하지 않습니다.'],
-    ['Unverified', '실제 취약점인지 아직 확인되지 않은 상태입니다.'],
-    ['Validated Evidence', 'Finding과 허용된 규칙·검사 근거의 구조적 연결을 확인한 상태입니다. 취약점 확정은 아닙니다.'],
+export function SecurityGlossary() {
+  const coreTerms = [
+    ['검토 후보', '검사 규칙에 맞아 확인이 필요한 항목입니다. 취약점 확정은 아닙니다.'],
+    ['심각도', '검사 도구가 규칙에 따라 분류한 수준입니다. 실제 악용 여부를 뜻하지 않습니다.'],
+    ['미검증', '실제 취약점인지 아직 확인되지 않은 상태입니다.'],
+    ['근거 연결 확인', 'Finding과 허용된 규칙·검사 근거의 구조적 연결을 확인한 상태입니다. 취약점 확정은 아닙니다.'],
+    ['규칙 모음', '한 번의 검사에서 함께 실행하는 규칙의 묶음입니다.'],
+  ];
+  const advancedTerms = [
     ['Taint', '규칙이 정한 입력 지점에서 위험할 수 있는 사용 지점까지의 값 전달을 검사하는 분석입니다.'],
     ['Source', '규칙이 입력 출발점으로 정한 코드 형태입니다. 실제 외부 입력이나 위치가 확인됐다는 뜻은 아닙니다.'],
     ['Sink', '규칙이 위험할 수 있는 사용 지점으로 정한 코드 형태입니다. 실제 인자 위치가 확인됐다는 뜻은 아닙니다.'],
     ['Trace', '분석 도구가 제공하는 값 전달 경로 정보입니다. 없다고 해서 흐름이 없다는 뜻은 아닙니다.'],
     ['Sanitizer', '입력을 변환하거나 제한하는 처리입니다. 이름만으로 실제 안전 효과가 확인되지는 않습니다.'],
-    ['규칙 프로필', '한 번의 검사에서 함께 실행하는 규칙 묶음입니다. 실험용 프로필은 일반 정확도가 충분히 검증됐다는 뜻이 아닙니다.'],
   ];
+  const renderTerms = (terms: string[][]) => <dl>{terms.map(([term, description]) => <div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>;
   return <section className="glossary panel" aria-label="보안 분석 용어 도움말">
-    <details open={expanded}>
-      <summary>보안 분석 용어 쉽게 보기</summary>
-      <dl>{terms.map(([term, description]) => <div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>
-      <p className="glossary-limit">규칙에 선언된 Source/Sink와 실제 코드 위치는 다릅니다. 근거가 검증돼도 취약점은 미확정이며, trace가 없다는 사실은 데이터 흐름 부재를 뜻하지 않습니다.</p>
+    {renderTerms(coreTerms)}
+    <details>
+      <summary>전문 분석 용어 보기</summary>
+      {renderTerms(advancedTerms)}
+      <p className="glossary-limit">Source/Sink 규칙 선언은 실제 코드 위치 확인과 다릅니다. Trace가 없다는 사실도 데이터 흐름이 없다는 뜻은 아닙니다.</p>
     </details>
   </section>;
 }
 
 export function ScanStatusGuidance({ scan }: { scan: ScanResponse }) {
+  const needsAttention = scan.scan_status === 'partial' || !scan.completed;
   const statusText = scan.scan_status === 'partial'
-    ? '검사가 일부만 완료됐습니다. 검사되지 않은 부분의 안전성은 확인할 수 없습니다.'
-    : !scan.completed
-      ? '검사를 완료하지 못했습니다. 검사 결과로 프로젝트의 안전성을 판단하지 마세요.'
-      : scan.finding_count > 0
-        ? '보안상 확인이 필요한 코드가 발견됐습니다. 실제 취약점인지는 아직 확인되지 않았습니다.'
-        : '이번 검사에서 보고된 검토 후보가 없습니다. 프로젝트가 안전하다는 뜻은 아닙니다.';
-  const codes = [...new Set([...scan.limitations, ...scan.issues])];
+    ? '부분 검사입니다. 일부 파일이나 규칙의 결과가 빠졌을 수 있습니다.'
+    : '검사를 완료하지 못했습니다. 이 결과만으로 안전성을 판단할 수 없습니다.';
+  const informationalLimitations = new Set(['finding_count_not_confirmed_vulnerability_count', 'scan_result_is_not_safety_proof']);
+  const codes = [...new Set([...scan.issues, ...scan.limitations.filter((code) => !informationalLimitations.has(code))])];
   return <>
-    <section className={`beginner-summary ${scan.scan_status === 'partial' ? 'partial' : !scan.completed ? 'failed' : ''}`} aria-label="쉬운 검사 결과 설명">
+    {needsAttention && <section className={`beginner-summary ${scan.scan_status === 'partial' ? 'partial' : 'failed'}`} aria-label="쉬운 검사 결과 설명">
       <span className="summary-mark" aria-hidden="true">{scan.scan_status === 'partial' ? '!' : scan.completed ? 'i' : '×'}</span>
-      <div><h3>{statusText}</h3>{scan.completed && scan.finding_count > 0 && <p>선택한 항목에서 확인 위치와 제한을 살펴보세요.</p>}</div>
-    </section>
+      <div><h3>{statusText}</h3></div>
+    </section>}
     {codes.length > 0 && <details className="limitations panel" aria-label="검사 상태와 다음 행동">
-      <summary>검사 제한 및 다음 행동 <span>{codes.length}</span></summary>
+      <summary>검사 문제와 다음 조치 <span>{codes.length}</span></summary>
       <div className="status-help-list">{codes.map((code) => {
         const help = describeStatusCode(code);
         return <article className="status-help" key={code}>

@@ -446,7 +446,6 @@ footer { display: flex; justify-content: space-between; gap: 12px; margin: 13px 
 .guide-workspace { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .guide-section h2, .guide-limit h2 { margin: 0 0 10px; font-size: 20px; }
 .guide-workspace .quick-start { margin: 0; }
-.guide-workspace .quick-start > details > summary { display: none; }
 .guide-workspace .quick-start details[open] .quick-start-content { padding-top: 14px; }
 .guide-workspace .quick-start-content { max-width: none; padding-inline: 0; }
 .guide-workspace .glossary { padding: 14px; }

@@ -77,7 +77,7 @@ test('browser preserves scan context, downloads the current summary on click, an
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   await expect(page.getByLabel('이 결과를 생성한 검사 설정')).toContainText('Baseline Rules');
-  await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await page.getByLabel('검사 규칙 모음').selectOption('command-injection-experimental');
   await expect(page.getByRole('alert')).toContainText('이전 검사 설정(Local Project · Baseline Rules)');
   await page.getByRole('button', { name: /검사 결과/ }).click();
@@ -99,7 +99,7 @@ test('browser preserves scan context, downloads the current summary on click, an
 
   await page.getByRole('button', { name: '결과 지우기' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toHaveCount(0);
-  await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue(token);
   await page.reload();
   await expect(page.getByLabel('로컬 API 토큰')).toHaveValue('');
@@ -267,10 +267,10 @@ test('large-type scale remains readable across workspace pages and target viewpo
 
     if (viewport.width <= 760) await page.getByRole('button', { name: '내비게이션 열기' }).click();
     await page.getByRole('button', { name: /사용 안내/ }).click();
-    expect(await page.locator('.quick-start-content').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
+    expect(await page.locator('.quick-start > .quick-start-content').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
     expect(await visibleTextBelowFloor()).toEqual([]);
     await page.screenshot({ path: resolve(output, `guide-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
-    const guideAudit = await page.evaluate(() => ['.guide-workspace .quick-start-content', '.guide-workspace .quick-start-content h3', '.guide-workspace .quick-start-content pre', '.guide-workspace .glossary dt', '.guide-workspace .glossary dd', '.guide-limit p'].map((selector) => {
+    const guideAudit = await page.evaluate(() => ['.guide-workspace .quick-start > .quick-start-content', '.guide-workspace .quick-start-content h3', '.guide-workspace .quick-start-content pre', '.guide-workspace .glossary dt', '.guide-workspace .glossary dd', '.guide-limit li'].map((selector) => {
       const element = document.querySelector(selector);
       if (!element) return { selector, missing: true };
       const style = getComputedStyle(element);
@@ -297,9 +297,9 @@ test('large-type scale remains readable across workspace pages and target viewpo
       await page.getByRole('button', { name: '내비게이션 열기' }).click();
       await expect(page.getByRole('dialog', { name: '주 메뉴' })).toBeVisible();
       await page.screenshot({ path: resolve(output, `mobile-menu-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
-      await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+      await page.getByRole('dialog', { name: '주 메뉴' }).getByRole('button', { name: '검사 시작' }).click();
     } else {
-      await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+      await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
     }
   }
 
@@ -309,7 +309,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   expect(await visibleTextBelowFloor()).toEqual([]);
   const resultAudit = await page.evaluate(() => [
-    '.context-copy h2', '.scan-state-copy h2', '.beginner-summary h3', '.metric strong', '.metric-label',
+    '.context-copy h2', '.scan-state-copy h2', '.metric strong', '.metric-label',
     '.severity-heading h3', '.severity-count', '.results-title h2', '.filter-row input', '.filter-row label:not(.search-field)',
     '.list-caption', '.row-main > strong', '.row-location', '.row-rule-id', '.detail-top h2', '.detail-location small', '.technical-details > summary',
   ].map((selector) => {
@@ -370,7 +370,7 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve(startDirectory, 'launch-390x844.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(page.getByLabel('실제 검사 흐름')).toBeVisible();
+  await expect(page.getByLabel('검사 결과 유의사항')).toBeVisible();
   const launchMetrics = await page.evaluate(() => {
     const box = (selector: string) => {
       const element = document.querySelector(selector);
@@ -425,15 +425,15 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
     scan_status: 'partial', completed: false, semgrep_version: '1.182.1', finding_count: 0, displayed_finding_count: 0, omitted_finding_count: 0,
     severity_counts: { critical: 0, high: 0, medium: 0, low: 0, info: 0 }, issues: [], limitations: ['scan_partial', 'scan_result_is_not_safety_proof'], findings: [],
   };
-  await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await page.getByRole('button', { name: '검사 실행' }).click();
-  await expect(page.getByRole('heading', { name: '부분 검사' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '부분 검사', exact: true })).toBeVisible();
   await page.screenshot({ path: resolve(output, 'partial-zero-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve(output, 'partial-zero-390x844.png'), animations: 'disabled' });
   failNext = true;
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('alert')).toContainText('요청이 거부되었습니다');
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -448,7 +448,7 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
   await page.screenshot({ path: resolve(output, 'api-offline-390x844.png'), animations: 'disabled' });
   apiUnavailable = false;
   await page.getByRole('button', { name: '다시 연결' }).click();
-  await expect(page.getByText('옵션 불러옴')).toBeVisible();
+  await expect(page.getByText('API 연결됨')).toBeVisible();
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });
 
@@ -478,16 +478,16 @@ test('sidebar navigation separates start, current-session results, and guidance 
   await writeFile(resolve(output, 'desktop-metrics-1440x900.json'), JSON.stringify(desktopMetrics, null, 2));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole('button', { name: '검사 결과' }).click();
-  await expect(page.getByRole('heading', { name: '이 세션에는 검사 결과가 없습니다' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '아직 검사 결과가 없습니다.' })).toBeVisible();
   await page.screenshot({ path: resolve(output, 'results-empty-1440x900.png'), animations: 'disabled' });
   await page.getByRole('button', { name: '사용 안내' }).click();
-  await expect(page.getByText('보안 분석 용어 쉽게 보기')).toBeVisible();
+  await expect(page.getByText('전문 분석 용어 보기')).toBeVisible();
   await page.screenshot({ path: resolve(output, 'guide-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole('button', { name: '사이드바 접기' }).click();
   await page.screenshot({ path: resolve(output, 'sidebar-collapsed-1440x900.png'), animations: 'disabled' });
   await page.getByRole('button', { name: '사이드바 펼치기' }).click();
-  await page.getByRole('button', { name: '검사 시작' }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await page.getByLabel('로컬 API 토큰').fill('synthetic-sidebar-visual-token');
   await page.route('**/api/v1/scans', (route) => route.fulfill({ json: {
     scan_status: 'completed', completed: true, semgrep_version: '1.182.1', finding_count: 1, displayed_finding_count: 1, omitted_finding_count: 0,
@@ -507,6 +507,6 @@ test('sidebar navigation separates start, current-session results, and guidance 
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
   await expect(menu).toBeFocused();
   await menu.click();
-  await page.getByRole('button', { name: '검사 시작' }).click();
+  await page.getByRole('dialog', { name: '주 메뉴' }).getByRole('button', { name: '검사 시작' }).click();
   await expect(page.getByLabel('검사 대상')).toBeVisible();
 });

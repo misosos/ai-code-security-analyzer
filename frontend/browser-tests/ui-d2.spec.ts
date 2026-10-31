@@ -36,7 +36,7 @@ test('UI-D2 start screen follows Option B control rhythm and keeps required typo
   await expect(page.getByLabel('검사 규칙 모음')).toBeVisible();
   await expect(page.getByLabel('로컬 API 토큰')).toBeVisible();
   await expect(page.getByRole('button', { name: '검사 실행' })).toBeDisabled();
-  await expect(page.getByText('검사 흐름', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '탐지 결과는 검토 후보입니다.' })).toBeVisible();
   const sizes = await page.evaluate(() => Object.fromEntries([
     ['title', '.workspace-title h1'], ['body', '.workspace-title > p'], ['sidebar', '.nav-item'],
     ['label', '.mission-control .control-label'], ['select', '#main-content select[aria-label="검사 대상"]'],
@@ -82,7 +82,7 @@ test('UI-D2 start screen follows Option B control rhythm and keeps required typo
   await expect(page.getByRole('button', { name: '내비게이션 열기' })).toBeFocused();
   await page.getByRole('button', { name: '내비게이션 열기' }).click();
   await page.getByRole('button', { name: '사용 안내' }).click();
-  await expect(page.getByRole('heading', { name: '처음 시작하기' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '사용 방법' })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: resolve(process.cwd(), '../docs/assets/ui-d2/guide-1440x900.png'), clip: { x: 0, y: 0, width: 1440, height: 900 } });
@@ -93,10 +93,10 @@ test('UI-D2 result review remains grounded in API data and fits required desktop
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await page.getByRole('button', { name: /검사 결과/ }).click();
-  await expect(page.getByRole('heading', { name: '이 세션에는 검사 결과가 없습니다' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '아직 검사 결과가 없습니다.' })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: resolve(process.cwd(), '../docs/assets/ui-d2/empty-results-1440x900.png'), clip: { x: 0, y: 0, width: 1440, height: 900 } });
-  await page.getByRole('button', { name: '검사 시작', exact: true }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await page.getByLabel('로컬 API 토큰').fill('synthetic-ui-d2-token');
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
