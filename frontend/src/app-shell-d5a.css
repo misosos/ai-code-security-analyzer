@@ -42,6 +42,28 @@
 .ui-d5a .sidebar-is-collapsed .sidebar-brand-name { display: none; }
 .ui-d5a .dashboard-main { padding-top: 32px; }
 
+/* At narrower widths, stack the page heading and its description on one left edge. */
+@media (max-width: 1100px) {
+  .ui-d5a .dashboard-main .workspace-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 8px;
+    text-align: left;
+  }
+  .ui-d5a .dashboard-main .workspace-title > div { align-self: stretch; width: 100%; }
+  .ui-d5a .dashboard-main .workspace-title h1 { text-align: left; }
+  .ui-d5a .dashboard-main .workspace-title > p {
+    align-self: stretch;
+    width: 100%;
+    margin: 0;
+    padding-left: 0;
+    border-left: 0;
+    text-align: left;
+  }
+}
+
 @media (max-width: 1000px) and (min-width: 761px) {
   .ui-d5a .workspace-shell { grid-template-columns: 240px minmax(0, 1fr); }
   .ui-d5a .workspace-shell.sidebar-is-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
