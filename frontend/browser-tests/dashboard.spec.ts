@@ -390,7 +390,7 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
       focusableDecorativeDescendants: [...document.querySelectorAll('.launch-emblem svg button, .launch-emblem svg a, .launch-emblem svg [tabindex]')].length,
     };
   });
-  expect(launchMetrics.missionDeck?.height).toBeLessThan(360);
+  expect(launchMetrics.missionDeck?.height).toBeLessThan(460);
   expect(launchMetrics.launchBrief?.height).toBeLessThan(240);
   expect(launchMetrics.launchBriefBlankBelowContent).toBeLessThan(40);
   expect(launchMetrics.focusableDecorativeDescendants).toBe(0);

@@ -22,19 +22,18 @@ describe('Analyst dashboard',()=>{
   beforeEach(()=>{vi.stubGlobal('fetch',vi.fn()); vi.spyOn(Storage.prototype,'setItem');});
   afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
-  it('shows a beginner quick start even when the API is offline',async()=>{
+  it('keeps beginner guidance available from the guide when the API is offline',async()=>{
     vi.mocked(fetch).mockRejectedValue(new Error('offline'));
     const user=userEvent.setup(); render(<App/>);
     expect(await screen.findByRole('alert')).toHaveTextContent('로컬 API에 연결할 수 없습니다');
-    const quickStart=screen.getByText('처음 시작하기').closest('details')!;
-    expect(quickStart).toBeInTheDocument(); expect(quickStart).not.toHaveAttribute('open');
-    await user.click(screen.getByText('처음 시작하기'));
-    expect(quickStart).toHaveAttribute('open');
-    expect(within(quickStart).getByText(/AI_CODE_SECURITY_TARGETS/)).toBeInTheDocument();
-    expect(within(quickStart).getByText(/서버를 재시작해야 등록 변경이 적용됩니다/)).toBeInTheDocument();
-    expect(within(quickStart).getByText(/secrets\.token_urlsafe\(48\)/)).toBeInTheDocument();
-    expect(within(quickStart).getAllByText(/127\.0\.0\.1:8765/).length).toBeGreaterThan(0);
-    expect(within(quickStart).getAllByText(/127\.0\.0\.1:5173/).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: '사용 안내' }));
+    const guide = screen.getByRole('heading', { name: '처음 시작하기' }).closest('section')!;
+    expect(guide).toBeInTheDocument();
+    expect(within(guide).getByText(/AI_CODE_SECURITY_TARGETS/)).toBeInTheDocument();
+    expect(within(guide).getByText(/서버를 재시작해야 등록 변경이 적용됩니다/)).toBeInTheDocument();
+    expect(within(guide).getByText(/secrets\.token_urlsafe\(48\)/)).toBeInTheDocument();
+    expect(within(guide).getAllByText(/127\.0\.0\.1:8765/).length).toBeGreaterThan(0);
+    expect(within(guide).getAllByText(/127\.0\.0\.1:5173/).length).toBeGreaterThan(0);
   });
 
   it('explains unavailable target and rule lists and retries the real API connection on request',async()=>{
@@ -54,7 +53,7 @@ describe('Analyst dashboard',()=>{
     expect(await screen.findByText('옵션 불러옴')).toBeInTheDocument();
     expect(screen.getByRole('combobox',{name:'검사 대상'})).toBeEnabled();
     expect(screen.getByRole('combobox',{name:'검사 규칙 모음'})).toBeEnabled();
-    expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
+    expect(screen.getByRole('option',{name:'Local Project'})).toBeInTheDocument();
   });
 
   it('switches between start, current-session results, and guidance; collapses the sidebar accessibly',async()=>{
@@ -85,7 +84,7 @@ describe('Analyst dashboard',()=>{
     expect(within(tokenHelp).getByText(/새로고침하면 입력값이 사라집니다/)).toBeInTheDocument();
     expect(within(tokenHelp).getByText(/지우기는 화면의 입력값만 제거합니다/)).toBeInTheDocument();
     expect(screen.getByText(/서버에 미리 등록된 프로젝트만 선택/)).toBeInTheDocument();
-    expect(screen.getByRole('option',{name:'Local Project (local-project)'})).toBeInTheDocument();
+    expect(screen.getByRole('option',{name:'Local Project'})).toBeInTheDocument();
     expect(screen.getByText(/찾을 보안 문제의 규칙 묶음/)).toBeInTheDocument();
     await userEvent.setup().selectOptions(screen.getAllByRole('combobox')[1],'command-injection-experimental');
     expect(screen.getByText(/실험 규칙입니다. 정확도가 충분히 검증됐다는 뜻은 아닙니다/)).toBeInTheDocument();

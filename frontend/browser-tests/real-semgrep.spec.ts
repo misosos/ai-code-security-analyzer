@@ -31,7 +31,7 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   expect(optionsBody).toContain('synthetic-selected');
   expect(optionsBody).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   await expect(page.getByRole('option', { name: 'Experimental · Experimental Command Injection' })).toBeAttached();
-  await expect(page.getByRole('option', { name: 'Synthetic Selected (synthetic-selected)' })).toBeAttached();
+  await expect(page.getByRole('option', { name: 'Synthetic Selected', exact: true })).toBeAttached();
 
   await page.getByLabel('로컬 API 토큰').fill(token);
   expect(await page.evaluate(() => [localStorage.length, sessionStorage.length])).toEqual([0, 0]);
