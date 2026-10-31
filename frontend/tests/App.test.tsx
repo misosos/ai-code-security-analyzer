@@ -230,7 +230,7 @@ describe('Analyst dashboard',()=>{
     expect(await screen.findByText('표시된 결과')).toBeInTheDocument();
     expect(within(screen.getByText('생략된 결과').closest('.metric')!).getByText('1')).toBeInTheDocument();
     expect(screen.getByText('omitted_findings_not_individually_validated')).toBeInTheDocument();
-    expect(screen.getByText(/이 검사 응답에 포함된 최대 50건을 표시합니다/)).toBeInTheDocument();
+    expect(screen.getByText('현재 응답 최대 50건')).toBeInTheDocument();
   });
 
   it('keeps the request-time scan context when current settings change and exports only on click',async()=>{

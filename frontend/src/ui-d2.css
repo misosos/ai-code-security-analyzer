@@ -126,7 +126,7 @@
 .ui-d2 .d2-view-results .workspace-title { margin-bottom: 1rem; padding-bottom: 1rem; }
 
 /* B summary + C analyst workspace: facts are grouped, not repeated as four tiles. */
-.ui-d2 .d2-results-workspace { display: grid; gap: .75rem; }
+.ui-d2 .d2-results-workspace { display: grid; gap: .5rem; }
 .ui-d2 .scan-context {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -262,4 +262,35 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-d2 *, .ui-d2 *::before, .ui-d2 *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* UI-D3: keep the approved control sizes while aligning the last action with the token flow. */
+.ui-d2 .mission-deck {
+  padding-bottom: 1.125rem;
+}
+.ui-d2 .deck-heading {
+  margin-bottom: .75rem;
+}
+.ui-d2 .mission-form {
+  row-gap: .875rem;
+}
+.ui-d2 .mission-control {
+  padding-bottom: .25rem;
+}
+.ui-d2 .results-heading {
+  align-items: start;
+  margin-bottom: .75rem;
+}
+.ui-d2 .results-title > .eyebrow {
+  display: none;
+}
+.ui-d2 #main-content .launch-action {
+  align-self: end;
+  margin-bottom: .25rem;
+}
+@media (max-width: 760px) {
+  .ui-d2 #main-content .launch-action {
+    align-self: stretch;
+    margin-bottom: 0;
+  }
 }
