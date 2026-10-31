@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
+import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -70,6 +71,8 @@ export function App() {
   const [message, setMessage] = useState('');
   const [scan, setScan] = useState<ScanResponse | null>(null);
   const [scanContext, setScanContext] = useState<ScanContext | null>(null);
+  const [baselineSnapshot, setBaselineSnapshot] = useState<ScanSnapshot | null>(null);
+  const scanRequestSequence = useRef(0);
   const [exportMessage, setExportMessage] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
@@ -98,6 +101,8 @@ export function App() {
     return () => window.removeEventListener('keydown', handleDrawerKeys);
   }, [mobileNavOpen]);
 
+  useEffect(() => () => { scanRequestSequence.current += 1; }, []);
+
   useEffect(() => {
     let active = true;
     setHealth('checking'); setBootstrapError('');
@@ -116,6 +121,10 @@ export function App() {
     (verificationFilter === 'all' || finding.verification_status === verificationFilter) &&
     (!searchQuery.trim() || [ruleName(finding.rule_id), finding.rule_id, finding.file_path ?? '', finding.line_number?.toString() ?? ''].some((value) => value.toLocaleLowerCase('ko-KR').includes(searchQuery.trim().toLocaleLowerCase('ko-KR'))))), [scan, severityFilter, kindFilter, verificationFilter, searchQuery]);
   const selected = visibleFindings.find((finding) => finding.finding_id === selectedId) ?? visibleFindings[0];
+  const comparison = useMemo(() => compareScanSnapshots(
+    baselineSnapshot,
+    scan && scanContext ? { scan, context: scanContext } : null,
+  ), [baselineSnapshot, scan, scanContext]);
 
   async function runScan(event: React.FormEvent) {
     event.preventDefault();
@@ -123,20 +132,28 @@ export function App() {
     const target = options?.targets.find((item) => item.id === targetId);
     const profile = options?.rule_profiles.find((item) => item.id === profileId);
     if (!target || !profile) return;
+    const requestSequence = ++scanRequestSequence.current;
     const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
     setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setSelectedId(''); setExportMessage(''); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
+      if (requestSequence !== scanRequestSequence.current) return;
       setScan(result); setScanContext({ ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() }); setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed'); setActiveView('results');
       setMessage(result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`);
-    } catch (error) { const result = safeError(error); setState(result.state); setMessage(result.message); }
+    } catch (error) { if (requestSequence !== scanRequestSequence.current) return; const result = safeError(error); setState(result.state); setMessage(result.message); }
   }
   function clearToken() { setToken(''); setState('ready'); setMessage('화면에 입력한 토큰을 지웠습니다. 서버 설정의 토큰은 변경되지 않습니다.'); }
   function resetFilters() { setSeverityFilter('all'); setKindFilter('all'); setVerificationFilter('all'); setSearchQuery(''); }
   function clearResults() {
     if (state === 'scanning') return;
-    setScan(null); setScanContext(null); setSelectedId(''); resetFilters(); setExportMessage(''); setMessage('화면의 검사 결과와 관련 임시 상태를 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
+    scanRequestSequence.current += 1;
+    setScan(null); setScanContext(null); setBaselineSnapshot(null); setSelectedId(''); resetFilters(); setExportMessage(''); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
+  }
+  function setCurrentAsBaseline() {
+    if (!scan || !scanContext || scan.scan_status !== 'completed' || !scan.completed) return;
+    setBaselineSnapshot({ scan, context: scanContext });
+    setMessage('현재 검사 결과를 비교 기준으로 지정했습니다. 다음 검사를 실행하면 관찰 차이를 비교합니다.');
   }
   function exportResults() {
     if (!scan || !scanContext) return;
@@ -210,12 +227,16 @@ export function App() {
         <section className="guide-section guide-additional" aria-labelledby="guide-additional-title"><h2 id="guide-additional-title">추가 안내</h2><ServerAdminSettings /><SecurityGlossary /></section>
       </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
-      {activeView === 'results' && !scan && <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>}
+      {activeView === 'results' && !scan && <>
+        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} />}
+        <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
+      </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
         {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수 아님"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 근거 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep 분류 · 악용 여부 미확인</small></div></section>
+        <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} />
         <section className="findings-section" aria-labelledby="findings-heading">
           <div className="results-heading"><div className="results-title"><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2>{scan.omitted_finding_count > 0 && <p>목록에는 최대 50건까지 표시됩니다.</p>}</div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
           {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} selected={selected?.finding_id === finding.finding_id} onSelect={() => setSelectedId(finding.finding_id)} />)}</section>
@@ -263,4 +284,116 @@ function FindingDetail({finding}:{finding:ApiFinding}) {
       </div>
     </details>
   </article>;
+}
+
+const comparisonReasonLabels: Record<ComparisonBlockReason, string> = {
+  baseline_missing: '비교 기준이 없습니다. 정상 완료된 검사를 기준으로 지정하세요.',
+  current_missing: '비교할 현재 검사가 없습니다. 같은 대상과 규칙으로 다시 검사하세요.',
+  same_scan_snapshot: '기준 지정 직후입니다. 이후 검사를 실행하면 두 결과를 비교합니다.',
+  baseline_not_completed: '기준 검사가 정상 완료되지 않아 비교할 수 없습니다.',
+  current_not_completed: '부분 검사 또는 실패한 결과는 비교할 수 없습니다.',
+  baseline_findings_omitted: '기준 응답에서 Finding이 생략되어 전체 비교를 할 수 없습니다.',
+  current_findings_omitted: '현재 응답에서 Finding이 생략되어 전체 비교를 할 수 없습니다.',
+  target_mismatch: '검사 대상이 서로 다릅니다.',
+  rule_profile_mismatch: '규칙 모음 또는 Experimental 상태가 서로 다릅니다.',
+  semgrep_version_unavailable: '두 검사 모두 Semgrep 버전을 확인할 수 있어야 합니다.',
+  semgrep_version_mismatch: 'Semgrep 버전이 서로 다릅니다.',
+  baseline_context_mismatch: '기준 검사 문맥과 응답 상태가 일치하지 않습니다.',
+  current_context_mismatch: '현재 검사 문맥과 응답 상태가 일치하지 않습니다.',
+  baseline_duplicate_finding_id: '기준 응답에 중복 Finding ID가 있어 비교를 중단했습니다.',
+  current_duplicate_finding_id: '현재 응답에 중복 Finding ID가 있어 비교를 중단했습니다.',
+  baseline_count_inconsistent: '기준 응답의 Finding 수가 요약과 일치하지 않습니다.',
+  current_count_inconsistent: '현재 응답의 Finding 수가 요약과 일치하지 않습니다.',
+};
+
+type ComparisonCategory = keyof ComparisonGroups;
+const comparisonCategoryLabels: Record<ComparisonCategory, string> = {
+  currentOnly: '이번 검사에서만 관찰', shared: '양쪽에서 관찰', baselineOnly: '기준 검사에서만 관찰',
+};
+
+function receivedAtLabel(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '시간 정보 확인 불가' : date.toLocaleString('ko-KR');
+}
+
+function ScanComparisonPanel({
+  baseline, current, comparison, onSetBaseline,
+}: {
+  baseline: ScanSnapshot | null;
+  current: ScanSnapshot | null;
+  comparison: ReturnType<typeof compareScanSnapshots>;
+  onSetBaseline: () => void;
+}) {
+  const [category, setCategory] = useState<ComparisonCategory>('currentOnly');
+  const [selectedFindingId, setSelectedFindingId] = useState('');
+  const groups = comparison.groups;
+  const items = groups?.[category] ?? [];
+  const selected = items.find((finding) => finding.finding_id === selectedFindingId) ?? items[0];
+  const canSetBaseline = Boolean(current?.scan.scan_status === 'completed' && current.scan.completed);
+
+  return <section className="scan-comparison" aria-labelledby="scan-comparison-title">
+    <div className="comparison-heading">
+      {comparison.comparable && groups ? <details className="comparison-content">
+        <summary>
+          <span className="comparison-title-copy"><span className="eyebrow">현재 세션에서만 유지</span><h2 id="scan-comparison-title">검사 결과 비교</h2></span>
+          <span className="comparison-summary-counts">이번만 {groups.currentOnly.length} · 양쪽 {groups.shared.length} · 기준만 {groups.baselineOnly.length}</span>
+        </summary>
+        <div className="comparison-content-body">
+          <div className="comparison-contexts">
+            <ComparisonContext label="기준 검사" snapshot={baseline}/>
+            <ComparisonContext label="현재 검사" snapshot={current}/>
+          </div>
+          <p className="comparison-limitation">Finding ID가 정확히 일치하는지만 비교합니다. 코드 이동이나 줄 번호·규칙 변경으로 분류가 달라질 수 있으며, 취약점의 신규 발생이나 해결을 확정하지 않습니다.</p>
+          <div className="comparison-counts" aria-label="Finding 관찰 차이">
+            {(Object.keys(comparisonCategoryLabels) as ComparisonCategory[]).map((key) => <div className={`comparison-count ${key}`} key={key}>
+              <span>{comparisonCategoryLabels[key]}</span><strong>{groups[key].length}</strong>
+            </div>)}
+          </div>
+          <div className="comparison-category-switch" role="group" aria-label="비교 항목 범주">
+            {(Object.keys(comparisonCategoryLabels) as ComparisonCategory[]).map((key) => <button key={key} type="button" aria-pressed={category === key} onClick={() => setCategory(key)}>
+              {comparisonCategoryLabels[key]} <span>{groups[key].length}</span>
+            </button>)}
+          </div>
+          <div className="comparison-review">
+            <section className="comparison-finding-list" aria-label={`${comparisonCategoryLabels[category]} 목록`}>
+              <h3>{comparisonCategoryLabels[category]}</h3>
+              {items.length === 0 ? <p>이 범주에 해당하는 항목이 없습니다.</p> : <ul>{items.map((finding) => <li key={finding.finding_id}>
+                <button type="button" className={finding.finding_id === selected?.finding_id ? 'selected' : ''} aria-pressed={finding.finding_id === selected?.finding_id} onClick={() => setSelectedFindingId(finding.finding_id)}>
+                  <span className={`comparison-severity ${finding.severity}`}>{severityLabels[finding.severity]}</span>
+                  <strong>{ruleName(finding.rule_id)}</strong>
+                  <span>{finding.file_path ?? '파일 위치 확인 불가'}{finding.line_number ? `:${finding.line_number}` : ''}</span>
+                </button>
+              </li>)}</ul>}
+            </section>
+            <section className="comparison-finding-detail" aria-label="비교 항목 근거">
+              {selected ? <><p>{comparisonCategoryLabels[category]} · 아래는 API가 반환한 기존 근거입니다.</p><FindingDetail finding={selected}/></> : <p>항목을 선택하면 기존 근거와 제한을 확인할 수 있습니다.</p>}
+            </section>
+          </div>
+        </div>
+      </details>
+      : <div className="comparison-title-copy">
+        <p className="eyebrow">현재 세션에서만 유지</p>
+        <h2 id="scan-comparison-title">검사 결과 비교</h2>
+      </div>}
+      <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>
+        {baseline ? '비교 기준 교체' : '비교 기준으로 지정'}
+      </button>
+    </div>
+
+    {!comparison.comparable || !groups ? <div className="comparison-blocked" role="status" aria-live="polite">
+      <strong>비교 판단 불가</strong>
+      <ul>{comparison.reasons.map((reason) => <li key={reason}>{comparisonReasonLabels[reason]}</li>)}</ul>
+    </div> : null}
+  </section>;
+}
+
+function ComparisonContext({label, snapshot}:{label:string; snapshot:ScanSnapshot|null}) {
+  return <div>
+    <strong>{label}</strong>
+    {snapshot ? <>
+      <span>{receivedAtLabel(snapshot.context.receivedAt)}</span>
+      <span>{snapshot.context.targetLabel} · {snapshot.context.ruleProfileLabel}{snapshot.context.experimental ? ' · Experimental' : ''}</span>
+      <span>Semgrep {snapshot.scan.semgrep_version ?? '버전 확인 불가'} · {statusLabels[snapshot.scan.scan_status]}</span>
+    </> : <span>{label === '기준 검사' ? '지정되지 않음' : '아직 없음'}</span>}
+  </div>;
 }

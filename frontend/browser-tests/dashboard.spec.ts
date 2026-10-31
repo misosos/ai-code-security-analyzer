@@ -57,7 +57,6 @@ test('browser preserves scan context, downloads the current summary on click, an
   const token = 'browser-export-token-not-for-report';
   let scans = 0;
   const externalRequests: string[] = [];
-  page.on('request', (request) => { if (!request.url().startsWith('http://127.0.0.1:4173')) externalRequests.push(request.url()); });
   await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
   await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
     targets: [{ id: 'local-project', label: 'Local Project' }],
@@ -73,6 +72,8 @@ test('browser preserves scan context, downloads the current summary on click, an
     } });
   });
   await page.goto('/');
+  const appOrigin = new URL(page.url()).origin;
+  page.on('request', (request) => { if (!request.url().startsWith(appOrigin)) externalRequests.push(request.url()); });
   await page.getByLabel('로컬 API 토큰').fill(token);
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
