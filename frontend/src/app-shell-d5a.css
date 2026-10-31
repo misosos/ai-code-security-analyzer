@@ -42,6 +42,32 @@
 .ui-d5a .sidebar-is-collapsed .sidebar-brand-name { display: none; }
 .ui-d5a .dashboard-main { padding-top: 32px; }
 
+/* Keep the desktop body and compact review metadata above the readability floor. */
+@media (min-width: 761px) {
+  :root { --type-body: 1.25rem; --type-support: 1.0625rem; }
+  #main-content .finding-row .severity-label,
+  #main-content .finding-row .unverified-badge,
+  #main-content .finding-row .row-kind,
+  #main-content .finding-row .row-location,
+  #main-content .finding-row .row-rule-id,
+  #main-content .detail-panel .severity-label,
+  #main-content .detail-panel .unverified-badge,
+  #main-content .detail-panel .detail-badges > span,
+  #main-content .detail-panel .detail-location > span,
+  #main-content .detail-panel .finding-technical-meta dt,
+  #main-content .detail-panel .finding-technical-meta dd,
+  #main-content .detail-panel .finding-technical-meta code,
+  #main-content .detail-panel .claim-section code,
+  #main-content .detail-panel .claim-section h3,
+  #main-content .detail-panel .claim-section h3 small,
+  #main-content .detail-panel .claim-section li strong,
+  #main-content .detail-panel .claim-section li .decision,
+  #main-content .detail-panel .reason { font-size: 1.0625rem; }
+}
+
+/* The finding-location qualification remains readable on touch-sized screens too. */
+#main-content .detail-panel .detail-location small { font-size: 1.125rem; }
+
 /* At narrower widths, stack the page heading and its description on one left edge. */
 @media (max-width: 1100px) {
   .ui-d5a .dashboard-main .workspace-title {
