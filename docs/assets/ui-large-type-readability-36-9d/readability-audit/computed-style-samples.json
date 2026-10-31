@@ -1,0 +1,1913 @@
+[
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "page": "검사 시작",
+    "typography": {
+      "title": 40,
+      "body": 18,
+      "sidebar": 19,
+      "label": 18,
+      "select": 18,
+      "button": 18,
+      "paragraphLineHeight": "30.6px",
+      "sidebarWidth": 280,
+      "selectHeight": 58,
+      "launchHeight": 60,
+      "viewportWidth": 1920,
+      "documentWidth": 1920
+    }
+  },
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "page": "검사 시작 주요 요소",
+    "audit": [
+      {
+        "selector": ".topbar .brand-copy strong",
+        "fontSize": "19px",
+        "lineHeight": "25.65px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 84,
+          "y": 8,
+          "width": 236,
+          "height": 26
+        }
+      },
+      {
+        "selector": ".topbar .header-status",
+        "fontSize": "19px",
+        "lineHeight": "31.35px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1703,
+          "y": 13,
+          "width": 193,
+          "height": 46
+        }
+      },
+      {
+        "selector": ".workspace-sidebar .nav-item",
+        "fontSize": "19px",
+        "lineHeight": "27.55px",
+        "color": "rgb(241, 251, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 16,
+          "y": 171,
+          "width": 247,
+          "height": 52
+        }
+      },
+      {
+        "selector": ".workspace-title h1",
+        "fontSize": "40px",
+        "lineHeight": "48px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 324,
+          "y": 130,
+          "width": 224,
+          "height": 48
+        }
+      },
+      {
+        "selector": ".workspace-title > p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1503,
+          "y": 144,
+          "width": 373,
+          "height": 31
+        }
+      },
+      {
+        "selector": ".control-label",
+        "fontSize": "18px",
+        "lineHeight": "26.1px",
+        "color": "rgb(231, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 352,
+          "y": 341,
+          "width": 337,
+          "height": 28
+        }
+      },
+      {
+        "selector": ".mission-control select",
+        "fontSize": "18px",
+        "lineHeight": "27px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 352,
+          "y": 372,
+          "width": 337,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".mission-control small",
+        "fontSize": "18px",
+        "lineHeight": "28.8px",
+        "color": "rgb(167, 186, 209)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 352,
+          "y": 433,
+          "width": 337,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".token-input-control input",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1115,
+          "y": 379,
+          "width": 360,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".run-button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1623,
+          "y": 391,
+          "width": 225,
+          "height": 60
+        }
+      },
+      {
+        "selector": ".launch-brief-copy h2",
+        "fontSize": "30px",
+        "lineHeight": "40.5px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 354,
+          "y": 665,
+          "width": 541,
+          "height": 41
+        }
+      },
+      {
+        "selector": ".launch-brief-copy p",
+        "fontSize": "16px",
+        "lineHeight": "27.2px",
+        "color": "rgb(173, 190, 212)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 354,
+          "y": 717,
+          "width": 541,
+          "height": 54
+        }
+      },
+      {
+        "selector": ".launch-steps li",
+        "fontSize": "19px",
+        "lineHeight": "29.45px",
+        "color": "rgb(217, 231, 246)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 927,
+          "y": 678,
+          "width": 260,
+          "height": 80
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "page": "사용 안내 주요 요소",
+    "audit": [
+      {
+        "selector": ".guide-workspace .quick-start-content",
+        "fontSize": "18px",
+        "lineHeight": "31.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 352,
+          "y": 305,
+          "width": 742,
+          "height": 1463
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content h3",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 352,
+          "y": 725,
+          "width": 742,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content pre",
+        "fontSize": "17px",
+        "lineHeight": "28.05px",
+        "color": "rgb(217, 233, 255)",
+        "backgroundColor": "rgb(5, 11, 24)",
+        "box": {
+          "x": 352,
+          "y": 825,
+          "width": 742,
+          "height": 178
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dt",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(84, 232, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1181,
+          "y": 371,
+          "width": 666,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dd",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1181,
+          "y": 408,
+          "width": 666,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".guide-limit p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(213, 201, 179)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 349,
+          "y": 1902,
+          "width": 846,
+          "height": 61
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "page": "검사 결과 없음 주요 요소",
+    "audit": [
+      {
+        "selector": ".results-empty-state h2",
+        "fontSize": "32px",
+        "lineHeight": "43.2px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 664,
+          "y": 314,
+          "width": 786,
+          "height": 43
+        }
+      },
+      {
+        "selector": ".results-empty-state p",
+        "fontSize": "19px",
+        "lineHeight": "33.25px",
+        "color": "rgb(189, 202, 220)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 664,
+          "y": 373,
+          "width": 786,
+          "height": 67
+        }
+      },
+      {
+        "selector": ".results-empty-state .button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(7, 11, 24)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 664,
+          "y": 464,
+          "width": 201,
+          "height": 60
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "page": "검사 시작",
+    "typography": {
+      "title": 37.44,
+      "body": 18,
+      "sidebar": 19,
+      "label": 18,
+      "select": 18,
+      "button": 18,
+      "paragraphLineHeight": "30.6px",
+      "sidebarWidth": 252,
+      "selectHeight": 58,
+      "launchHeight": 60,
+      "viewportWidth": 1440,
+      "documentWidth": 1440
+    }
+  },
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "page": "검사 시작 주요 요소",
+    "audit": [
+      {
+        "selector": ".topbar .brand-copy strong",
+        "fontSize": "19px",
+        "lineHeight": "25.65px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 84,
+          "y": 8,
+          "width": 236,
+          "height": 26
+        }
+      },
+      {
+        "selector": ".topbar .header-status",
+        "fontSize": "19px",
+        "lineHeight": "31.35px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1223,
+          "y": 13,
+          "width": 193,
+          "height": 46
+        }
+      },
+      {
+        "selector": ".workspace-sidebar .nav-item",
+        "fontSize": "19px",
+        "lineHeight": "27.55px",
+        "color": "rgb(241, 251, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 16,
+          "y": 171,
+          "width": 219,
+          "height": 52
+        }
+      },
+      {
+        "selector": ".workspace-title h1",
+        "fontSize": "37.44px",
+        "lineHeight": "44.928px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 288,
+          "y": 130,
+          "width": 210,
+          "height": 45
+        }
+      },
+      {
+        "selector": ".workspace-title > p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1031,
+          "y": 141,
+          "width": 373,
+          "height": 31
+        }
+      },
+      {
+        "selector": ".control-label",
+        "fontSize": "18px",
+        "lineHeight": "26.1px",
+        "color": "rgb(231, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 316,
+          "y": 338,
+          "width": 229,
+          "height": 28
+        }
+      },
+      {
+        "selector": ".mission-control select",
+        "fontSize": "18px",
+        "lineHeight": "27px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 316,
+          "y": 368,
+          "width": 229,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".mission-control small",
+        "fontSize": "18px",
+        "lineHeight": "28.8px",
+        "color": "rgb(167, 186, 209)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 316,
+          "y": 430,
+          "width": 229,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".token-input-control input",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 865,
+          "y": 376,
+          "width": 212,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".run-button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1224,
+          "y": 402,
+          "width": 152,
+          "height": 60
+        }
+      },
+      {
+        "selector": ".launch-brief-copy h2",
+        "fontSize": "30px",
+        "lineHeight": "40.5px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 318,
+          "y": 690,
+          "width": 366,
+          "height": 81
+        }
+      },
+      {
+        "selector": ".launch-brief-copy p",
+        "fontSize": "16px",
+        "lineHeight": "27.2px",
+        "color": "rgb(173, 190, 212)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 318,
+          "y": 783,
+          "width": 366,
+          "height": 54
+        }
+      },
+      {
+        "selector": ".launch-steps li",
+        "fontSize": "19px",
+        "lineHeight": "29.45px",
+        "color": "rgb(217, 231, 246)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 716,
+          "y": 721,
+          "width": 173,
+          "height": 87
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "page": "사용 안내 주요 요소",
+    "audit": [
+      {
+        "selector": ".guide-workspace .quick-start-content",
+        "fontSize": "18px",
+        "lineHeight": "31.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 316,
+          "y": 302,
+          "width": 514,
+          "height": 1708
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content h3",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 316,
+          "y": 814,
+          "width": 514,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content pre",
+        "fontSize": "17px",
+        "lineHeight": "28.05px",
+        "color": "rgb(217, 233, 255)",
+        "backgroundColor": "rgb(5, 11, 24)",
+        "box": {
+          "x": 316,
+          "y": 914,
+          "width": 514,
+          "height": 178
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dt",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(84, 232, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 917,
+          "y": 368,
+          "width": 458,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dd",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 917,
+          "y": 405,
+          "width": 458,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".guide-limit p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(213, 201, 179)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 313,
+          "y": 2144,
+          "width": 846,
+          "height": 61
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "page": "검사 결과 없음 주요 요소",
+    "audit": [
+      {
+        "selector": ".results-empty-state h2",
+        "fontSize": "32px",
+        "lineHeight": "43.2px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 412,
+          "y": 311,
+          "width": 786,
+          "height": 43
+        }
+      },
+      {
+        "selector": ".results-empty-state p",
+        "fontSize": "19px",
+        "lineHeight": "33.25px",
+        "color": "rgb(189, 202, 220)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 412,
+          "y": 370,
+          "width": 786,
+          "height": 67
+        }
+      },
+      {
+        "selector": ".results-empty-state .button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(7, 11, 24)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 412,
+          "y": 461,
+          "width": 201,
+          "height": 60
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "page": "검사 시작",
+    "typography": {
+      "title": 36,
+      "body": 18,
+      "sidebar": 19,
+      "label": 18,
+      "select": 18,
+      "button": 18,
+      "paragraphLineHeight": "30.6px",
+      "sidebarWidth": 240,
+      "selectHeight": 58,
+      "launchHeight": 60,
+      "viewportWidth": 1280,
+      "documentWidth": 1280
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "page": "검사 시작 주요 요소",
+    "audit": [
+      {
+        "selector": ".topbar .brand-copy strong",
+        "fontSize": "19px",
+        "lineHeight": "25.65px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 84,
+          "y": 8,
+          "width": 236,
+          "height": 26
+        }
+      },
+      {
+        "selector": ".topbar .header-status",
+        "fontSize": "19px",
+        "lineHeight": "31.35px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1063,
+          "y": 13,
+          "width": 193,
+          "height": 46
+        }
+      },
+      {
+        "selector": ".workspace-sidebar .nav-item",
+        "fontSize": "19px",
+        "lineHeight": "27.55px",
+        "color": "rgb(241, 251, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 16,
+          "y": 171,
+          "width": 207,
+          "height": 52
+        }
+      },
+      {
+        "selector": ".workspace-title h1",
+        "fontSize": "36px",
+        "lineHeight": "43.2px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 272,
+          "y": 130,
+          "width": 202,
+          "height": 43
+        }
+      },
+      {
+        "selector": ".workspace-title > p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 875,
+          "y": 140,
+          "width": 373,
+          "height": 31
+        }
+      },
+      {
+        "selector": ".control-label",
+        "fontSize": "18px",
+        "lineHeight": "26.1px",
+        "color": "rgb(231, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 300,
+          "y": 336,
+          "width": 190,
+          "height": 28
+        }
+      },
+      {
+        "selector": ".mission-control select",
+        "fontSize": "18px",
+        "lineHeight": "27px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 300,
+          "y": 367,
+          "width": 190,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".mission-control small",
+        "fontSize": "18px",
+        "lineHeight": "28.8px",
+        "color": "rgb(167, 186, 209)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 300,
+          "y": 428,
+          "width": 190,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".token-input-control input",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 771,
+          "y": 374,
+          "width": 157,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".run-button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 1076,
+          "y": 400,
+          "width": 144,
+          "height": 60
+        }
+      },
+      {
+        "selector": ".launch-brief-copy h2",
+        "fontSize": "30px",
+        "lineHeight": "40.5px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 302,
+          "y": 689,
+          "width": 310,
+          "height": 81
+        }
+      },
+      {
+        "selector": ".launch-brief-copy p",
+        "fontSize": "16px",
+        "lineHeight": "27.2px",
+        "color": "rgb(173, 190, 212)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 302,
+          "y": 782,
+          "width": 310,
+          "height": 82
+        }
+      },
+      {
+        "selector": ".launch-steps li",
+        "fontSize": "19px",
+        "lineHeight": "29.45px",
+        "color": "rgb(217, 231, 246)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 644,
+          "y": 718,
+          "width": 145,
+          "height": 116
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "page": "사용 안내 주요 요소",
+    "audit": [
+      {
+        "selector": ".guide-workspace .quick-start-content",
+        "fontSize": "18px",
+        "lineHeight": "31.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 300,
+          "y": 301,
+          "width": 440,
+          "height": 1769
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content h3",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 300,
+          "y": 843,
+          "width": 440,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content pre",
+        "fontSize": "17px",
+        "lineHeight": "28.05px",
+        "color": "rgb(217, 233, 255)",
+        "backgroundColor": "rgb(5, 11, 24)",
+        "box": {
+          "x": 300,
+          "y": 943,
+          "width": 440,
+          "height": 178
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dt",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(84, 232, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 827,
+          "y": 367,
+          "width": 392,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dd",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 827,
+          "y": 403,
+          "width": 392,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".guide-limit p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(213, 201, 179)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 297,
+          "y": 2203,
+          "width": 846,
+          "height": 61
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "page": "검사 결과 없음 주요 요소",
+    "audit": [
+      {
+        "selector": ".results-empty-state h2",
+        "fontSize": "32px",
+        "lineHeight": "43.2px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 396,
+          "y": 309,
+          "width": 786,
+          "height": 43
+        }
+      },
+      {
+        "selector": ".results-empty-state p",
+        "fontSize": "19px",
+        "lineHeight": "33.25px",
+        "color": "rgb(189, 202, 220)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 396,
+          "y": 368,
+          "width": 786,
+          "height": 67
+        }
+      },
+      {
+        "selector": ".results-empty-state .button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(7, 11, 24)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 396,
+          "y": 459,
+          "width": 201,
+          "height": 60
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "page": "검사 시작",
+    "typography": {
+      "title": 36,
+      "body": 18,
+      "sidebar": 19,
+      "label": 18,
+      "select": 18,
+      "button": 18,
+      "paragraphLineHeight": "30.6px",
+      "sidebarWidth": 240,
+      "selectHeight": 58,
+      "launchHeight": 60,
+      "viewportWidth": 768,
+      "documentWidth": 768
+    }
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "page": "검사 시작 주요 요소",
+    "audit": [
+      {
+        "selector": ".topbar .brand-copy strong",
+        "fontSize": "19px",
+        "lineHeight": "25.65px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 84,
+          "y": 8,
+          "width": 236,
+          "height": 26
+        }
+      },
+      {
+        "selector": ".topbar .header-status",
+        "fontSize": "19px",
+        "lineHeight": "31.35px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 551,
+          "y": 13,
+          "width": 193,
+          "height": 46
+        }
+      },
+      {
+        "selector": ".workspace-sidebar .nav-item",
+        "fontSize": "19px",
+        "lineHeight": "27.55px",
+        "color": "rgb(241, 251, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 16,
+          "y": 171,
+          "width": 207,
+          "height": 52
+        }
+      },
+      {
+        "selector": ".workspace-title h1",
+        "fontSize": "36px",
+        "lineHeight": "43.2px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 264,
+          "y": 130,
+          "width": 202,
+          "height": 43
+        }
+      },
+      {
+        "selector": ".workspace-title > p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 264,
+          "y": 189,
+          "width": 373,
+          "height": 31
+        }
+      },
+      {
+        "selector": ".control-label",
+        "fontSize": "18px",
+        "lineHeight": "26.1px",
+        "color": "rgb(231, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 292,
+          "y": 386,
+          "width": 186,
+          "height": 28
+        }
+      },
+      {
+        "selector": ".mission-control select",
+        "fontSize": "18px",
+        "lineHeight": "27px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 292,
+          "y": 416,
+          "width": 186,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".mission-control small",
+        "fontSize": "18px",
+        "lineHeight": "28.8px",
+        "color": "rgb(167, 186, 209)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 292,
+          "y": 478,
+          "width": 186,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".token-input-control input",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 292,
+          "y": 595,
+          "width": 91,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".run-button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 530,
+          "y": 686,
+          "width": 186,
+          "height": 60
+        }
+      },
+      {
+        "selector": ".launch-brief-copy h2",
+        "fontSize": "30px",
+        "lineHeight": "40.5px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 294,
+          "y": 910,
+          "width": 308,
+          "height": 81
+        }
+      },
+      {
+        "selector": ".launch-brief-copy p",
+        "fontSize": "16px",
+        "lineHeight": "27.2px",
+        "color": "rgb(173, 190, 212)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 294,
+          "y": 1003,
+          "width": 308,
+          "height": 82
+        }
+      },
+      {
+        "selector": ".launch-steps li",
+        "fontSize": "19px",
+        "lineHeight": "29.45px",
+        "color": "rgb(217, 231, 246)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 294,
+          "y": 1116,
+          "width": 130,
+          "height": 175
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "page": "사용 안내 주요 요소",
+    "audit": [
+      {
+        "selector": ".guide-workspace .quick-start-content",
+        "fontSize": "18px",
+        "lineHeight": "31.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 292,
+          "y": 350,
+          "width": 426,
+          "height": 1800
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content h3",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 292,
+          "y": 923,
+          "width": 426,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content pre",
+        "fontSize": "17px",
+        "lineHeight": "28.05px",
+        "color": "rgb(217, 233, 255)",
+        "backgroundColor": "rgb(5, 11, 24)",
+        "box": {
+          "x": 292,
+          "y": 1023,
+          "width": 426,
+          "height": 178
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dt",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(84, 232, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 293,
+          "y": 2341,
+          "width": 422,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dd",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 293,
+          "y": 2378,
+          "width": 422,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".guide-limit p",
+        "fontSize": "18px",
+        "lineHeight": "30.6px",
+        "color": "rgb(213, 201, 179)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 289,
+          "y": 3852,
+          "width": 455,
+          "height": 92
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "page": "검사 결과 없음 주요 요소",
+    "audit": [
+      {
+        "selector": ".results-empty-state h2",
+        "fontSize": "32px",
+        "lineHeight": "43.2px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 388,
+          "y": 359,
+          "width": 324,
+          "height": 86
+        }
+      },
+      {
+        "selector": ".results-empty-state p",
+        "fontSize": "19px",
+        "lineHeight": "33.25px",
+        "color": "rgb(189, 202, 220)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 388,
+          "y": 461,
+          "width": 324,
+          "height": 100
+        }
+      },
+      {
+        "selector": ".results-empty-state .button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(7, 11, 24)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 388,
+          "y": 585,
+          "width": 201,
+          "height": 60
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "page": "검사 시작",
+    "typography": {
+      "title": 32,
+      "body": 17,
+      "sidebar": 18,
+      "label": 18,
+      "select": 18,
+      "button": 18,
+      "paragraphLineHeight": "28.9px",
+      "sidebarWidth": 310,
+      "selectHeight": 54,
+      "launchHeight": 60,
+      "viewportWidth": 390,
+      "documentWidth": 390
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "page": "검사 시작 주요 요소",
+    "audit": [
+      {
+        "selector": ".topbar .brand-copy strong",
+        "fontSize": "16px",
+        "lineHeight": "21.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 122,
+          "y": 10,
+          "width": 136,
+          "height": 43
+        }
+      },
+      {
+        "selector": ".topbar .header-status",
+        "fontSize": "16px",
+        "lineHeight": "26.4px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 271,
+          "y": 11,
+          "width": 107,
+          "height": 42
+        }
+      },
+      {
+        "selector": ".workspace-sidebar .nav-item",
+        "fontSize": "18px",
+        "lineHeight": "26.1px",
+        "color": "rgb(241, 251, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": -309,
+          "y": 142,
+          "width": 277,
+          "height": 52
+        }
+      },
+      {
+        "selector": ".workspace-title h1",
+        "fontSize": "32px",
+        "lineHeight": "38.4px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 15,
+          "y": 117,
+          "width": 180,
+          "height": 38
+        }
+      },
+      {
+        "selector": ".workspace-title > p",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 15,
+          "y": 168,
+          "width": 335,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".control-label",
+        "fontSize": "18px",
+        "lineHeight": "26.1px",
+        "color": "rgb(231, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 31,
+          "y": 349,
+          "width": 328,
+          "height": 28
+        }
+      },
+      {
+        "selector": ".mission-control select",
+        "fontSize": "18px",
+        "lineHeight": "27px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 31,
+          "y": 381,
+          "width": 328,
+          "height": 54
+        }
+      },
+      {
+        "selector": ".mission-control small",
+        "fontSize": "17px",
+        "lineHeight": "27.2px",
+        "color": "rgb(167, 186, 209)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 31,
+          "y": 439,
+          "width": 328,
+          "height": 54
+        }
+      },
+      {
+        "selector": ".token-input-control input",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 31,
+          "y": 705,
+          "width": 232,
+          "height": 54
+        }
+      },
+      {
+        "selector": ".run-button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 31,
+          "y": 866,
+          "width": 328,
+          "height": 60
+        }
+      },
+      {
+        "selector": ".launch-brief-copy h2",
+        "fontSize": "24px",
+        "lineHeight": "32.4px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 35,
+          "y": 1084,
+          "width": 322,
+          "height": 65
+        }
+      },
+      {
+        "selector": ".launch-brief-copy p",
+        "fontSize": "16px",
+        "lineHeight": "27.2px",
+        "color": "rgb(173, 190, 212)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 35,
+          "y": 1161,
+          "width": 322,
+          "height": 82
+        }
+      },
+      {
+        "selector": ".launch-steps li",
+        "fontSize": "17px",
+        "lineHeight": "26.35px",
+        "color": "rgb(217, 231, 246)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 35,
+          "y": 1263,
+          "width": 322,
+          "height": 64
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "page": "사용 안내 주요 요소",
+    "audit": [
+      {
+        "selector": ".guide-workspace .quick-start-content",
+        "fontSize": "17px",
+        "lineHeight": "29.75px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 35,
+          "y": 317,
+          "width": 322,
+          "height": 2001
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content h3",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 35,
+          "y": 1007,
+          "width": 322,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".guide-workspace .quick-start-content pre",
+        "fontSize": "17px",
+        "lineHeight": "28.05px",
+        "color": "rgb(217, 233, 255)",
+        "backgroundColor": "rgb(5, 11, 24)",
+        "box": {
+          "x": 35,
+          "y": 1103,
+          "width": 322,
+          "height": 178
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dt",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(84, 232, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 36,
+          "y": 2505,
+          "width": 318,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".guide-workspace .glossary dd",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 36,
+          "y": 2541,
+          "width": 318,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".guide-limit p",
+        "fontSize": "17px",
+        "lineHeight": "28.9px",
+        "color": "rgb(213, 201, 179)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 40,
+          "y": 4158,
+          "width": 335,
+          "height": 116
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "page": "검사 결과 없음 주요 요소",
+    "audit": [
+      {
+        "selector": ".results-empty-state h2",
+        "fontSize": "26px",
+        "lineHeight": "35.1px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 85,
+          "y": 291,
+          "width": 284,
+          "height": 70
+        }
+      },
+      {
+        "selector": ".results-empty-state p",
+        "fontSize": "18px",
+        "lineHeight": "31.5px",
+        "color": "rgb(189, 202, 220)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 85,
+          "y": 378,
+          "width": 284,
+          "height": 95
+        }
+      },
+      {
+        "selector": ".results-empty-state .button",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(7, 11, 24)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 85,
+          "y": 496,
+          "width": 201,
+          "height": 60
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "page": "검사 결과 및 선택 Finding",
+    "audit": [
+      {
+        "selector": ".context-copy h2",
+        "fontSize": "22px",
+        "lineHeight": "28.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 314,
+          "y": 262,
+          "width": 248,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".scan-state-copy h2",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 890,
+          "y": 409,
+          "width": 88,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".beginner-summary h3",
+        "fontSize": "20px",
+        "lineHeight": "29px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 353,
+          "y": 493,
+          "width": 692,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".metric strong",
+        "fontSize": "38px",
+        "lineHeight": "45.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 424,
+          "y": 745,
+          "width": 23,
+          "height": 46
+        }
+      },
+      {
+        "selector": ".metric-label",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 310,
+          "y": 759,
+          "width": 106,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".severity-heading h3",
+        "fontSize": "24px",
+        "lineHeight": "33.6px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 934,
+          "y": 684,
+          "width": 109,
+          "height": 34
+        }
+      },
+      {
+        "selector": ".severity-count",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(6, 15, 28, 0.58)",
+        "box": {
+          "x": 907,
+          "y": 731,
+          "width": 151,
+          "height": 53
+        }
+      },
+      {
+        "selector": ".results-title h2",
+        "fontSize": "28px",
+        "lineHeight": "36.4px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 289,
+          "y": 1000,
+          "width": 352,
+          "height": 49
+        }
+      },
+      {
+        "selector": ".filter-row input",
+        "fontSize": "18px",
+        "lineHeight": "27.9px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgb(8, 15, 32)",
+        "box": {
+          "x": 665,
+          "y": 1030,
+          "width": 277,
+          "height": 56
+        }
+      },
+      {
+        "selector": ".filter-row label:not(.search-field)",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 956,
+          "y": 1002,
+          "width": 140,
+          "height": 85
+        }
+      },
+      {
+        "selector": ".list-caption",
+        "fontSize": "19px",
+        "lineHeight": "29.45px",
+        "color": "rgb(143, 165, 192)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 300,
+          "y": 1110,
+          "width": 621,
+          "height": 58
+        }
+      },
+      {
+        "selector": ".row-main > strong",
+        "fontSize": "19px",
+        "lineHeight": "28.5px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 319,
+          "y": 1226,
+          "width": 545,
+          "height": 29
+        }
+      },
+      {
+        "selector": ".row-location",
+        "fontSize": "16px",
+        "lineHeight": "24.8px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 319,
+          "y": 1263,
+          "width": 545,
+          "height": 25
+        }
+      },
+      {
+        "selector": ".row-rule-id",
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "color": "rgb(143, 165, 192)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 319,
+          "y": 1295,
+          "width": 545,
+          "height": 24
+        }
+      },
+      {
+        "selector": ".detail-top h2",
+        "fontSize": "28px",
+        "lineHeight": "36.4px",
+        "color": "rgb(237, 245, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 972,
+          "y": 1163,
+          "width": 157,
+          "height": 36
+        }
+      },
+      {
+        "selector": ".detail-location small",
+        "fontSize": "19px",
+        "lineHeight": "32.3px",
+        "color": "rgb(179, 195, 218)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 996,
+          "y": 1407,
+          "width": 360,
+          "height": 97
+        }
+      },
+      {
+        "selector": ".technical-details > summary",
+        "fontSize": "17px",
+        "lineHeight": "26.35px",
+        "color": "rgb(180, 147, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 972,
+          "y": 2168,
+          "width": 406,
+          "height": 56
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "width": 720,
+      "height": 450,
+      "note": "200% 확대 대응 대체 CSS viewport; 실제 브라우저 확대 기능은 아님"
+    },
+    "zoomLayout": {
+      "viewport": 720,
+      "content": 720
+    }
+  }
+]

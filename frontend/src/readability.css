@@ -1,0 +1,382 @@
+/* Phase 36.9D: 읽기 우선 타이포그래피 계층. 기존 화면 구조 위에 적용한다. */
+:root {
+  --type-body: 1.1875rem;
+  --type-longform: 1.125rem;
+  --type-support: 1rem;
+  --type-label: 1.125rem;
+  --type-control: 1.125rem;
+  --type-row: 1.125rem;
+  --type-panel-title: 1.5rem;
+  --type-section-title: 1.75rem;
+  --type-page-title: clamp(2.25rem, 2.6vw, 2.5rem);
+  --type-count: 2.375rem;
+  --readability-line: 1.65;
+  --readability-space-section: 2rem;
+  --readability-space-card: 1.625rem;
+}
+
+body { font-size: var(--type-body); line-height: var(--readability-line); font-weight: 450; }
+button, input, select { font-size: var(--type-control); line-height: 1.45; }
+button { font-weight: 650; }
+input, select { min-height: 3.5rem; padding-inline: 1rem; }
+select option { font-size: 1.125rem; }
+
+.topbar { min-height: 4.5rem; gap: 1.25rem; }
+.brand { gap: 1rem; }
+.brand-emblem { width: 2.75rem; height: 2.75rem; }
+.brand-copy { gap: .2rem; }
+.brand-copy strong { font-size: 1.25rem; line-height: 1.35; letter-spacing: 0; }
+.brand-copy small { font-size: 1rem; line-height: 1.45; letter-spacing: .01em; }
+.header-status { min-height: 2.875rem; padding-inline: 1rem; font-size: 1rem; }
+
+.workspace-shell { grid-template-columns: clamp(15rem, 17.5vw, 17.5rem) minmax(0, 1fr); }
+.workspace-sidebar { padding: 1.75rem 1rem 1.5rem; }
+.sidebar-heading { margin-bottom: 1.5rem; }
+.sidebar-section-label { font-size: 1.125rem; }
+.sidebar-nav { gap: .75rem; }
+.nav-item { min-height: 3.25rem; padding-inline: 1rem; gap: .9rem; font-size: 1.1875rem; line-height: 1.45; }
+.nav-item > .icon { width: 1.375rem; height: 1.375rem; }
+.sidebar-toggle { width: 2.875rem; height: 2.875rem; flex-basis: 2.875rem; }
+.nav-result-count { min-width: 1.75rem; height: 1.75rem; font-size: 1rem; }
+.sidebar-footnote { padding: 1.125rem .75rem .35rem; font-size: 1rem; line-height: 1.5; }
+.sidebar-footnote .status-indicator { width: .625rem; height: .625rem; flex-basis: .625rem; }
+.sidebar-is-collapsed { grid-template-columns: 5rem minmax(0, 1fr); }
+
+.dashboard-main { padding: 1.75rem clamp(1.5rem, 2.5vw, 2.75rem) 2.5rem; }
+.workspace-title { flex-wrap: wrap; align-items: end; gap: 1rem 2rem; margin: 0 0 1.75rem; padding-bottom: 1.375rem; }
+.workspace-title .eyebrow { font-family: inherit; font-size: 1rem; font-weight: 700; line-height: 1.4; letter-spacing: .015em; }
+#main-content .workspace-title h1 { font-size: var(--type-page-title); line-height: 1.2; letter-spacing: 0; }
+.workspace-title > p { max-width: 60ch; font-size: 1.125rem; line-height: 1.6; }
+.dashboard-main p, .dashboard-main li, .dashboard-main dd { font-size: var(--type-longform); line-height: 1.7; }
+.dashboard-main small, .dashboard-main code, .dashboard-main dt { font-size: var(--type-support); line-height: 1.55; }
+.dashboard-main label { font-size: var(--type-label); line-height: 1.5; }
+.dashboard-main h2, .dashboard-main .results-title h2, .dashboard-main .detail-top h2,
+.dashboard-main .guide-section h2, .dashboard-main .guide-limit h2 { font-size: var(--type-section-title); line-height: 1.3; }
+.dashboard-main h3, .dashboard-main .deck-heading h2, .dashboard-main .severity-heading h3,
+.dashboard-main .analyst-tasks h3, .dashboard-main .quick-start-content h3 { font-size: var(--type-panel-title); line-height: 1.4; }
+.dashboard-main .eyebrow { font-family: inherit; font-size: 1rem; line-height: 1.4; letter-spacing: .015em; }
+
+.mission-deck { margin-bottom: 2rem; padding: 1.625rem 1.75rem 1.75rem; }
+.deck-heading { margin-bottom: 1.375rem; }
+.deck-heading .eyebrow, .deck-signal { font-size: 1rem; line-height: 1.5; letter-spacing: .01em; }
+.mission-form { gap: 1.375rem; }
+.mission-control { gap: .625rem; font-size: 1.125rem; }
+#main-content .control-label { min-height: 1.75rem; font-size: 1.125rem; line-height: 1.45; }
+#main-content .mission-control select,
+#main-content .mission-control input,
+#main-content .token-input-control input { min-height: 3.625rem; height: 3.625rem; padding-inline: 1rem; font-size: 1.125rem; font-weight: 550; }
+.mission-control small, .token-security-help > summary, .token-security-help > p { font-size: 1rem; line-height: 1.6; }
+.token-input-control .clear-token, #main-content .token-input-control .clear-token { min-width: 5.5rem; min-height: 3.625rem; height: 3.625rem; padding-inline: .875rem; font-size: 1rem; }
+#main-content .run-button, #main-content .launch-action { min-height: 3.75rem; padding-inline: 1.5rem; font-size: 1.125rem; }
+.mission-deck-compact { padding-block: 1.125rem 1.25rem; }
+.mission-deck-compact .deck-heading { margin-bottom: .875rem; }
+.mission-deck-compact .mission-control { grid-template-rows: auto 3.625rem; gap: .5rem; font-size: 1.125rem; }
+#main-content .mission-deck-compact .mission-control select,
+#main-content .mission-deck-compact .token-input-control input,
+#main-content .mission-deck-compact .token-input-control .clear-token { min-height: 3.625rem; height: 3.625rem; }
+#main-content .mission-deck-compact .launch-action { min-height: 3.25rem; }
+.launch-brief { gap: 2rem; margin-bottom: 1.75rem; padding: 1.625rem 1.75rem; }
+.launch-brief-copy h2 { max-width: 28ch; margin-bottom: .75rem; font-size: 1.875rem; line-height: 1.35; }
+.launch-brief-copy p, .launch-brief-copy > p:last-child { max-width: 68ch; font-size: 1.125rem; line-height: 1.7; }
+.launch-steps { gap: 1rem; }
+.launch-steps li { min-height: 5rem; gap: .75rem; padding: .875rem 1rem; font-size: 1.125rem; line-height: 1.55; }
+.launch-steps b { font-size: 1.125rem; }
+.quick-start { margin-bottom: 1.5rem; padding-inline: 1.25rem; }
+.quick-start > details > summary { min-height: 3.25rem; font-size: 1.125rem; }
+.quick-start-content { max-width: 82ch; padding: .75rem .625rem 1.5rem; font-size: 1.125rem; line-height: 1.75; }
+.quick-start-content h3 { margin-block: 1.5rem .75rem; font-size: 1.25rem; }
+.quick-start-content pre { margin-block: 1rem 1.375rem; padding: 1.125rem; font-size: 1.0625rem; line-height: 1.65; white-space: pre; overflow: auto; }
+.quick-start-content li { margin-block: .625rem; }
+.guide-workspace { gap: 2rem; }
+.guide-workspace .quick-start, .guide-workspace .glossary { padding: 1.5rem 1.625rem; }
+.guide-workspace .quick-start-content { max-width: 72ch; }
+.guide-workspace .glossary dt { margin-bottom: .5rem; font-size: 1.1875rem; line-height: 1.5; }
+.guide-workspace .glossary dd, .guide-workspace .glossary-limit { margin-bottom: 1.125rem; font-size: 1.0625rem; line-height: 1.7; }
+.guide-limit { max-width: 72ch; padding: 1.5rem 0 0 1.375rem; }
+.guide-limit p { font-size: 1.125rem; line-height: 1.7; }
+
+.scan-context { gap: .875rem 1.375rem; margin-bottom: 1.375rem; padding: 1.375rem 1.5rem; }
+.context-copy { gap: .5rem .875rem; }
+.context-copy .eyebrow { font-size: 1rem; }
+.context-copy h2 { font-size: 1.375rem; }
+.context-copy p, .context-copy small, .context-copy code,
+.export-note, .export-feedback { font-size: 1rem; line-height: 1.6; }
+.context-copy code { overflow-wrap: anywhere; }
+.context-actions { flex-wrap: wrap; gap: .75rem; }
+.context-actions .button { min-height: 3.25rem; padding-inline: 1.125rem; font-size: 1rem; }
+.export-note { grid-column: 1/-1; }
+.scan-banner { min-height: 4.25rem; gap: 1rem; margin-bottom: 1rem; padding: .875rem 1.25rem; }
+.scan-state-copy { flex-wrap: wrap; gap: .5rem .875rem; }
+.scan-state-copy .eyebrow { font-size: 1rem; line-height: 1.5; }
+.scan-state-copy h2 { font-size: 1.5rem; line-height: 1.4; }
+.state-pill { padding: .5rem .875rem; font-size: 1rem; }
+.beginner-summary { min-height: 4.25rem; gap: .875rem; margin-bottom: 1.125rem; padding: .875rem 1.125rem; }
+.beginner-summary h3 { font-size: 1.25rem; line-height: 1.45; }
+.beginner-summary p { margin-top: .375rem; font-size: 1rem; line-height: 1.55; }
+.limitations { margin-bottom: 1.25rem; padding-inline: 1rem; }
+.limitations > summary { min-height: 3.25rem; font-size: 1.0625rem; }
+.limitations > summary span { min-width: 1.75rem; padding: .125rem .5rem; font-size: 1rem; }
+.status-help-list { gap: 1rem; }
+.status-help { padding: 1.125rem 1.25rem; }
+.status-help h4 { margin-bottom: .625rem; font-size: 1.125rem; line-height: 1.45; }
+.status-help p, .status-help details summary, .status-help code { font-size: 1rem; line-height: 1.65; }
+.alert, .connection-alert { margin-block: 1rem; padding: 1rem 1.25rem; font-size: 1.0625rem; line-height: 1.65; }
+.retry-button { min-height: 3rem; padding-inline: 1rem; font-size: 1rem; }
+.help-strip { min-height: 3rem; margin-bottom: 1rem; }
+.help-disclosure > summary, .toolbar-help, .live-message { min-height: 2.75rem; font-size: 1rem; line-height: 1.6; }
+
+.overview-grid { grid-template-columns: repeat(3, minmax(8.5rem, .7fr)) minmax(20rem, 2fr); gap: 1rem; margin-bottom: 2rem; }
+.metric, .severity-card { min-height: 8rem; padding: 1.25rem 1.375rem; }
+.metric-label { font-size: 1.0625rem; line-height: 1.5; }
+.metric strong { font-size: var(--type-count); line-height: 1.2; }
+.metric small, .severity-card > small { margin-top: .5rem; font-size: 1rem; line-height: 1.55; }
+.severity-heading { gap: .75rem; }
+.severity-heading h3 { font-size: 1.25rem; }
+.severity-counts { gap: .625rem; margin-block: .875rem .625rem; }
+.severity-count, .severity-count b { gap: .5rem; padding: .375rem .625rem; font-size: 1rem; line-height: 1.45; }
+.severity-dot { width: .625rem; height: .625rem; }
+
+.results-heading { min-height: 0; flex-wrap: wrap; align-items: end; gap: 1.125rem 1.5rem; margin-bottom: 1.5rem; }
+.results-title { min-width: min(100%, 15rem); }
+.results-title h2 { gap: .75rem; margin-block: .375rem; font-size: var(--type-section-title); }
+.results-title > p:last-child { font-size: 1rem; line-height: 1.6; }
+.count-chip { min-width: 2rem; padding: .125rem .5rem; font-size: 1rem; }
+.filter-row { display: flex; flex: 1 1 38rem; flex-wrap: wrap; align-items: end; justify-content: flex-end; gap: .875rem; }
+.filter-row label { flex: 1 1 8.5rem; min-width: 8.5rem; gap: .5rem; font-size: 1rem; line-height: 1.5; }
+.filter-row .search-field { flex: 1.4 1 17rem; min-width: 16rem !important; }
+.filter-row select, .filter-row input, #main-content .filter-row select, #main-content .filter-row input { min-height: 3.5rem; height: 3.5rem; padding-inline: .875rem; font-size: 1.125rem; }
+.filter-row label:not(.search-field) select { min-width: 8.5rem; }
+.search-field input { padding-left: 3rem; }
+.search-field .icon { left: .875rem; width: 1.25rem; height: 1.25rem; }
+.results-layout { grid-template-columns: minmax(0, 1.16fr) minmax(24rem, .84fr); gap: 1.5rem; align-items: start; }
+.finding-list, .detail-panel { height: clamp(34rem, calc(100vh - 33rem), 52rem); min-height: 30rem; }
+.list-caption { min-height: 3.625rem; padding-inline: 1.125rem; font-size: 1.0625rem; }
+.finding-row { min-height: 8rem; grid-template-columns: .3rem minmax(0, 1fr) 1.75rem; gap: .875rem; padding: 1rem 1rem 1rem 0; }
+.row-main { gap: .5rem; }
+.row-topline { flex-wrap: wrap; gap: .5rem .625rem; }
+.severity-label, .unverified-badge, .row-kind { padding: .25rem .625rem; font-size: 1rem; line-height: 1.45; }
+.row-main > strong { font-size: 1.1875rem; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.row-location { font-size: 1.0625rem; line-height: 1.55; overflow-wrap: anywhere; }
+.row-rule-id { font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+.validation-icon { font-size: 1.125rem; }
+.detail-panel { padding: 1.75rem; }
+.detail-top { flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
+.detail-top h2 { font-size: 1.625rem; line-height: 1.4; overflow-wrap: anywhere; }
+.detail-top .eyebrow, .detail-location > span { font-size: 1rem; line-height: 1.5; }
+.detail-badges { gap: .625rem; margin-bottom: 1.125rem; }
+.detail-badges > span:first-child { padding: .5rem .75rem; font-size: 1rem; }
+.detail-location { gap: .75rem; margin-bottom: 1.5rem; padding: 1.375rem; }
+.detail-location strong { font-size: 1.125rem; line-height: 1.6; overflow-wrap: anywhere; }
+.detail-location small, .analyst-tasks > p, .analyst-tasks li, .basic-evidence-limit p,
+.detail-footnote, .reason { font-size: 1.0625rem; line-height: 1.7; }
+.analyst-tasks { margin-block: 1.5rem; }
+.analyst-tasks h3 { margin-bottom: .75rem; font-size: 1.25rem; }
+.analyst-tasks li { margin-block: .625rem; }
+.basic-evidence-limit { margin-block: 1.5rem; padding: 1.375rem; }
+.basic-evidence-limit strong { font-size: 1.125rem; }
+.technical-details > summary { min-height: 3.5rem; font-size: 1.0625rem; }
+.technical-content, .finding-technical-meta dd { font-size: 1rem; line-height: 1.65; }
+.finding-technical-meta dt, .finding-technical-meta code, .claim-section code,
+.claim-section h3, .claim-section li strong, .claim-section li .decision { font-size: 1rem; line-height: 1.55; }
+.claim-section { margin-block: 1rem; padding: 1.125rem; }
+.claim-section li { margin-block: .625rem; }
+.select-prompt { min-height: 12rem; padding: 1.75rem; }
+.select-prompt p, .no-filter-results { font-size: 1.125rem; line-height: 1.7; }
+.empty-state.glass-surface { min-height: 15rem; gap: 1.5rem; padding: 2rem; }
+.empty-state h3 { font-size: 1.75rem; line-height: 1.4; }
+.empty-state p { font-size: 1.125rem; line-height: 1.7; }
+.results-empty-state { gap: 1.75rem; max-width: 70rem; margin: 4rem auto; padding: 3rem 2rem; }
+.results-empty-state .empty-icon { width: 4rem; height: 4rem; flex-basis: 4rem; }
+.results-empty-state h2 { margin-bottom: 1rem; font-size: 2rem; line-height: 1.35; }
+.results-empty-state p { max-width: 65ch; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.75; }
+.results-empty-state .button { min-height: 3.5rem; padding-inline: 1.25rem; font-size: 1.0625rem; }
+#main-content .results-empty-state h2 { font-size: 2rem; line-height: 1.35; }
+.dashboard-main footer { gap: .875rem 1.5rem; margin-top: 2rem; padding-top: 1.25rem; font-size: 1rem; line-height: 1.6; }
+.button { min-height: 3.25rem; padding-inline: 1.125rem; font-size: 1.0625rem; }
+.button.primary { min-height: 3.75rem; font-size: 1.125rem; }
+.button:disabled { opacity: .72; color: var(--muted); }
+
+@media (max-width: 1100px) {
+  :root { --type-page-title: 2.25rem; }
+  .workspace-shell { grid-template-columns: 15rem minmax(0, 1fr); }
+  .sidebar-is-collapsed { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .dashboard-main { padding-inline: 1.5rem; }
+  .mission-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.375rem; }
+  .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric, .severity-card { min-height: 7.5rem; }
+  .severity-card { grid-column: 1/-1; }
+  .results-layout { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .finding-list, .detail-panel { height: auto; min-height: 0; max-height: none; overflow: visible; }
+  .filter-row { justify-content: flex-start; }
+  .guide-workspace { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+}
+
+@media (max-width: 760px) {
+  :root { --type-body: 1.125rem; --type-longform: 1.0625rem; --type-support: 1rem; --type-label: 1.0625rem; --type-control: 1.0625rem; }
+  .topbar { min-height: 4rem; padding-inline: .75rem; gap: .625rem; }
+  .brand-emblem { width: 2.375rem; height: 2.375rem; }
+  .brand-copy strong { font-size: 1rem; }
+  .brand-copy small { font-size: .875rem; letter-spacing: 0; }
+  .header-status { min-height: 2.625rem; padding-inline: .625rem; font-size: .9375rem; }
+  .workspace-shell, .sidebar-is-collapsed { display: block; min-height: calc(100vh - 4rem); }
+  .workspace-sidebar { top: 4rem; padding: 1.5rem 1rem; }
+  .sidebar-backdrop { inset-block-start: 4rem; }
+  .nav-item { min-height: 3.25rem; font-size: 1.125rem; }
+  .dashboard-main { padding: 1.625rem 1.125rem 2.5rem; }
+  .workspace-title { align-items: start; gap: .75rem; margin-bottom: 1.5rem; padding-bottom: 1.125rem; }
+  #main-content .workspace-title h1 { font-size: clamp(2rem, 8vw, 2.5rem); }
+  .workspace-title > p { font-size: 1.0625rem; }
+  .mission-deck { padding: 1.375rem 1.125rem 1.5rem; }
+  .mission-form { grid-template-columns: minmax(0, 1fr); gap: 1.125rem; }
+  #main-content .mission-control select, #main-content .mission-control input,
+  #main-content .token-input-control input { min-height: 3.375rem; height: 3.375rem; }
+  .launch-brief { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; padding: 1.5rem 1.125rem; }
+  .launch-brief-copy h2 { font-size: 1.5rem; }
+  .launch-steps { grid-template-columns: minmax(0, 1fr); }
+  .launch-steps li { min-height: 4rem; font-size: 1.0625rem; }
+  .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+  .metric, .severity-card { min-height: 7rem; padding: 1rem; }
+  .metric strong { font-size: 2rem; }
+  .severity-card { grid-column: 1/-1; }
+  .results-heading { display: flex; align-items: stretch; }
+  .filter-row { display: grid; flex-basis: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+  .filter-row .search-field, .filter-row label:last-child { grid-column: 1/-1; min-width: 0 !important; }
+  .filter-row label:not(.search-field) { min-width: 0; }
+  .filter-row label:not(.search-field) select { min-width: 0; }
+  .results-empty-state { margin: 2.5rem 0; padding: 2rem 1rem; }
+  #main-content .results-empty-state h2 { font-size: 1.75rem; }
+  .results-empty-state p { font-size: 1.0625rem; }
+  .detail-panel { padding: 1.375rem 1.125rem; }
+  .guide-workspace .quick-start, .guide-workspace .glossary { padding: 1.375rem 1.125rem; }
+  .quick-start-content pre { white-space: pre; overflow-wrap: normal; }
+  .dashboard-main footer { display: grid; }
+}
+
+@media (max-width: 420px) {
+  .brand-copy strong { max-width: 8.5rem; font-size: .9375rem; }
+  .brand-copy small { display: none; }
+  .header-status { font-size: .875rem; }
+  .dashboard-main { padding-inline: .9375rem; }
+  .workspace-title { flex-direction: column; }
+  .workspace-title > p { max-width: 38ch; }
+  .mission-deck { padding-inline: 1rem; }
+  .deck-heading { align-items: start; gap: .75rem; }
+  .deck-heading h2 { font-size: 1.375rem; }
+  .token-input-control { gap: .5rem; }
+  .token-input-control .clear-token { min-width: 4.5rem; padding-inline: .5rem; }
+  .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric { min-height: 6.75rem; }
+  .severity-counts { gap: .5rem; }
+  .severity-count { padding: .375rem .5rem; }
+  .results-empty-state { align-items: flex-start; gap: 1rem; padding-inline: .375rem; }
+  .results-empty-state .empty-icon { width: 3rem; height: 3rem; flex-basis: 3rem; }
+  #main-content .results-empty-state h2 { font-size: 1.625rem; }
+  .detail-top { align-items: start; flex-direction: column; }
+  .detail-top h2 { font-size: 1.375rem; }
+}
+
+/* 작은 legacy selector가 본문 계층을 다시 축소하지 않도록 핵심 정보의 바닥값을 고정한다. */
+#main-content .nav-result-count,
+#main-content .context-copy code,
+#main-content .context-actions .button,
+#main-content .metric-label,
+#main-content .metric small,
+#main-content .severity-card > small,
+#main-content .severity-count,
+#main-content .severity-count b,
+#main-content .results-title > p:last-child,
+#main-content .filter-row label,
+#main-content .severity-label,
+#main-content .unverified-badge,
+#main-content .row-kind,
+#main-content .row-location,
+#main-content .row-rule-id,
+#main-content .finding-row .row-location,
+#main-content .finding-row .row-rule-id,
+#main-content .finding-row .severity-label,
+#main-content .finding-row .unverified-badge,
+#main-content .finding-row .row-kind,
+#main-content .detail-badges > span,
+#main-content .detail-location > span,
+#main-content .detail-location small,
+#main-content .analyst-tasks > p,
+#main-content .analyst-tasks li,
+#main-content .basic-evidence-limit p,
+#main-content .basic-evidence-limit strong,
+#main-content .detail-footnote,
+#main-content .reason,
+#main-content .technical-content,
+#main-content .finding-technical-meta dt,
+#main-content .finding-technical-meta dd,
+#main-content .finding-technical-meta code,
+#main-content .claim-section code,
+#main-content .claim-section li strong,
+#main-content .claim-section li .decision,
+#main-content .dashboard-main footer,
+#main-content .mission-control small,
+#main-content .token-security-help > summary,
+#main-content .token-security-help > p,
+#main-content .retry-button,
+#main-content .launch-steps li,
+#main-content .beginner-summary p,
+#main-content .status-help p,
+#main-content .status-help details summary,
+#main-content .status-help code,
+#main-content .limitations > summary,
+#main-content .toolbar-help,
+#main-content .live-message,
+#main-content .scan-state-copy .eyebrow,
+#main-content .context-copy .eyebrow,
+#main-content .deck-heading .eyebrow,
+#main-content .deck-signal,
+#main-content .workspace-title .eyebrow,
+#main-content .detail-top .eyebrow,
+#main-content .detail-location > span,
+#main-content .state-pill,
+#main-content .count-chip,
+#main-content .list-caption,
+#main-content .select-prompt p,
+#main-content .no-filter-results,
+#main-content .empty-state p,
+#main-content .results-empty-state p,
+#main-content .results-empty-state .button,
+#main-content .export-note,
+#main-content .export-feedback,
+.topbar .brand-copy small,
+.topbar .header-status,
+.topbar .brand-copy strong,
+.workspace-sidebar .nav-result-count,
+#main-content .nav-result-count,
+#main-content .dashboard-main footer,
+#main-content .quick-start > details > summary,
+#main-content .guide-workspace .quick-start > details > summary {
+  font-size: max(1rem, 1em);
+}
+.glossary > details > summary { min-height: 3.5rem; font-size: 1.125rem; line-height: 1.6; }
+
+#main-content .filter-row label:not(.search-field) select,
+#main-content .filter-row select,
+#main-content .filter-row input,
+#main-content .mission-control select,
+#main-content .mission-control input,
+#main-content .token-input-control input,
+#main-content .run-button,
+#main-content .launch-action,
+#main-content .button,
+#main-content .button.primary,
+#main-content .token-input-control .clear-token {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 760px) {
+  .topbar .brand-copy strong { font-size: 1rem; }
+  .topbar .header-status, .topbar .brand-copy small { font-size: 1rem; }
+  .workspace-sidebar .nav-item { font-size: 1.125rem; }
+  #main-content .workspace-title > p { font-size: 1.0625rem; }
+  #main-content .launch-brief-copy p,
+  #main-content .launch-steps li,
+  #main-content .quick-start-content,
+  #main-content .guide-workspace .glossary dd,
+  #main-content .guide-workspace .glossary-limit,
+  #main-content .guide-limit p { font-size: 1.0625rem; }
+}

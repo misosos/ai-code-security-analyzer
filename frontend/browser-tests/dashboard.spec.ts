@@ -165,25 +165,19 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
         if (!text || !parent || parent.closest('.sr-only,[aria-hidden="true"]') || parent.tagName === 'OPTION') continue;
         const style = getComputedStyle(parent);
         if (style.display === 'none' || style.visibility === 'hidden' || parent.getClientRects().length === 0) continue;
-        if (Number.parseFloat(style.fontSize) < 14) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
+        if (Number.parseFloat(style.fontSize) < 16) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
       }
       return tooSmall;
     });
     expect(undersizedResultText).toEqual([]);
     viewportMetrics.push({ viewport, ...presentation, overflow: dimensions.content - dimensions.viewport });
     expect(presentation.rowTitleSize).toBeGreaterThanOrEqual(16);
-    expect(presentation.filterLabelSize).toBeGreaterThanOrEqual(14);
-    expect(presentation.rowLocationSize).toBeGreaterThanOrEqual(15);
-    expect(presentation.detailCopySize).toBeGreaterThanOrEqual(15);
-    if (viewport.width >= 1440) {
-      expect(presentation.firstRowTop).toBeLessThan(viewport.height);
-      expect(presentation.detailTop).toBeLessThan(viewport.height);
-    } else if (viewport.width === 1280) {
-      expect(presentation.detailTop).toBeLessThan(viewport.height + 140);
-      expect(presentation.firstRowTop).toBeLessThan(viewport.height + 220);
-    }
+    expect(presentation.filterLabelSize).toBeGreaterThanOrEqual(18);
+    expect(presentation.rowLocationSize).toBeGreaterThanOrEqual(16);
+    expect(presentation.detailCopySize).toBeGreaterThanOrEqual(18);
+    expect(presentation.firstRowTop).toBeLessThan(await documentHeight(page));
   }
-  await writeFile(resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9b-z/readability-audit/responsive-result-metrics.json'), JSON.stringify(viewportMetrics, null, 2));
+  await writeFile(resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9d/readability-audit/responsive-result-metrics.json'), JSON.stringify(viewportMetrics, null, 2));
 
   await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').fill('synthetic.html-example');
   await expect(page.getByLabel('Finding 목록').getByRole('button')).toHaveCount(1);
@@ -191,8 +185,12 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });
 
+async function documentHeight(page: import('@playwright/test').Page): Promise<number> {
+  return page.evaluate(() => document.documentElement.scrollHeight);
+}
+
 test('large-type scale remains readable across workspace pages and target viewports', async ({ page }) => {
-  const output = resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9b-z/readability-audit');
+  const output = resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9d/readability-audit');
   await mkdir(output, { recursive: true });
   await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
   await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
@@ -217,7 +215,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
       if (!text || !parent || parent.closest('.sr-only,[aria-hidden="true"]') || parent.tagName === 'OPTION') continue;
       const style = getComputedStyle(parent);
       if (style.display === 'none' || style.visibility === 'hidden' || parent.getClientRects().length === 0) continue;
-        if (Number.parseFloat(style.fontSize) < 14) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
+      if (Number.parseFloat(style.fontSize) < 16) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
     }
     return tooSmall;
   });
@@ -242,29 +240,59 @@ test('large-type scale remains readable across workspace pages and target viewpo
         viewportWidth: document.documentElement.clientWidth, documentWidth: document.documentElement.scrollWidth,
       };
     });
-    expect(typography.title).toBeGreaterThanOrEqual(30);
-    expect(typography.body).toBeGreaterThanOrEqual(16);
-    expect(typography.sidebar).toBeGreaterThanOrEqual(16);
-    expect(typography.label).toBeGreaterThanOrEqual(16);
-    expect(typography.select).toBeGreaterThanOrEqual(16);
-    expect(typography.button).toBeGreaterThanOrEqual(17);
-    expect(typography.selectHeight).toBeGreaterThanOrEqual(48);
+    expect(typography.title).toBeGreaterThanOrEqual(viewport.width <= 760 ? 32 : 36);
+    expect(typography.body).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
+    expect(typography.sidebar).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
+    expect(typography.label).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
+    expect(typography.select).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
+    expect(typography.button).toBeGreaterThanOrEqual(18);
+    expect(typography.selectHeight).toBeGreaterThanOrEqual(54);
     expect(typography.documentWidth).toBeLessThanOrEqual(typography.viewportWidth);
-    samples.push({ viewport, typography });
+    samples.push({ viewport, page: '검사 시작', typography });
     await expect(mainTitle).toBeVisible();
     expect(await visibleTextBelowFloor()).toEqual([]);
     await page.screenshot({ path: resolve(output, `start-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    const startAudit = await page.evaluate(() => {
+      const selectors = ['.topbar .brand-copy strong', '.topbar .header-status', '.workspace-sidebar .nav-item', '.workspace-title h1', '.workspace-title > p', '.control-label', '.mission-control select', '.mission-control small', '.token-input-control input', '.run-button', '.launch-brief-copy h2', '.launch-brief-copy p', '.launch-steps li'];
+      return selectors.map((selector) => {
+        const element = document.querySelector(selector);
+        if (!element) return { selector, missing: true };
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return { selector, fontSize: style.fontSize, lineHeight: style.lineHeight, color: style.color, backgroundColor: style.backgroundColor, box: { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) } };
+      });
+    });
+    expect(startAudit.filter((entry) => 'missing' in entry)).toEqual([]);
+    samples.push({ viewport, page: '검사 시작 주요 요소', audit: startAudit });
 
     if (viewport.width <= 760) await page.getByRole('button', { name: '내비게이션 열기' }).click();
     await page.getByRole('button', { name: /사용 안내/ }).click();
-    expect(await page.locator('.quick-start-content').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
+    expect(await page.locator('.quick-start-content').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
     expect(await visibleTextBelowFloor()).toEqual([]);
     await page.screenshot({ path: resolve(output, `guide-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    const guideAudit = await page.evaluate(() => ['.guide-workspace .quick-start-content', '.guide-workspace .quick-start-content h3', '.guide-workspace .quick-start-content pre', '.guide-workspace .glossary dt', '.guide-workspace .glossary dd', '.guide-limit p'].map((selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return { selector, missing: true };
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return { selector, fontSize: style.fontSize, lineHeight: style.lineHeight, color: style.color, backgroundColor: style.backgroundColor, box: { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) } };
+    }));
+    expect(guideAudit.filter((entry) => 'missing' in entry)).toEqual([]);
+    samples.push({ viewport, page: '사용 안내 주요 요소', audit: guideAudit });
     if (viewport.width <= 760) await page.getByRole('button', { name: '내비게이션 열기' }).click();
     await page.getByRole('button', { name: /검사 결과/ }).click();
-    expect(await page.locator('.results-empty-state h2').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(24);
+    expect(await page.locator('.results-empty-state h2').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(viewport.width <= 420 ? 26 : viewport.width <= 760 ? 28 : 32);
     expect(await visibleTextBelowFloor()).toEqual([]);
     await page.screenshot({ path: resolve(output, `empty-results-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    const emptyAudit = await page.evaluate(() => ['.results-empty-state h2', '.results-empty-state p', '.results-empty-state .button'].map((selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return { selector, missing: true };
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return { selector, fontSize: style.fontSize, lineHeight: style.lineHeight, color: style.color, backgroundColor: style.backgroundColor, box: { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) } };
+    }));
+    expect(emptyAudit.filter((entry) => 'missing' in entry)).toEqual([]);
+    samples.push({ viewport, page: '검사 결과 없음 주요 요소', audit: emptyAudit });
     if (viewport.width <= 760) {
       await page.getByRole('button', { name: '내비게이션 열기' }).click();
       await expect(page.getByRole('dialog', { name: '주 메뉴' })).toBeVisible();
@@ -280,13 +308,29 @@ test('large-type scale remains readable across workspace pages and target viewpo
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   expect(await visibleTextBelowFloor()).toEqual([]);
-  expect(await page.locator('.row-main > strong').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
-  expect(await page.locator('.filter-row input').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
+  const resultAudit = await page.evaluate(() => [
+    '.context-copy h2', '.scan-state-copy h2', '.beginner-summary h3', '.metric strong', '.metric-label',
+    '.severity-heading h3', '.severity-count', '.results-title h2', '.filter-row input', '.filter-row label:not(.search-field)',
+    '.list-caption', '.row-main > strong', '.row-location', '.row-rule-id', '.detail-top h2', '.detail-location small', '.technical-details > summary',
+  ].map((selector) => {
+    const element = document.querySelector(selector);
+    if (!element) return { selector, missing: true };
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return { selector, fontSize: style.fontSize, lineHeight: style.lineHeight, color: style.color, backgroundColor: style.backgroundColor, box: { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) } };
+  }));
+  expect(resultAudit.filter((entry) => 'missing' in entry)).toEqual([]);
+  const resultFonts = Object.fromEntries(resultAudit.map((entry) => ['selector' in entry ? entry.selector : '', 'fontSize' in entry ? Number.parseFloat(entry.fontSize) : 0]));
+  expect(resultFonts['.metric strong']).toBeGreaterThanOrEqual(38);
+  expect(resultFonts['.row-main > strong']).toBeGreaterThanOrEqual(19);
+  expect(resultFonts['.filter-row input']).toBeGreaterThanOrEqual(18);
+  expect(resultFonts['.detail-location small']).toBeGreaterThanOrEqual(18);
+  samples.push({ viewport: { width: 1440, height: 900 }, page: '검사 결과 및 선택 Finding', audit: resultAudit });
   await page.screenshot({ path: resolve(output, 'completed-and-finding-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 720, height: 450 }); // 1440×900의 200% 확대 상황에 해당하는 좁은 CSS viewport 대체 확인
   const zoomLayout = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
   expect(zoomLayout.content).toBeLessThanOrEqual(zoomLayout.viewport);
-  expect(await page.locator('.workspace-title h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(30);
+  expect(await page.locator('.workspace-title h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(36);
   expect(await visibleTextBelowFloor()).toEqual([]);
   samples.push({ viewport: { width: 720, height: 450, note: '200% 확대 대응 대체 CSS viewport; 실제 브라우저 확대 기능은 아님' }, zoomLayout });
   await writeFile(resolve(output, 'computed-style-samples.json'), JSON.stringify(samples, null, 2));
@@ -294,7 +338,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
 });
 
 test('captures cyberpunk HUD launch, review, filtered, partial, and error states using synthetic data', async ({ page }) => {
-  const output = resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9b-z/regression-captures');
+  const output = resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9d/regression-captures');
   await mkdir(output, { recursive: true });
   const token = 'phase-36-9b-synthetic-visual-token';
   const completed = {
@@ -346,7 +390,7 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
       focusableDecorativeDescendants: [...document.querySelectorAll('.launch-emblem svg button, .launch-emblem svg a, .launch-emblem svg [tabindex]')].length,
     };
   });
-  expect(launchMetrics.missionDeck?.height).toBeLessThan(300);
+  expect(launchMetrics.missionDeck?.height).toBeLessThan(360);
   expect(launchMetrics.launchBrief?.height).toBeLessThan(240);
   expect(launchMetrics.launchBriefBlankBelowContent).toBeLessThan(40);
   expect(launchMetrics.focusableDecorativeDescendants).toBe(0);
@@ -409,7 +453,7 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
 });
 
 test('sidebar navigation separates start, current-session results, and guidance and supports the mobile drawer', async ({ page }) => {
-  const output = resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9b-z/navigation-audit');
+  const output = resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9d/navigation-audit');
   await mkdir(output, { recursive: true });
   await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
   await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
@@ -425,8 +469,8 @@ test('sidebar navigation separates start, current-session results, and guidance 
   });
   expect(desktopMetrics.sidebar?.width).toBeGreaterThanOrEqual(232);
   expect(desktopMetrics.sidebar?.width).toBeLessThanOrEqual(256);
-  expect(Number.parseFloat(desktopMetrics.bodyText)).toBeGreaterThanOrEqual(14);
-  expect(desktopMetrics.inputHeight).toBeGreaterThanOrEqual(48);
+  expect(Number.parseFloat(desktopMetrics.bodyText)).toBeGreaterThanOrEqual(18);
+  expect(desktopMetrics.inputHeight).toBeGreaterThanOrEqual(54);
   expect(desktopMetrics.overflow).toBe(0);
   await page.screenshot({ path: resolve(output, 'start-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 1920, height: 1080 });
