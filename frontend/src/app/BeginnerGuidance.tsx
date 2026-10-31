@@ -26,61 +26,55 @@ export function describeStatusCode(code: string): HelpText {
 }
 
 export function QuickStart() {
-  return <section className="quick-start panel" aria-label="사용 방법">
+  return <div className="guide-steps-flow">
+    <ol className="guide-steps">
+      <li><strong>프로젝트 선택</strong><span>서버에 등록된 검사 대상과 규칙 모음을 고릅니다.</span></li>
+      <li><strong>검사 실행</strong><span>서버에서 발급한 토큰을 입력해 검사를 시작합니다.</span></li>
+      <li><strong>결과 검토</strong><span>발견 항목의 파일 위치와 탐지 근거를 확인합니다.</span></li>
+    </ol>
+  </div>;
+}
+
+export function ServerAdminSettings() {
+  return <details className="advanced-setup guide-disclosure">
+    <summary>서버 관리자 설정</summary>
     <div className="quick-start-content">
-      <ol>
-        <li>검사 대상과 규칙 모음을 선택합니다.</li>
-        <li>서버에서 발급한 토큰을 입력하고 검사를 실행합니다.</li>
-        <li>발견 항목의 파일 위치와 근거를 확인합니다.</li>
-      </ol>
-      <p className="quick-start-note">검사할 수 있는 대상은 서버에 등록된 프로젝트로 제한됩니다.</p>
-    </div>
-    <details className="advanced-setup">
-      <summary>서버 관리자 설정</summary>
-      <div className="quick-start-content">
-        <h3>빌드된 대시보드와 분석 서버</h3>
-        <p>저장소 루트에서 화면과 서버 의존성을 준비합니다.</p>
-        <pre><code>{'cd frontend\nnpm ci\nnpm run build\ncd ..\nuv sync --locked --dev'}</code></pre>
-        <p>서버 환경에 프로젝트 ID, 표시 이름, 절대 경로와 무작위 토큰을 설정한 뒤 재시작하세요. 생성된 토큰은 터미널에서 한 번 복사해 대시보드에 입력하고, 커밋하거나 공유하지 마세요.</p>
-        <pre><code>{`export AI_CODE_SECURITY_TARGETS='[{"id":"app","label":"Application","path":"/absolute/path/to/approved/project"},{"id":"worker","label":"Worker","path":"/absolute/path/to/another/project"}]'
+      <h3>빌드된 대시보드와 분석 서버</h3>
+      <p>저장소 루트에서 화면과 서버 의존성을 준비합니다.</p>
+      <pre><code>{'cd frontend\nnpm ci\nnpm run build\ncd ..\nuv sync --locked --dev'}</code></pre>
+      <p>서버 환경에 프로젝트 ID, 표시 이름, 절대 경로와 무작위 토큰을 설정한 뒤 재시작하세요. 생성된 토큰은 터미널에서 한 번 복사해 대시보드에 입력하고, 커밋하거나 공유하지 마세요.</p>
+      <pre><code>{`export AI_CODE_SECURITY_TARGETS='[{"id":"app","label":"Application","path":"/absolute/path/to/approved/project"},{"id":"worker","label":"Worker","path":"/absolute/path/to/another/project"}]'
 export AI_CODE_SECURITY_API_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
 printf '%s\\n' "$AI_CODE_SECURITY_API_TOKEN"
 export AI_CODE_SECURITY_ALLOWED_ORIGINS="http://127.0.0.1:8765"
 uv run python -m ai_code_security_analyzer.api`}</code></pre>
-        <p>기본 화면은 <code>http://127.0.0.1:8765</code>에서 제공합니다. 기존 단일 프로젝트 설정인 <code>AI_CODE_SECURITY_TARGET</code>도 지원하지만, 두 프로젝트 설정을 동시에 지정하면 서버가 거부합니다.</p>
-        <h3>개발용 Vite 화면</h3>
-        <p>서버의 허용 출처에 <code>http://127.0.0.1:5173</code>을 추가하고 다른 터미널에서 실행합니다.</p>
-        <pre><code>{'cd frontend\nnpm ci\nnpm run dev'}</code></pre>
-        <p>두 방식 모두 분석 서버는 <code>127.0.0.1:8765</code>에만 바인딩됩니다. 화면이 서버를 자동 실행하지 않습니다.</p>
-      </div>
-    </details>
-  </section>;
+      <p>기본 화면은 <code>http://127.0.0.1:8765</code>에서 제공합니다. 기존 단일 프로젝트 설정인 <code>AI_CODE_SECURITY_TARGET</code>도 지원하지만, 두 프로젝트 설정을 동시에 지정하면 서버가 거부합니다.</p>
+      <h3>개발용 Vite 화면</h3>
+      <p>서버의 허용 출처에 <code>http://127.0.0.1:5173</code>을 추가하고 다른 터미널에서 실행합니다.</p>
+      <pre><code>{'cd frontend\nnpm ci\nnpm run dev'}</code></pre>
+      <p>두 방식 모두 분석 서버는 <code>127.0.0.1:8765</code>에만 바인딩됩니다. 화면이 서버를 자동 실행하지 않습니다.</p>
+    </div>
+  </details>;
 }
 
 export function SecurityGlossary() {
-  const coreTerms = [
-    ['검토 후보', '검사 규칙에 맞아 확인이 필요한 항목입니다. 취약점 확정은 아닙니다.'],
-    ['심각도', '검사 도구가 규칙에 따라 분류한 수준입니다. 실제 악용 여부를 뜻하지 않습니다.'],
-    ['미검증', '실제 취약점인지 아직 확인되지 않은 상태입니다.'],
-    ['근거 연결 확인', 'Finding과 허용된 규칙·검사 근거의 구조적 연결을 확인한 상태입니다. 취약점 확정은 아닙니다.'],
-    ['규칙 모음', '한 번의 검사에서 함께 실행하는 규칙의 묶음입니다.'],
+  const terms = [
+    ['검토 후보 (Finding)', '검사 규칙에 일치해 확인이 필요한 항목입니다. 실제 취약점 확정은 아닙니다.'],
+    ['심각도 (Severity)', '검사 도구가 규칙에 따라 분류한 수준이며, 실제 악용 여부를 뜻하지 않습니다.'],
+    ['미검증 (Unverified)', '실제 취약점인지 아직 확인되지 않은 상태입니다.'],
+    ['근거 연결 확인 (Validated Evidence)', 'Finding과 허용된 규칙·검사 근거의 구조적 연결을 확인한 상태입니다. 취약점 확정은 아닙니다.'],
+    ['규칙 모음 (Rule Profile)', '한 번의 검사에서 함께 실행하는 규칙의 묶음입니다.'],
+    ['Taint', '규칙이 정한 입력 지점에서 위험할 수 있는 사용 지점까지 값이 전달되는지 분석합니다.'],
+    ['Source', '규칙이 입력 출발점으로 선언한 코드 형태입니다. 실제 외부 입력이나 위치가 확인됐다는 뜻은 아닙니다.'],
+    ['Sink', '규칙이 위험한 사용 지점으로 선언한 코드 형태입니다. 실제 인자 위치가 확인됐다는 뜻은 아닙니다.'],
+    ['Trace', '도구가 제공하는 값 전달 경로 정보입니다. Trace가 없다고 데이터 흐름이 없다는 뜻은 아닙니다.'],
+    ['Sanitizer', '입력을 변환하거나 제한하는 처리입니다. 이름만으로 실제 안전성이 확인되지는 않습니다.'],
   ];
-  const advancedTerms = [
-    ['Taint', '규칙이 정한 입력 지점에서 위험할 수 있는 사용 지점까지의 값 전달을 검사하는 분석입니다.'],
-    ['Source', '규칙이 입력 출발점으로 정한 코드 형태입니다. 실제 외부 입력이나 위치가 확인됐다는 뜻은 아닙니다.'],
-    ['Sink', '규칙이 위험할 수 있는 사용 지점으로 정한 코드 형태입니다. 실제 인자 위치가 확인됐다는 뜻은 아닙니다.'],
-    ['Trace', '분석 도구가 제공하는 값 전달 경로 정보입니다. 없다고 해서 흐름이 없다는 뜻은 아닙니다.'],
-    ['Sanitizer', '입력을 변환하거나 제한하는 처리입니다. 이름만으로 실제 안전 효과가 확인되지는 않습니다.'],
-  ];
-  const renderTerms = (terms: string[][]) => <dl>{terms.map(([term, description]) => <div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>;
-  return <section className="glossary panel" aria-label="보안 분석 용어 도움말">
-    {renderTerms(coreTerms)}
-    <details>
-      <summary>전문 분석 용어 보기</summary>
-      {renderTerms(advancedTerms)}
-      <p className="glossary-limit">Source/Sink 규칙 선언은 실제 코드 위치 확인과 다릅니다. Trace가 없다는 사실도 데이터 흐름이 없다는 뜻은 아닙니다.</p>
-    </details>
-  </section>;
+  return <details className="glossary guide-disclosure">
+    <summary>보안 용어 설명</summary>
+    <dl>{terms.map(([term, description]) => <div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>
+    <p className="glossary-limit">규칙의 Source/Sink 선언은 실제 코드 위치 확인과 다릅니다. 취약점 여부는 매치 위치와 근거를 별도로 검토해야 합니다.</p>
+  </details>;
 }
 
 export function ScanStatusGuidance({ scan }: { scan: ScanResponse }) {

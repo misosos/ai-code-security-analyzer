@@ -77,14 +77,14 @@ test('UI-D4B 간소화한 콘텐츠의 화면 상태와 세션별 검토 흐름'
   await page.screenshot({ path: resolve(output, 'partial-results-1440x900.png'), animations: 'disabled' });
 
   await page.getByRole('button', { name: '사용 안내' }).click();
-  await expect(page.getByRole('heading', { name: '사용 방법' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '검사 방법' })).toBeVisible();
   const admin = page.locator('.advanced-setup > summary');
   await expect(admin.locator('xpath=..')).not.toHaveAttribute('open');
   await page.screenshot({ path: resolve(output, 'guide-basic-1440x900.png'), animations: 'disabled' });
   await admin.click();
   await expect(page.getByText(/AI_CODE_SECURITY_TARGETS/)).toBeVisible();
   await page.screenshot({ path: resolve(output, 'guide-admin-expanded-1440x900.png'), animations: 'disabled' });
-  const expert = page.getByRole('region', { name: '보안 분석 용어 도움말' }).locator('details > summary');
+  const expert = page.locator('.glossary > summary');
   await expect(expert.locator('xpath=..')).not.toHaveAttribute('open');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve(output, 'guide-mobile-390x844.png'), animations: 'disabled' });

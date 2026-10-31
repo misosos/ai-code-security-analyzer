@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
-import { QuickStart, ScanStatusGuidance, SecurityGlossary } from './BeginnerGuidance';
+import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
 type WorkspaceView = 'start' | 'results' | 'guide';
@@ -187,7 +187,14 @@ export function App() {
       {bootstrapError && <div className="alert error connection-alert" role="alert"><span>{bootstrapError}</span><button className="button secondary retry-button" type="button" onClick={() => { setHealth('checking'); setConnectionAttempt((attempt) => attempt + 1); }} disabled={health === 'checking'}>{health === 'checking' ? '연결 확인 중' : '다시 연결'}</button></div>}
       {message && ['unauthorized','scan_already_running','connection_error','failed'].includes(state) && <div className="alert error request-feedback" role="alert">{message}</div>}
       {contextChanged && scanContext && <div className="alert warning" role="alert">현재 화면의 결과는 이전 검사 설정({scanContext.targetLabel} · {scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel})에서 생성됐습니다. 현재 선택한 설정({options?.targets.find((target) => target.id === targetId)?.label ?? '알 수 없는 대상'} · {selectedProfile?.experimental ? 'Experimental · ' : ''}{selectedProfile?.label ?? '알 수 없는 규칙'})의 결과는 아직 없습니다. 확인하려면 새 검사를 실행하세요.</div>}
-      {activeView === 'guide' && <div className="guide-workspace"><section className="guide-section"><h2>사용 방법</h2><QuickStart /></section><section className="guide-section"><h2>핵심 보안 용어</h2><SecurityGlossary /></section><section className="guide-limit"><h2>검사 범위와 한계</h2><ul><li>결과는 검토 후보이며 실제 취약점 확정은 별도 확인이 필요합니다.</li><li>0건이어도 프로젝트 안전성이 증명되지는 않습니다.</li><li>결과는 현재 브라우저 세션에만 있으며 이전 세션에서 다시 불러올 수 없습니다.</li></ul></section></div>}
+      {activeView === 'guide' && <div className="guide-workspace guide-document">
+        <section className="guide-section guide-method"><h2>검사 방법</h2><QuickStart /></section>
+        <section className="guide-section guide-result-guide"><h2>검사 결과 이해하기</h2><div className="guide-result-copy">
+          <ul className="guide-limit-list"><li>탐지된 항목은 규칙에 일치해 검토가 필요한 후보입니다. 실제 취약점으로 확정된 것은 아닙니다.</li><li>실제 영향과 악용 가능성은 파일 위치와 근거를 확인해야 판단할 수 있습니다.</li><li>후보가 0건이어도 프로젝트 안전성이 보장되는 것은 아닙니다.</li></ul>
+          <p className="guide-session-note">검사 결과는 현재 브라우저 세션에서만 확인할 수 있습니다. 새로고침하거나 창을 닫으면 복원되지 않습니다.</p>
+        </div></section>
+        <section className="guide-section guide-additional" aria-labelledby="guide-additional-title"><h2 id="guide-additional-title">추가 안내</h2><ServerAdminSettings /><SecurityGlossary /></section>
+      </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {activeView === 'results' && !scan && <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">

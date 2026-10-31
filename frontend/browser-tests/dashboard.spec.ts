@@ -267,10 +267,10 @@ test('large-type scale remains readable across workspace pages and target viewpo
 
     if (viewport.width <= 760) await page.getByRole('button', { name: '내비게이션 열기' }).click();
     await page.getByRole('button', { name: /사용 안내/ }).click();
-    expect(await page.locator('.quick-start > .quick-start-content').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
+    expect(await page.locator('.guide-steps li span').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(viewport.width <= 760 ? 17 : 18);
     expect(await visibleTextBelowFloor()).toEqual([]);
     await page.screenshot({ path: resolve(output, `guide-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
-    const guideAudit = await page.evaluate(() => ['.guide-workspace .quick-start > .quick-start-content', '.guide-workspace .quick-start-content h3', '.guide-workspace .quick-start-content pre', '.guide-workspace .glossary dt', '.guide-workspace .glossary dd', '.guide-limit li'].map((selector) => {
+    const guideAudit = await page.evaluate(() => ['.guide-steps li strong', '.guide-steps li span', '.guide-limit-list li', '.guide-session-note', '.guide-disclosure summary', '.guide-disclosure dd'].map((selector) => {
       const element = document.querySelector(selector);
       if (!element) return { selector, missing: true };
       const style = getComputedStyle(element);
@@ -481,7 +481,7 @@ test('sidebar navigation separates start, current-session results, and guidance 
   await expect(page.getByRole('heading', { name: '아직 검사 결과가 없습니다.' })).toBeVisible();
   await page.screenshot({ path: resolve(output, 'results-empty-1440x900.png'), animations: 'disabled' });
   await page.getByRole('button', { name: '사용 안내' }).click();
-  await expect(page.getByText('전문 분석 용어 보기')).toBeVisible();
+  await expect(page.getByText('보안 용어 설명')).toBeVisible();
   await page.screenshot({ path: resolve(output, 'guide-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole('button', { name: '사이드바 접기' }).click();

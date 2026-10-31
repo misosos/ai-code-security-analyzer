@@ -82,7 +82,7 @@ test('UI-D2 start screen follows Option B control rhythm and keeps required typo
   await expect(page.getByRole('button', { name: '내비게이션 열기' })).toBeFocused();
   await page.getByRole('button', { name: '내비게이션 열기' }).click();
   await page.getByRole('button', { name: '사용 안내' }).click();
-  await expect(page.getByRole('heading', { name: '사용 방법' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '검사 방법' })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: resolve(process.cwd(), '../docs/assets/ui-d2/guide-1440x900.png'), clip: { x: 0, y: 0, width: 1440, height: 900 } });
