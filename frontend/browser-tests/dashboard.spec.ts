@@ -253,7 +253,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
     expect(await visibleTextBelowFloor()).toEqual([]);
     await page.screenshot({ path: resolve(output, `start-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
     const startAudit = await page.evaluate(() => {
-      const selectors = ['.topbar .brand-copy strong', '.topbar .header-status', '.workspace-sidebar .nav-item', '.workspace-title h1', '.workspace-title > p', '.control-label', '.mission-control select', '.mission-control small', '.token-input-control input', '.run-button', '.launch-brief-copy h2', '.launch-brief-copy p', '.launch-steps li'];
+      const selectors = ['.topbar .brand-emblem', '.workspace-sidebar .sidebar-status-copy strong', '.workspace-sidebar .sidebar-status-copy small', '.workspace-sidebar .nav-item', '.workspace-title h1', '.workspace-title > p', '.control-label', '.mission-control select', '.mission-control small', '.token-input-control input', '.run-button', '.launch-brief-copy h2', '.launch-brief-copy p', '.launch-steps li'];
       return selectors.map((selector) => {
         const element = document.querySelector(selector);
         if (!element) return { selector, missing: true };

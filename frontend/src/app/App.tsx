@@ -146,19 +146,23 @@ export function App() {
 
   const selectedProfile = options?.rule_profiles.find((item) => item.id === profileId);
   const contextChanged = Boolean(scanContext && (targetId !== scanContext.targetId || profileId !== scanContext.ruleProfileId));
+  const apiStatusLabel = health === 'connected' ? 'API 연결됨' : health === 'checking' ? 'API 확인 중' : 'API 연결 안 됨';
+  const optionsStatusLabel = health === 'checking'
+    ? '검사 옵션 불러오는 중'
+    : health === 'offline'
+      ? '서버 연결 확인 필요'
+      : options?.targets.length && options.rule_profiles.length
+        ? '검사 옵션 준비됨'
+        : '선택 가능한 검사 옵션 없음';
+  const sidebarStatusLabel = `${apiStatusLabel} · ${optionsStatusLabel}`;
   const pageTitle = activeView === 'start' ? '코드 보안 검사' : activeView === 'results' ? '검사 결과' : '사용 안내';
   const navigate = (view: WorkspaceView) => { setActiveView(view); setMobileNavOpen(false); if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches) mobileMenuButton.current?.focus(); };
   return <div className="app-shell ui-d2">
     <header className="topbar">
       <button ref={mobileMenuButton} className="sidebar-toggle mobile-menu-toggle" type="button" aria-label="내비게이션 열기" aria-expanded={mobileNavOpen} aria-controls="workspace-sidebar" onClick={() => setMobileNavOpen((open) => !open)}><Icon name="menu"/></button>
-      <a className="brand" href="#main-content" aria-label="AI Code Security Analyzer 대시보드로 이동">
+      <a className="brand" href="#main-content" aria-label="AI Code Security Analyzer">
         <span className="brand-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 35 11v18l-15 9L5 29V11z"/><path d="m20 9 9 5v12l-9 5-9-5V14z"/><circle cx="20" cy="20" r="3"/></svg></span>
-        <span className="brand-copy"><strong>AI Code Security Analyzer</strong><small>로컬 분석 워크스페이스</small></span>
       </a>
-      <div className="header-status" aria-label="API 연결 상태">
-        <span className={`status-indicator ${health}`} aria-hidden="true" />
-        <span>API {health === 'connected' ? '연결됨' : health === 'checking' ? '확인 중' : '연결 안 됨'}</span>
-      </div>
     </header>
     {mobileNavOpen && <button type="button" className="sidebar-backdrop" aria-label="내비게이션 닫기" onClick={() => setMobileNavOpen(false)}/>}
     <div className={`workspace-shell ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''} ${mobileNavOpen ? 'mobile-nav-open' : ''}`}>
@@ -169,6 +173,10 @@ export function App() {
           <button type="button" className={`nav-item ${activeView === 'results' ? 'active' : ''}`} aria-current={activeView === 'results' ? 'page' : undefined} title={sidebarCollapsed ? '검사 결과' : undefined} onClick={() => navigate('results')}><Icon name="results"/><span>검사 결과</span>{scan && <span className="nav-result-count">{scan.displayed_finding_count}</span>}</button>
           <button type="button" className={`nav-item ${activeView === 'guide' ? 'active' : ''}`} aria-current={activeView === 'guide' ? 'page' : undefined} title={sidebarCollapsed ? '사용 안내' : undefined} onClick={() => navigate('guide')}><Icon name="book"/><span>사용 안내</span></button>
         </nav>
+        <div className={`sidebar-footnote ${health}`} role="status" aria-live="polite" aria-atomic="true" aria-label={sidebarStatusLabel} title={sidebarCollapsed ? sidebarStatusLabel : undefined}>
+          <span className={`status-indicator ${health}`} aria-hidden="true" />
+          <span className="sidebar-status-copy"><strong>{apiStatusLabel}</strong><small>{optionsStatusLabel}</small></span>
+        </div>
       </aside>
       <main id="main-content" className={`dashboard-main d2-main d2-view-${activeView}`}>
       <div className="workspace-title"><div><h1>{pageTitle}</h1></div>{activeView === 'start' ? <p>등록된 프로젝트와 규칙을 선택해 검사합니다.</p> : activeView === 'results' ? <p>현재 브라우저 세션의 결과만 표시합니다.</p> : <p>검사 순서와 결과 해석 기준을 확인하세요.</p>}</div>
