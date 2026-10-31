@@ -4,6 +4,7 @@ import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severit
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
 import { createComparisonMarkdown, downloadComparisonMarkdown } from '../features/scans/comparisonMarkdownExport';
+import { countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus, getAnalystReviewEntry, hasAnalystReviewWork, setAnalystReviewNote, setAnalystReviewStatus, type AnalystReviewFilter, type AnalystReviewState, type AnalystReviewStatus } from '../features/scans/analystReview';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -48,6 +49,7 @@ const taskText: Record<FindingKind,string[]> = {
   unclassified: ['규칙과 근거 연결을 확인하세요.','매치 위치와 규칙 ID를 원본 프로젝트에서 확인하세요.','분류에 필요한 근거가 누락됐는지 검토하세요.'],
 };
 const statusLabels: Record<string,string> = { completed:'정상 완료', partial:'부분 검사', execution_failed:'실행 실패', not_installed:'Semgrep 미설치', invalid_json:'결과 형식 오류', timed_out:'시간 초과', output_limit_exceeded:'출력 제한 초과' };
+const analystReviewLabels: Record<AnalystReviewStatus,string> = { pending: '검토 대기', needs_followup: '추가 확인 필요', reviewed: '검토 완료' };
 const errorLabels: Record<string,string> = {
   unauthorized:'토큰을 확인하세요. 인증되지 않아 검사를 실행하지 않았습니다.', origin_not_allowed:'브라우저 출처가 서버 허용 목록에 없습니다. 서버의 Origin 설정을 확인하세요.',
   scan_already_running:'이미 검사가 진행 중입니다. 완료 후 다시 시도하세요.', target_not_allowed:'허용되지 않은 프로젝트입니다.', rule_profile_not_allowed:'허용되지 않은 규칙 프로필입니다.',
@@ -77,6 +79,9 @@ export function App() {
   const [exportMessage, setExportMessage] = useState('');
   const [comparisonExportMessage, setComparisonExportMessage] = useState('');
   const [selectedId, setSelectedId] = useState('');
+  const [analystReviews, setAnalystReviews] = useState<AnalystReviewState>(emptyAnalystReviewState);
+  const [analystReviewFilter, setAnalystReviewFilter] = useState<AnalystReviewFilter>('all');
+  const [analystNoteError, setAnalystNoteError] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [kindFilter, setKindFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
@@ -117,16 +122,20 @@ export function App() {
     return () => { active = false; };
   }, [connectionAttempt]);
 
-  const visibleFindings = useMemo(() => (scan?.findings ?? []).filter((finding) =>
+  const baseVisibleFindings = useMemo(() => (scan?.findings ?? []).filter((finding) =>
     (severityFilter === 'all' || finding.severity === severityFilter) &&
     (kindFilter === 'all' || finding.finding_kind === kindFilter) &&
     (verificationFilter === 'all' || finding.verification_status === verificationFilter) &&
     (!searchQuery.trim() || [ruleName(finding.rule_id), finding.rule_id, finding.file_path ?? '', finding.line_number?.toString() ?? ''].some((value) => value.toLocaleLowerCase('ko-KR').includes(searchQuery.trim().toLocaleLowerCase('ko-KR'))))), [scan, severityFilter, kindFilter, verificationFilter, searchQuery]);
-  const selected = visibleFindings.find((finding) => finding.finding_id === selectedId) ?? visibleFindings[0];
+  const visibleFindings = useMemo(() => filterFindingsByAnalystStatus(baseVisibleFindings, analystReviews, analystReviewFilter), [baseVisibleFindings, analystReviews, analystReviewFilter]);
+  const selected = selectedId
+    ? visibleFindings.find((finding) => finding.finding_id === selectedId)
+    : visibleFindings[0];
   const comparison = useMemo(() => compareScanSnapshots(
     baselineSnapshot,
     scan && scanContext ? { scan, context: scanContext } : null,
   ), [baselineSnapshot, scan, scanContext]);
+  const analystReviewCounts = useMemo(() => countAnalystReviewStatuses(scan?.findings ?? [], analystReviews), [scan, analystReviews]);
 
   async function runScan(event: React.FormEvent) {
     event.preventDefault();
@@ -134,9 +143,11 @@ export function App() {
     const target = options?.targets.find((item) => item.id === targetId);
     const profile = options?.rule_profiles.find((item) => item.id === profileId);
     if (!target || !profile) return;
+    if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
+      && !window.confirm('현재 검사에 작성한 분석가 검토 상태와 메모가 새 검사 시작 시 사라집니다. 계속하시겠습니까?')) return;
     const requestSequence = ++scanRequestSequence.current;
     const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
-    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); resetFilters();
+    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
       if (requestSequence !== scanRequestSequence.current) return;
@@ -146,10 +157,23 @@ export function App() {
   }
   function clearToken() { setToken(''); setState('ready'); setMessage('화면에 입력한 토큰을 지웠습니다. 서버 설정의 토큰은 변경되지 않습니다.'); }
   function resetFilters() { setSeverityFilter('all'); setKindFilter('all'); setVerificationFilter('all'); setSearchQuery(''); }
+  function updateAnalystStatus(findingId: string, nextStatus: AnalystReviewStatus) {
+    setSelectedId(findingId);
+    const next = setAnalystReviewStatus(analystReviews, scan?.findings ?? [], findingId, nextStatus);
+    if (next) { setAnalystReviews(next); setAnalystNoteError(''); }
+  }
+  function updateAnalystNote(findingId: string, note: string) {
+    setSelectedId(findingId);
+    const result = setAnalystReviewNote(analystReviews, scan?.findings ?? [], findingId, note);
+    if (result.accepted) { setAnalystReviews(result.state); setAnalystNoteError(''); }
+    else setAnalystNoteError(result.reason === 'note_too_large' ? '메모는 UTF-8 기준 2 KiB까지 입력할 수 있습니다. 기존 메모는 유지됩니다.' : '현재 검사에 포함된 Finding만 수정할 수 있습니다.');
+  }
   function clearResults() {
     if (state === 'scanning') return;
+    if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
+      && !window.confirm('현재 검사 결과의 분석가 검토 상태와 메모, 비교 기준이 모두 삭제됩니다. 계속하시겠습니까?')) return;
     scanRequestSequence.current += 1;
-    setScan(null); setScanContext(null); setBaselineSnapshot(null); setSelectedId(''); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
+    setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
   }
   function setCurrentAsBaseline() {
@@ -250,12 +274,20 @@ export function App() {
         {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
-        <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수 아님"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 근거 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep 분류 · 악용 여부 미확인</small></div></section>
+        <section className="overview-grid analyst-overview" aria-label="검사 및 분석가 검토 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수 아님"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 근거 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep 분류 · 악용 여부 미확인</small></div>
+          <section className="analyst-review-summary" aria-labelledby="analyst-review-heading">
+            <div className="analyst-review-summary-heading"><h2 id="analyst-review-heading">분석가 검토 현황</h2><span>현재 응답 · {scan.findings.length}건</span></div>
+            <div className="analyst-review-counts">
+              {(['pending', 'needs_followup', 'reviewed'] as const).map((status) => <div className={`analyst-review-count ${status}`} key={status}><span>{analystReviewLabels[status]}</span><strong>{analystReviewCounts[status]}건</strong></div>)}
+            </div>
+            {scan.omitted_finding_count > 0 && <p className="analyst-review-scope">생략된 {scan.omitted_finding_count}개는 포함하지 않습니다.</p>}
+          </section>
+        </section>
         <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} onExport={exportComparisonReport} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />
         <section className="findings-section" aria-labelledby="findings-heading">
-          <div className="results-heading"><div className="results-title"><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2>{scan.omitted_finding_count > 0 && <p>목록에는 최대 50건까지 표시됩니다.</p>}</div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
-          {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} selected={selected?.finding_id === finding.finding_id} onSelect={() => setSelectedId(finding.finding_id)} />)}</section>
-            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.</p></div>}</section></div>}
+          <div className="results-heading"><div className="results-title analyst-filter-title"><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2><label className="sr-only" htmlFor="analyst-review-status">분석가 검토 상태</label><select id="analyst-review-status" aria-label="분석가 검토 상태" value={analystReviewFilter} onChange={(e) => setAnalystReviewFilter(e.target.value as AnalystReviewFilter)}><option value="all">전체</option><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select>{scan.omitted_finding_count > 0 && <p>목록에는 최대 50건까지 표시됩니다.</p>}</div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
+          {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} reviewStatus={getAnalystReviewEntry(analystReviews, scan.findings, finding.finding_id).status} selected={selected?.finding_id === finding.finding_id} onSelect={() => { setSelectedId(finding.finding_id); setAnalystNoteError(''); }} />)}</section>
+            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected} reviewEntry={getAnalystReviewEntry(analystReviews, scan.findings, selected.finding_id)} noteError={analystNoteError} onStatusChange={(next) => updateAnalystStatus(selected.finding_id, next)} onNoteChange={(note) => updateAnalystNote(selected.finding_id, note)}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>{selectedId ? '현재 선택한 항목은 필터에서 제외되었습니다. 필터를 바꾸거나 목록에서 다른 항목을 선택하세요.' : '왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.'}</p></div>}</section></div>}
         </section>
       </div>}
       </main>
@@ -280,12 +312,13 @@ function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'
   return <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 function Metric({label,value,note}:{label:string;value:number;note:string}) { return <div className="panel metric"><span className="metric-label">{label}</span><strong>{value.toLocaleString('ko-KR')}</strong><small>{note}</small></div>; }
-function FindingRow({finding,selected,onSelect}:{finding:ApiFinding;selected:boolean;onSelect:()=>void}) { return <button type="button" className={`finding-row ${selected?'selected':''}`} onClick={onSelect} aria-pressed={selected} aria-label={`${ruleName(finding.rule_id)} (${finding.rule_id}), ${severityLabels[finding.severity]}, ${finding.file_path ?? '위치 확인 불가'}${finding.line_number ? ` ${finding.line_number}행` : ''}, 취약점 여부 미확인`}><span className={`severity-rail ${finding.severity}`} aria-hidden="true"/><span className="row-main"><span className="row-topline"><span className={`severity-label ${finding.severity}`}>{severityLabels[finding.severity]}</span><span className="row-kind">{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미확인</span></span><strong>{ruleName(finding.rule_id)}</strong><small className="row-location">{finding.file_path ?? '위치 확인 불가'}{finding.line_number ? `:${finding.line_number}` : ''}</small><code className="row-rule-id">{finding.rule_id}</code></span><span className={`validation-icon ${finding.evidence_validation_status}`} title={`근거 검증 ${finding.evidence_validation_status}`} aria-label={`근거 연결 ${finding.evidence_validation_status === 'validated' ? '확인됨' : '확인 불가'}`}>{finding.evidence_validation_status === 'validated' ? '✓' : '!'}</span></button>; }
-function FindingDetail({finding}:{finding:ApiFinding}) {
+function FindingRow({finding,reviewStatus,selected,onSelect}:{finding:ApiFinding;reviewStatus:AnalystReviewStatus;selected:boolean;onSelect:()=>void}) { return <button type="button" className={`finding-row ${selected?'selected':''}`} onClick={onSelect} aria-pressed={selected} aria-label={`${ruleName(finding.rule_id)} (${finding.rule_id}), ${severityLabels[finding.severity]}, ${analystReviewLabels[reviewStatus]}, ${finding.file_path ?? '위치 확인 불가'}${finding.line_number ? ` ${finding.line_number}행` : ''}, 취약점 여부 미확인`}><span className={`severity-rail ${finding.severity}`} aria-hidden="true"/><span className="row-main"><span className="row-topline"><span className={`severity-label ${finding.severity}`}>{severityLabels[finding.severity]}</span><span className="row-kind">{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미확인</span></span><strong>{ruleName(finding.rule_id)}</strong><small className="row-location">{finding.file_path ?? '위치 확인 불가'}{finding.line_number ? `:${finding.line_number}` : ''}</small><code className="row-rule-id">{finding.rule_id}</code><span className={`analyst-review-badge ${reviewStatus}`}>분석가: {analystReviewLabels[reviewStatus]}</span></span><span className={`validation-icon ${finding.evidence_validation_status}`} title={`근거 검증 ${finding.evidence_validation_status}`} aria-label={`근거 연결 ${finding.evidence_validation_status === 'validated' ? '확인됨' : '확인 불가'}`}>{finding.evidence_validation_status === 'validated' ? '✓' : '!'}</span></button>; }
+function FindingDetail({finding,reviewEntry,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;reviewEntry?:{status:AnalystReviewStatus;note:string};noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
   return <article>
     <div className="detail-top"><div><p className="eyebrow">발견 항목 요약</p><h2>{ruleName(finding.rule_id)}</h2></div><span className={`severity-label ${finding.severity}`}>심각도: {severityLabels[finding.severity]}</span></div>
     <div className="detail-badges"><span>{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미검증 후보</span></div>
     <div className="detail-location"><span>확인할 파일과 위치</span><strong>{finding.file_path ?? '파일 경로를 확인할 수 없습니다'}{finding.line_number ? `:${finding.line_number}` : ''}</strong><small>이 위치는 규칙이 보고한 매치입니다. 실제 입력 위치나 위험한 함수의 인자 위치와 같다고 확인된 것은 아닙니다.</small></div>
+    {reviewEntry && onStatusChange && onNoteChange && <section className="analyst-review-editor" aria-labelledby="analyst-review-editor-title"><h3 id="analyst-review-editor-title">분석가 검토</h3><label>수동 검토 상태<select aria-label="수동 검토 상태" value={reviewEntry.status} onChange={(event) => onStatusChange(event.target.value as AnalystReviewStatus)}><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select></label><label htmlFor="analyst-note">분석가 메모<textarea id="analyst-note" aria-label="분석가 메모" aria-describedby={`analyst-note-help analyst-note-count${noteError ? ' analyst-note-error' : ''}`} value={reviewEntry.note} onChange={(event) => onNoteChange(event.target.value)} rows={4}/></label><p id="analyst-note-help" className="analyst-note-help">임시 저장: 이 탭의 메모리에만 보관되며 새 검사·결과 삭제·새로고침 시 사라집니다. 토큰, 개인정보, 비밀정보는 입력하지 마세요.</p><p id="analyst-note-count" className="analyst-note-count">UTF-8 {new TextEncoder().encode(reviewEntry.note).byteLength} / 2,048 bytes</p>{noteError && <p id="analyst-note-error" className="analyst-note-error" role="alert">{noteError}</p>}</section>}
     {finding.evidence_validation_status !== 'validated' && <div className="alert warning" role="note">근거 연결을 검증하지 못해 지원된 근거는 표시하지 않습니다. 자세한 상태와 코드는 기술 상세에서 확인할 수 있습니다.</div>}
     <section className="analyst-tasks"><h3>먼저 확인할 내용</h3><p>아래는 검토 제안입니다. 아직 완료된 확인이 아닙니다.</p><ol>{taskText[finding.finding_kind].map((task) => <li key={task}>{task}</li>)}</ol></section>
     <div className="basic-evidence-limit" role="note"><strong>중요한 제한</strong><p>이 결과는 검토 후보이며 실제 취약점으로 확정되지 않았습니다. Source/Sink 위치와 전체 데이터 전달 경로는 확인되지 않았을 수 있습니다.</p></div>
