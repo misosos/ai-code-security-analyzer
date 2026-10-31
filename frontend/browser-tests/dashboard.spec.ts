@@ -468,7 +468,7 @@ test('sidebar navigation separates start, current-session results, and guidance 
     return { viewport: { width: innerWidth, height: innerHeight }, sidebar: rect('.workspace-sidebar'), main: rect('.dashboard-main'), bodyText: getComputedStyle(document.querySelector('.workspace-title > p')!).fontSize, inputHeight: rect('.mission-control select')?.height ?? 0, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
   });
   expect(desktopMetrics.sidebar?.width).toBeGreaterThanOrEqual(232);
-  expect(desktopMetrics.sidebar?.width).toBeLessThanOrEqual(256);
+  expect(desktopMetrics.sidebar?.width).toBeLessThanOrEqual(280);
   expect(Number.parseFloat(desktopMetrics.bodyText)).toBeGreaterThanOrEqual(18);
   expect(desktopMetrics.inputHeight).toBeGreaterThanOrEqual(54);
   expect(desktopMetrics.overflow).toBe(0);

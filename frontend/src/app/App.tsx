@@ -157,8 +157,8 @@ export function App() {
   const sidebarStatusLabel = `${apiStatusLabel} · ${optionsStatusLabel}`;
   const pageTitle = activeView === 'start' ? '코드 보안 검사' : activeView === 'results' ? '검사 결과' : '사용 안내';
   const navigate = (view: WorkspaceView) => { setActiveView(view); setMobileNavOpen(false); if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches) mobileMenuButton.current?.focus(); };
-  return <div className="app-shell ui-d2">
-    <header className="topbar">
+  return <div className="app-shell ui-d2 ui-d5a">
+    <header className="topbar mobile-topbar">
       <button ref={mobileMenuButton} className="sidebar-toggle mobile-menu-toggle" type="button" aria-label="내비게이션 열기" aria-expanded={mobileNavOpen} aria-controls="workspace-sidebar" onClick={() => setMobileNavOpen((open) => !open)}><Icon name="menu"/></button>
       <a className="brand" href="#main-content" aria-label="AI Code Security Analyzer">
         <span className="brand-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 35 11v18l-15 9L5 29V11z"/><path d="m20 9 9 5v12l-9 5-9-5V14z"/><circle cx="20" cy="20" r="3"/></svg></span>
@@ -167,6 +167,12 @@ export function App() {
     {mobileNavOpen && <button type="button" className="sidebar-backdrop" aria-label="내비게이션 닫기" onClick={() => setMobileNavOpen(false)}/>}
     <div className={`workspace-shell ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''} ${mobileNavOpen ? 'mobile-nav-open' : ''}`}>
       <aside id="workspace-sidebar" className="workspace-sidebar" role={mobileNavOpen ? 'dialog' : 'complementary'} aria-modal={mobileNavOpen || undefined} aria-label="주 메뉴">
+        <div className="sidebar-brand-row">
+          <a className="brand sidebar-brand" href="#main-content" aria-label="AI Code Security Analyzer">
+            <span className="brand-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 35 11v18l-15 9L5 29V11z"/><path d="m20 9 9 5v12l-9 5-9-5V14z"/><circle cx="20" cy="20" r="3"/></svg></span>
+            <span className="sidebar-brand-name">AI Code Security</span>
+          </a>
+        </div>
         <div className="sidebar-heading"><span className="sidebar-section-label">작업 공간</span><button className="sidebar-toggle collapse-toggle" type="button" aria-label={sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}><Icon name="collapse"/></button></div>
         <nav className="sidebar-nav" aria-label="화면 이동">
           <button type="button" className={`nav-item ${activeView === 'start' ? 'active' : ''}`} aria-current={activeView === 'start' ? 'page' : undefined} title={sidebarCollapsed ? '검사 시작' : undefined} onClick={() => navigate('start')}><Icon name="play"/><span>검사 시작</span></button>

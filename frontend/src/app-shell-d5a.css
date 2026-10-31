@@ -1,0 +1,69 @@
+/* UI-D5A: desktop-first shell with brand and navigation in one sidebar. */
+.ui-d5a > .mobile-topbar { display: none; }
+.ui-d5a .workspace-shell {
+  grid-template-columns: 272px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.ui-d5a .workspace-shell.sidebar-is-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+.ui-d5a .workspace-sidebar {
+  top: 0;
+  height: 100vh;
+  padding: 20px 14px 18px;
+}
+.ui-d5a .sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  margin: 0 6px 24px;
+}
+.ui-d5a .sidebar-brand {
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+}
+.ui-d5a .sidebar-brand .brand-emblem {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+}
+.ui-d5a .sidebar-brand-name {
+  color: var(--d2-ink);
+  font-size: 19px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.ui-d5a .sidebar-heading { margin-bottom: 18px; }
+.ui-d5a .sidebar-section-label { font-size: 18px; }
+.ui-d5a .sidebar-is-collapsed .sidebar-brand-row { justify-content: center; margin-inline: 0; }
+.ui-d5a .sidebar-is-collapsed .sidebar-brand { justify-content: center; }
+.ui-d5a .sidebar-is-collapsed .sidebar-brand-name { display: none; }
+.ui-d5a .dashboard-main { padding-top: 32px; }
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .ui-d5a .workspace-shell { grid-template-columns: 240px minmax(0, 1fr); }
+  .ui-d5a .workspace-shell.sidebar-is-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .ui-d5a > .mobile-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    display: flex;
+    justify-content: space-between;
+    min-height: 64px;
+    height: 64px;
+    padding: 8px 16px;
+  }
+  .ui-d5a .mobile-topbar .brand { margin-left: auto; }
+  .ui-d5a .mobile-topbar .brand-emblem { width: 44px; height: 44px; }
+  .ui-d5a .sidebar-brand-row { display: none; }
+  .ui-d5a .workspace-shell,
+  .ui-d5a .workspace-shell.sidebar-is-collapsed { display: block; min-height: calc(100vh - 64px); }
+  .ui-d5a .workspace-sidebar { top: 64px; height: auto; }
+  .ui-d5a .sidebar-backdrop { inset-block-start: 64px; }
+  .ui-d5a .dashboard-main { padding-top: 24px; }
+}
