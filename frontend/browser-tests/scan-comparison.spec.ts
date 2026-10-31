@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 function finding(id: string, line: number) {
@@ -82,4 +83,44 @@ test('baseline comparison can be saved, compared, and read without narrow-screen
   await page.screenshot({ path: resolve(screenshotDir, 'comparison-390.png'), fullPage: true });
   await page.getByRole('button', { name: /기준 검사에서만 관찰/ }).click();
   await expect(page.getByRole('region', { name: '기준 검사에서만 관찰 목록' })).toContainText('src/bbbbbbbbbbbbbbbbbbbbbbbb.js:7');
+});
+
+test('comparison report download contains every comparison group without another API request', async ({ page }) => {
+  let scanIndex = 0;
+  let scanRequests = 0;
+  const responses = [
+    scan([finding('aaaaaaaaaaaaaaaaaaaaaaaa', 4), finding('bbbbbbbbbbbbbbbbbbbbbbbb', 7)]),
+    scan([finding('aaaaaaaaaaaaaaaaaaaaaaaa', 4), finding('cccccccccccccccccccccccc', 9)]),
+  ];
+  await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+  await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
+    targets: [{ id: 'local-project', label: 'Synthetic Project' }],
+    rule_profiles: [{ id: 'baseline', label: 'Baseline Rules', experimental: false }],
+  } }));
+  await page.route('**/api/v1/scans', (route) => { scanRequests += 1; return route.fulfill({ json: responses[scanIndex++] }); });
+
+  await page.goto('/');
+  await page.getByLabel('로컬 API 토큰').fill('synthetic-browser-token');
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 시작/ }).click();
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: '비교 보고서 내보내기' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('ai-code-security-comparison.md');
+  const content = await readFile(await download.path() ?? '', 'utf8');
+  expect(content).toContain('Synthetic Project (local-project)');
+  expect(content).toContain('이번 검사에서만 관찰: 1');
+  expect(content).toContain('양쪽에서 관찰: 1');
+  expect(content).toContain('기준 검사에서만 관찰: 1');
+  expect(content).toContain('semgrep:aaaaaaaaaaaaaaaaaaaaaaaa');
+  expect(content).toContain('semgrep:bbbbbbbbbbbbbbbbbbbbbbbb');
+  expect(content).toContain('semgrep:cccccccccccccccccccccccc');
+  expect(content).toContain('취약점의 발생·해결');
+  expect(scanRequests).toBe(2);
+  await expect(page.getByText(/비교 보고서를 다운로드했습니다/)).toBeVisible();
 });

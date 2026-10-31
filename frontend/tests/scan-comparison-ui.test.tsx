@@ -144,4 +144,63 @@ describe('검사 결과 비교 UI', () => {
     expect(setBaseline).toBeDisabled();
     expect(screen.getByText(/부분 검사 또는 실패한 결과는 비교할 수 없습니다/)).toBeInTheDocument();
   });
+
+  it('비교 가능할 때만 버튼을 열고 클릭 시 보고서를 다운로드하며 API를 추가 호출하지 않는다', async () => {
+    const createDescriptor = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    const revokeDescriptor = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+    const createObjectURL = vi.fn(() => 'blob:comparison-report');
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    let filename = '';
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { filename = this.download; });
+    try {
+      installApi([scan([finding('one')]), scan([finding('two')])]);
+      const user = userEvent.setup(); render(<App/>);
+      await screen.findByText('API 연결됨'); await runScan(user);
+      const reportButton = screen.getByRole('button', { name: '비교 보고서 내보내기' });
+      expect(reportButton).toBeDisabled();
+      await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+      await user.click(screen.getByRole('button', { name: '검사 시작' }));
+      await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
+      await user.click(screen.getByRole('button', { name: '검사 실행' }));
+      await screen.findByRole('heading', { name: '정상 완료' });
+      const enabledReportButton = screen.getByRole('button', { name: '비교 보고서 내보내기' });
+      expect(enabledReportButton).toBeEnabled();
+      const requestCountBeforeDownload = vi.mocked(fetch).mock.calls.length;
+      await user.click(enabledReportButton);
+      expect(filename).toBe('ai-code-security-comparison.md');
+      expect(createObjectURL).toHaveBeenCalledOnce();
+      expect(screen.getByText('두 검사에서 관찰된 비교 보고서를 다운로드했습니다. 공유 전 파일 내용을 확인하세요.')).toBeInTheDocument();
+      expect(vi.mocked(fetch).mock.calls).toHaveLength(requestCountBeforeDownload);
+    } finally {
+      if (createDescriptor) Object.defineProperty(URL, 'createObjectURL', createDescriptor);
+      else Reflect.deleteProperty(URL, 'createObjectURL');
+      if (revokeDescriptor) Object.defineProperty(URL, 'revokeObjectURL', revokeDescriptor);
+      else Reflect.deleteProperty(URL, 'revokeObjectURL');
+    }
+  });
+
+  it('재검사 진행 중에는 이전 비교 보고서 다운로드 버튼이 비활성화된다', async () => {
+    let resolveSecond: ((response: Response) => void) | undefined;
+    const first = scan([finding('one')]);
+    let scanRequests = 0;
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith('/health')) return json({ status: 'ok', service: 'ai-code-security-analyzer' });
+      if (url.endsWith('/options')) return json(options);
+      if (url.endsWith('/scans') && scanRequests++ === 0) return json(first);
+      if (url.endsWith('/scans')) return new Promise<Response>((resolve) => { resolveSecond = resolve; });
+      throw new Error('unexpected request');
+    });
+    const user = userEvent.setup(); render(<App/>);
+    await screen.findByText('API 연결됨'); await runScan(user);
+    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: '검사 시작' }));
+    await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
+    await user.click(screen.getByRole('button', { name: '검사 실행' }));
+    await user.click(screen.getByRole('button', { name: '검사 결과' }));
+    expect(screen.getByRole('button', { name: '비교 보고서 내보내기' })).toBeDisabled();
+    resolveSecond?.(json(scan([finding('two')])));
+    await screen.findByRole('heading', { name: '정상 완료' });
+  });
 });

@@ -3,6 +3,7 @@ import { api, ApiError } from '../api/client';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
+import { createComparisonMarkdown, downloadComparisonMarkdown } from '../features/scans/comparisonMarkdownExport';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -74,6 +75,7 @@ export function App() {
   const [baselineSnapshot, setBaselineSnapshot] = useState<ScanSnapshot | null>(null);
   const scanRequestSequence = useRef(0);
   const [exportMessage, setExportMessage] = useState('');
+  const [comparisonExportMessage, setComparisonExportMessage] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [kindFilter, setKindFilter] = useState('all');
@@ -134,7 +136,7 @@ export function App() {
     if (!target || !profile) return;
     const requestSequence = ++scanRequestSequence.current;
     const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
-    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setSelectedId(''); setExportMessage(''); resetFilters();
+    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
       if (requestSequence !== scanRequestSequence.current) return;
@@ -147,18 +149,31 @@ export function App() {
   function clearResults() {
     if (state === 'scanning') return;
     scanRequestSequence.current += 1;
-    setScan(null); setScanContext(null); setBaselineSnapshot(null); setSelectedId(''); resetFilters(); setExportMessage(''); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
+    setScan(null); setScanContext(null); setBaselineSnapshot(null); setSelectedId(''); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
   }
   function setCurrentAsBaseline() {
     if (!scan || !scanContext || scan.scan_status !== 'completed' || !scan.completed) return;
     setBaselineSnapshot({ scan, context: scanContext });
+    setComparisonExportMessage('');
     setMessage('현재 검사 결과를 비교 기준으로 지정했습니다. 다음 검사를 실행하면 관찰 차이를 비교합니다.');
   }
   function exportResults() {
     if (!scan || !scanContext) return;
     try { downloadReviewMarkdown(createReviewMarkdown(scanContext, scan)); setExportMessage('현재 API 응답에 포함된 Finding 요약을 다운로드했습니다.'); }
     catch { setExportMessage('요약을 내보낼 수 없습니다. 출력 크기 제한을 확인하세요.'); }
+  }
+  function exportComparisonReport() {
+    if (state === 'scanning' || !baselineSnapshot || !scan || !scanContext) return;
+    try {
+      const markdown = createComparisonMarkdown(baselineSnapshot, { scan, context: scanContext });
+      downloadComparisonMarkdown(markdown);
+      setComparisonExportMessage('두 검사에서 관찰된 비교 보고서를 다운로드했습니다. 공유 전 파일 내용을 확인하세요.');
+    } catch (error) {
+      setComparisonExportMessage(error instanceof Error && error.message === 'comparison_export_size_limit_exceeded'
+        ? '보고서가 512 KiB 제한을 초과해 다운로드하지 않았습니다.'
+        : '비교할 수 있는 검사 결과가 아니거나 보고서를 생성하지 못했습니다.');
+    }
   }
 
   const selectedProfile = options?.rule_profiles.find((item) => item.id === profileId);
@@ -228,7 +243,7 @@ export function App() {
       </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {activeView === 'results' && !scan && <>
-        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} />}
+        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} onExport={exportComparisonReport} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />}
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
@@ -236,7 +251,7 @@ export function App() {
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         <section className="overview-grid" aria-label="검사 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수 아님"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 근거 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep 분류 · 악용 여부 미확인</small></div></section>
-        <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} />
+        <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} onExport={exportComparisonReport} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />
         <section className="findings-section" aria-labelledby="findings-heading">
           <div className="results-heading"><div className="results-title"><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2>{scan.omitted_finding_count > 0 && <p>목록에는 최대 50건까지 표시됩니다.</p>}</div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
           {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} selected={selected?.finding_id === finding.finding_id} onSelect={() => setSelectedId(finding.finding_id)} />)}</section>
@@ -317,12 +332,15 @@ function receivedAtLabel(value: string): string {
 }
 
 function ScanComparisonPanel({
-  baseline, current, comparison, onSetBaseline,
+  baseline, current, comparison, onSetBaseline, onExport, exportMessage, exporting,
 }: {
   baseline: ScanSnapshot | null;
   current: ScanSnapshot | null;
   comparison: ReturnType<typeof compareScanSnapshots>;
   onSetBaseline: () => void;
+  onExport: () => void;
+  exportMessage: string;
+  exporting: boolean;
 }) {
   const [category, setCategory] = useState<ComparisonCategory>('currentOnly');
   const [selectedFindingId, setSelectedFindingId] = useState('');
@@ -378,8 +396,12 @@ function ScanComparisonPanel({
       <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>
         {baseline ? '비교 기준 교체' : '비교 기준으로 지정'}
       </button>
+      <button type="button" className="button secondary comparison-export-action" onClick={onExport} disabled={!comparison.comparable || !groups || exporting}>
+        비교 보고서 내보내기
+      </button>
     </div>
 
+    {exportMessage && <p className="export-feedback comparison-export-feedback" role="status">{exportMessage}</p>}
     {!comparison.comparable || !groups ? <div className="comparison-blocked" role="status" aria-live="polite">
       <strong>비교 판단 불가</strong>
       <ul>{comparison.reasons.map((reason) => <li key={reason}>{comparisonReasonLabels[reason]}</li>)}</ul>
