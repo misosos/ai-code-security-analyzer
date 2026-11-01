@@ -39,10 +39,10 @@ test('Finding 검토 상태와 메모는 현재 검사에 격리되고 확인·�
   await expect(list).toContainText('분석가: 검토 완료');
   expect(scanRequests).toBe(2);
 
-  await page.getByLabel('분석가 검토 상태').selectOption('pending');
+  await page.getByRole('combobox', { name: '분석가 검토' }).selectOption('pending');
   await expect(list.getByRole('button')).toHaveCount(1);
   await expect(page.getByLabel('선택한 Finding 상세')).toContainText('현재 선택한 항목은 필터에서 제외되었습니다');
-  await page.getByLabel('분석가 검토 상태').selectOption('all');
+  await page.getByRole('combobox', { name: '분석가 검토' }).selectOption('all');
   await list.getByRole('button', { name: /rule-cccccccc/ }).click();
   await expect(page.getByLabel('수동 검토 상태')).toHaveValue('pending');
   await list.getByRole('button', { name: /rule-aaaaaaaa/ }).click();
@@ -53,7 +53,7 @@ test('Finding 검토 상태와 메모는 현재 검사에 격리되고 확인·�
   await page.getByRole('button', { name: '검사 실행' }).click();
   await confirmation;
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
-  await expect(page.getByLabel('분석가 검토 상태')).toHaveValue('all');
+  await expect(page.getByRole('combobox', { name: '분석가 검토' })).toHaveValue('all');
   await expect(page.getByLabel('선택한 Finding 상세')).toContainText('검토 대기');
   expect(scanRequests).toBe(3);
 

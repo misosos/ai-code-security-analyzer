@@ -96,7 +96,7 @@ test('UI-D3 result review preserves hierarchy and common actions at desktop and 
   await page.locator('.detail-panel').screenshot({ path: resolve(shots, 'finding-detail-1440x900.png') });
 
   const values = await page.evaluate(() => {
-    const selectors = ['.workspace-title h1', '.scan-state-copy h2', '.metric strong', '.finding-row .row-main > strong', '.detail-top h2', '.filter-row input'];
+    const selectors = ['.workspace-title h1', '.scan-state-copy h2', '.metric strong', '.finding-row .row-main-heading > strong', '.detail-top h2', '.filter-row input'];
     return Object.fromEntries(selectors.map((selector) => {
       const el = document.querySelector<HTMLElement>(selector);
       if (!el) throw new Error(`결과 화면 측정 요소 누락: ${selector}`);
@@ -116,7 +116,7 @@ test('UI-D3 result review preserves hierarchy and common actions at desktop and 
   const filterBox = await page.locator('.filter-row').boundingBox();
   const listBox = await page.locator('.results-layout').boundingBox();
   if (!titleBox || !filterBox || !listBox) throw new Error('결과 화면 레이아웃 측정 요소 누락');
-  expect(Math.abs(titleBox.y - filterBox.y)).toBeLessThanOrEqual(4);
+  expect(titleBox.y + titleBox.height).toBeLessThanOrEqual(filterBox.y);
   const listDocumentY = listBox.y + await page.evaluate(() => window.scrollY);
   console.log('[UI-D3 결과 목록 첫 화면 위치]', listDocumentY);
   expect(listDocumentY).toBeLessThan(810);

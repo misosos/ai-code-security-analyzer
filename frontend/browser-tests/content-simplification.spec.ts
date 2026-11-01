@@ -58,7 +58,7 @@ test('UI-D4B 간소화한 콘텐츠의 화면 상태와 세션별 검토 흐름'
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve(output, 'finding-results-390x844.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').fill('no-match');
+  await page.getByRole('searchbox', { name: '검색' }).fill('no-match');
   await expect(page.getByLabel('Finding 목록')).toContainText('검색 또는 필터와 일치하는 결과가 없습니다.');
   await page.screenshot({ path: resolve(output, 'filtered-empty-1440x900.png'), animations: 'disabled' });
 

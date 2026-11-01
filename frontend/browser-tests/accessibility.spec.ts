@@ -44,11 +44,13 @@ async function runScan(page: Page) {
 }
 
 async function tabTo(page: Page, locator: ReturnType<Page['getByRole']> | ReturnType<Page['getByLabel']> | ReturnType<Page['getByText']>, limit = 80) {
+  const seen: string[] = [];
   for (let index = 0; index < limit; index += 1) {
     if (await locator.evaluate((element) => document.activeElement === element).catch(() => false)) return;
     await page.keyboard.press('Tab');
+    seen.push(await page.evaluate(() => { const element = document.activeElement as HTMLElement | null; return element ? `${element.tagName.toLowerCase()}#${element.id}.${element.className} aria=${element.getAttribute('aria-label') ?? ''}` : 'none'; }));
   }
-  throw new Error('keyboard_target_not_reachable');
+  throw new Error(`keyboard_target_not_reachable: ${seen.slice(-12).join(' | ')}`);
 }
 
 async function expectAxeClean(page: Page, state: string) {
@@ -204,6 +206,11 @@ test('키보드 탐색으로 검사·Finding 검토·검색·보고서·백업·
   const resultNavigation = page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 결과' });
   await tabTo(page, resultNavigation);
   await page.keyboard.press('Enter');
+  const search = page.getByRole('searchbox', { name: '검색' });
+  await tabTo(page, search);
+  await page.keyboard.type('dynamic-eval');
+  await page.keyboard.press('Control+A');
+  await page.keyboard.press('Backspace');
   const findingRow = page.getByLabel('Finding 목록').getByRole('button').first();
   await tabTo(page, findingRow);
   await page.keyboard.press('Enter');
@@ -219,12 +226,7 @@ test('키보드 탐색으로 검사·Finding 검토·검색·보고서·백업·
   await tabTo(page, note);
   await page.keyboard.type('keyboard-only synthetic note');
 
-  const search = page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색');
-  await tabTo(page, search);
-  await page.keyboard.type('dynamic-eval');
   await expect(findingRow).toBeVisible();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.press('Backspace');
 
   const reportSummary = page.getByText('분석가 검토 기록 내보내기', { exact: true });
   await tabTo(page, reportSummary);
@@ -291,7 +293,7 @@ test('1280px 데스크톱의 검토 요약이 좁은 열에 눌리지 않는다'
   await page.goto('/');
   await runScan(page);
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 결과' }).click();
-  const layout = await page.locator('.overview-grid.analyst-overview').evaluate((element) => {
+  const layout = await page.locator('.overview-analysis-grid').evaluate((element) => {
     const summary = element.querySelector('.analyst-review-summary') as HTMLElement;
     const heading = summary.querySelector('.analyst-review-summary-heading') as HTMLElement;
     const title = heading.querySelector('h2') as HTMLElement;
@@ -311,7 +313,8 @@ test('1280px 데스크톱의 검토 요약이 좁은 열에 눌리지 않는다'
     };
   });
   expect(layout.columns).toBe(2);
-  expect(layout.summaryColumn).toBe('1 / -1');
+  expect(layout.summaryWidth).toBeGreaterThan(300);
+  expect(layout.summaryColumn).not.toBe('1 / -1');
   expect(layout.scopeLeft).toBeGreaterThanOrEqual(layout.titleRight - 1);
   expect(layout.scopeRight).toBeLessThanOrEqual(layout.overviewRight + 1);
   expect(layout.documentWidth).toBe(layout.viewportWidth);

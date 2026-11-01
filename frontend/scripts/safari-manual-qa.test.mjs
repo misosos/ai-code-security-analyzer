@@ -110,7 +110,7 @@ async function verifyManualStopSignal(signal) {
   const ready = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('qa_ready_timeout')), 60_000);
     const inspect = () => {
-      if (stdout.includes('접속 주소:')) {
+      if (stdout.includes('접속 주소:') && stdout.includes('로컬 API 토큰:')) {
         clearTimeout(timeout);
         resolve();
       }
@@ -118,7 +118,7 @@ async function verifyManualStopSignal(signal) {
     child.stdout.on('data', inspect);
     child.once('error', (error) => { clearTimeout(timeout); reject(error); });
     child.once('close', (code) => {
-      if (!stdout.includes('접속 주소:')) {
+      if (!stdout.includes('접속 주소:') || !stdout.includes('로컬 API 토큰:')) {
         clearTimeout(timeout);
         reject(new Error(`qa_exited_before_ready:${code}:${stderr}`));
       }

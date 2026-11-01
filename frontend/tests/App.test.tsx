@@ -279,6 +279,6 @@ describe('Analyst dashboard',()=>{
     expect(screen.getByText(/근거 검증이 통과하지 않았습니다/)).toHaveTextContent('지원된 주장은 표시하지 않습니다');
     expect(screen.getByText(/근거 연결을 검증하지 못해 지원된 근거는 표시하지 않습니다/)).toBeInTheDocument();
     expect(screen.queryByText('Semgrep 규칙 매치 보고')).not.toBeInTheDocument();
-    await userEvent.setup().selectOptions(screen.getByLabelText('유형'),'pattern'); expect(within(screen.getByLabelText('Finding 목록')).getByRole('button',{name:/baseline.test-pattern/})).toBeInTheDocument();
+    await userEvent.setup().selectOptions(screen.getByLabelText('탐지 유형'),'pattern'); expect(within(screen.getByLabelText('Finding 목록')).getByRole('button',{name:/baseline.test-pattern/})).toBeInTheDocument();
   });
 });

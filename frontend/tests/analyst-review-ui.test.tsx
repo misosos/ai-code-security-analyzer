@@ -43,7 +43,7 @@ describe('분석가 Finding 검토 UI', () => {
     expect(detail).toHaveTextContent('미검증 후보');
     expect(screen.getByLabelText('Finding 목록')).toHaveTextContent('분석가: 추가 확인 필요');
     expect(screen.getByRole('heading', { name: '분석가 검토 현황' }).parentElement?.parentElement).toHaveTextContent('검토 대기');
-    expect(screen.getByLabelText('분석가 검토 상태')).toHaveValue('all');
+    expect(screen.getByRole('combobox', { name: '분석가 검토' })).toHaveValue('all');
     expect(localStorage.setItem).not.toHaveBeenCalled(); expect(sessionStorage.setItem).not.toHaveBeenCalled();
     expect(vi.mocked(fetch).mock.calls.filter((call) => String(call[0]).endsWith('/scans'))).toHaveLength(1);
   });
@@ -60,16 +60,16 @@ describe('분석가 Finding 검토 UI', () => {
     expect(within(screen.getByLabelText('선택한 Finding 상세')).getByLabelText('수동 검토 상태')).toHaveValue('pending');
     await user.selectOptions(screen.getByLabelText('수동 검토 상태'), 'needs_followup');
     await user.type(screen.getByLabelText('분석가 메모'), '두 번째 메모');
-    await user.selectOptions(screen.getByLabelText('분석가 검토 상태'), 'reviewed');
+    await user.selectOptions(screen.getByRole('combobox', { name: '분석가 검토' }), 'reviewed');
     expect(list).toHaveTextContent('baseline.rule-1'); expect(list).not.toHaveTextContent('baseline.rule-2');
     expect(screen.getByLabelText('선택한 Finding 상세')).toHaveTextContent('현재 선택한 항목은 필터에서 제외되었습니다');
     expect(within(list).getByRole('button', { name: /baseline\.rule-1/ })).toHaveAttribute('aria-pressed', 'false');
-    await user.selectOptions(screen.getByLabelText('분석가 검토 상태'), 'needs_followup');
+    await user.selectOptions(screen.getByRole('combobox', { name: '분석가 검토' }), 'needs_followup');
     await user.selectOptions(screen.getByLabelText('심각도'), 'critical');
     expect(list).toHaveTextContent('검색 또는 필터와 일치하는 결과가 없습니다');
     await user.selectOptions(screen.getByLabelText('심각도'), 'all');
     expect(within(list).getByRole('button', { name: /rule-2/ })).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText('분석가 검토 상태'), 'all');
+    await user.selectOptions(screen.getByRole('combobox', { name: '분석가 검토' }), 'all');
     await user.click(within(list).getByRole('button', { name: /baseline\.rule-1/ }));
     expect(screen.getByLabelText('분석가 메모')).toHaveValue('첫 번째 메모');
   });
@@ -92,7 +92,7 @@ describe('분석가 Finding 검토 UI', () => {
     expect(await screen.findByRole('heading', { name: '정상 완료' })).toBeInTheDocument();
     expect(vi.mocked(fetch).mock.calls.filter((call) => String(call[0]).endsWith('/scans'))).toHaveLength(2);
     expect(screen.queryByDisplayValue('보존되어야 하는 노트')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('분석가 검토 상태')).toHaveValue('all');
+    expect(screen.getByRole('combobox', { name: '분석가 검토' })).toHaveValue('all');
     expect(screen.getByLabelText('선택한 Finding 상세')).toHaveTextContent('검토 대기');
     expect(screen.getByRole('heading', { name: '검사 결과 비교' })).toBeInTheDocument();
   });

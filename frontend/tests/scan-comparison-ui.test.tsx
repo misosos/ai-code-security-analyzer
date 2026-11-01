@@ -157,8 +157,7 @@ describe('검사 결과 비교 UI', () => {
       installApi([scan([finding('one')]), scan([finding('two')])]);
       const user = userEvent.setup(); render(<App/>);
       await screen.findByText('API 연결됨'); await runScan(user);
-      const reportButton = screen.getByRole('button', { name: '비교 보고서 내보내기' });
-      expect(reportButton).toBeDisabled();
+      expect(screen.queryByRole('button', { name: '비교 보고서 내보내기' })).not.toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
       await user.click(screen.getByRole('button', { name: '검사 시작' }));
       await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');

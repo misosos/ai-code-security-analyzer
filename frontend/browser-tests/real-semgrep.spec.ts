@@ -73,7 +73,9 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   await expect(page.locator('body')).not.toContainText(token);
 
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
-  await expect(page.getByText(/Synthetic Selected synthetic-selected/)).toBeVisible();
+  const scanContext = page.getByLabel('이 결과를 생성한 검사 설정');
+  await expect(scanContext).toContainText('Synthetic Selected');
+  await expect(scanContext).toContainText('synthetic-selected');
   await expect(page.locator('body')).not.toContainText(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   await expect(page.getByText('experimental.javascript-command-injection-taint').first()).toBeVisible();
   await expect(page.getByText('미검증 후보').first()).toBeVisible();

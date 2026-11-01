@@ -20,7 +20,7 @@ test('분석가 보고서는 기본 메모 제외, 별도 확인 후 전체 Find
 
   await page.getByLabel('분석가 메모').fill('private analyst note <script>alert(1)</script>');
   await page.getByLabel('수동 검토 상태').selectOption('reviewed');
-  await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').fill('aaaaaaaa');
+  await page.getByRole('searchbox', { name: '검색' }).fill('aaaaaaaa');
   await expect(page.getByLabel('Finding 목록').getByRole('button')).toHaveCount(1);
 
   let downloads = 0;

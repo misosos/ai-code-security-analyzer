@@ -137,7 +137,7 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
     const presentation = await page.evaluate(() => {
       const firstRow = document.querySelector('.finding-row');
       const detail = document.querySelector('.detail-panel');
-      const title = firstRow?.querySelector('.row-main > strong');
+      const title = firstRow?.querySelector('.row-main-heading > strong');
       const filterLabel = document.querySelector('.filter-row label:not(.search-field)');
       const rowLocation = firstRow?.querySelector('.row-location');
       const detailCopy = document.querySelector('.detail-location small');
@@ -180,7 +180,7 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
   }
   await writeFile(resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9d/readability-audit/responsive-result-metrics.json'), JSON.stringify(viewportMetrics, null, 2));
 
-  await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').fill('synthetic.html-example');
+  await page.getByRole('searchbox', { name: '검색' }).fill('synthetic.html-example');
   await expect(page.getByLabel('Finding 목록').getByRole('button')).toHaveCount(1);
   await expect(page.getByText('src/routes/<fixture>.js:12')).toHaveCount(0);
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
@@ -312,7 +312,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
   const resultAudit = await page.evaluate(() => [
     '.context-copy h2', '.scan-state-copy h2', '.metric strong', '.metric-label',
     '.severity-heading h3', '.severity-count', '.results-title h2', '.filter-row input', '.filter-row label:not(.search-field)',
-    '.list-caption', '.row-main > strong', '.row-location', '.row-rule-id', '.detail-top h2', '.detail-location small', '.technical-details > summary',
+    '.list-caption', '.row-main-heading > strong', '.row-location', '.row-rule-id', '.detail-top h2', '.detail-location small', '.technical-details > summary',
   ].map((selector) => {
     const element = document.querySelector(selector);
     if (!element) return { selector, missing: true };
@@ -323,7 +323,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
   expect(resultAudit.filter((entry) => 'missing' in entry)).toEqual([]);
   const resultFonts = Object.fromEntries(resultAudit.map((entry) => ['selector' in entry ? entry.selector : '', 'fontSize' in entry ? Number.parseFloat(entry.fontSize) : 0]));
   expect(resultFonts['.metric strong']).toBeGreaterThanOrEqual(38);
-  expect(resultFonts['.row-main > strong']).toBeGreaterThanOrEqual(19);
+  expect(resultFonts['.row-main-heading > strong']).toBeGreaterThanOrEqual(19);
   expect(resultFonts['.filter-row input']).toBeGreaterThanOrEqual(18);
   expect(resultFonts['.detail-location small']).toBeGreaterThanOrEqual(18);
   samples.push({ viewport: { width: 1440, height: 900 }, page: '검사 결과 및 선택 Finding', audit: resultAudit });
@@ -415,9 +415,9 @@ test('captures cyberpunk HUD launch, review, filtered, partial, and error states
   await page.locator('.detail-panel').evaluate((element) => { element.scrollTop = 0; });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.locator('.detail-panel').screenshot({ path: resolve(output, 'finding-detail-panel.png'), animations: 'disabled' });
-  await page.getByLabel('심각도').selectOption('high');
+  await page.getByRole('combobox', { name: '심각도' }).selectOption('high');
   await page.screenshot({ path: resolve(output, 'filtered-high.png'), animations: 'disabled' });
-  await page.getByLabel('심각도').selectOption('all');
+  await page.getByRole('combobox', { name: '심각도' }).selectOption('all');
   await page.getByText('기술 근거와 제한 자세히 보기').click();
   await page.getByLabel('선택한 Finding 상세').evaluate((element) => { element.scrollTop = element.scrollHeight; });
   await page.screenshot({ path: resolve(output, 'finding-detail-1440x900.png'), animations: 'disabled' });

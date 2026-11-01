@@ -103,14 +103,14 @@ test('UI-D2 result review remains grounded in API data and fits required desktop
   await expect(page.getByRole('heading', { name: '발견 항목' })).toContainText('2');
   await expect(page.getByLabel('Finding 목록')).toContainText('src/routes/review.js:12');
   await expect(page.getByLabel('선택한 Finding 상세')).toContainText('실제 취약점으로 확정되지 않았습니다');
-  await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').fill('Notice.tsx');
+  await page.getByRole('searchbox', { name: '검색' }).fill('Notice.tsx');
   await expect(page.getByLabel('Finding 목록')).toContainText('Notice.tsx');
   await expect(page.getByLabel('Finding 목록')).not.toContainText('review.js');
   await page.getByLabel('선택한 Finding 상세').scrollIntoViewIfNeeded();
   await page.screenshot({ path: resolve(process.cwd(), '../docs/assets/ui-d2/finding-detail-1440x900.png'), clip: { x: 0, y: 0, width: 1440, height: 900 } });
-  await page.getByLabel('파일 경로, 규칙 이름 또는 ID 검색').clear();
+  await page.getByRole('searchbox', { name: '검색' }).clear();
   const titleSize = await page.locator('.workspace-title h1').evaluate((element) => getComputedStyle(element).fontSize);
-  const rowSize = await page.locator('.finding-row .row-main > strong').first().evaluate((element) => getComputedStyle(element).fontSize);
+  const rowSize = await page.locator('.finding-row .row-main-heading > strong').first().evaluate((element) => getComputedStyle(element).fontSize);
   expect(Number.parseFloat(titleSize)).toBeGreaterThanOrEqual(36);
   expect(Number.parseFloat(rowSize)).toBeGreaterThanOrEqual(18);
   const resultBoxes = await page.evaluate(() => Object.fromEntries(['.workspace-title','.scan-context','.context-copy','.context-actions','.export-note','.scan-banner','.beginner-summary','.limitations','.overview-grid','.overview-grid > *','.severity-counts','.findings-section','.results-heading','.filter-row','.results-layout','.finding-list','.finding-row','.detail-panel'].map((selector) => {
