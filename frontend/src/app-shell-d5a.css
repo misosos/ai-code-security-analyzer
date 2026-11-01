@@ -288,7 +288,7 @@
 }
 
 @media (min-width: 761px) and (max-width: 1500px) {
-  #main-content .overview-grid.analyst-overview { margin-bottom: 8px; }
+  #main-content .overview-grid.analyst-overview { margin-bottom: 8px; padding-block: 0; }
   #main-content .overview-grid.analyst-overview > .metric small { word-break: keep-all; }
   #main-content .overview-grid.analyst-overview .severity-card { padding-block: 4px; }
   #main-content .overview-grid.analyst-overview .severity-counts { margin-block: 0; }
