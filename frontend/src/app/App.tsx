@@ -5,6 +5,7 @@ import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '
 import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
 import { createComparisonMarkdown, downloadComparisonMarkdown } from '../features/scans/comparisonMarkdownExport';
 import { countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus, getAnalystReviewEntry, hasAnalystReviewWork, setAnalystReviewNote, setAnalystReviewStatus, type AnalystReviewFilter, type AnalystReviewState, type AnalystReviewStatus } from '../features/scans/analystReview';
+import { createAnalystReviewMarkdown, downloadAnalystReviewMarkdown } from '../features/scans/analystReviewMarkdownExport';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -78,6 +79,8 @@ export function App() {
   const scanRequestSequence = useRef(0);
   const [exportMessage, setExportMessage] = useState('');
   const [comparisonExportMessage, setComparisonExportMessage] = useState('');
+  const [analystReviewExportMessage, setAnalystReviewExportMessage] = useState('');
+  const [includeAnalystNotes, setIncludeAnalystNotes] = useState(false);
   const [selectedId, setSelectedId] = useState('');
   const [analystReviews, setAnalystReviews] = useState<AnalystReviewState>(emptyAnalystReviewState);
   const [analystReviewFilter, setAnalystReviewFilter] = useState<AnalystReviewFilter>('all');
@@ -147,7 +150,7 @@ export function App() {
       && !window.confirm('현재 검사에 작성한 분석가 검토 상태와 메모가 새 검사 시작 시 사라집니다. 계속하시겠습니까?')) return;
     const requestSequence = ++scanRequestSequence.current;
     const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
-    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); resetFilters();
+    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
       if (requestSequence !== scanRequestSequence.current) return;
@@ -173,7 +176,7 @@ export function App() {
     if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
       && !window.confirm('현재 검사 결과의 분석가 검토 상태와 메모, 비교 기준이 모두 삭제됩니다. 계속하시겠습니까?')) return;
     scanRequestSequence.current += 1;
-    setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
+    setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
   }
   function setCurrentAsBaseline() {
@@ -197,6 +200,22 @@ export function App() {
       setComparisonExportMessage(error instanceof Error && error.message === 'comparison_export_size_limit_exceeded'
         ? '보고서가 512 KiB 제한을 초과해 다운로드하지 않았습니다.'
         : '비교할 수 있는 검사 결과가 아니거나 보고서를 생성하지 못했습니다.');
+    }
+  }
+  function exportAnalystReviewReport() {
+    if (state === 'scanning' || !scan || !scanContext) return;
+    if (includeAnalystNotes && !window.confirm('분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드한 파일은 브라우저 메모리와 달리 디스크에 남으므로 외부 공유 전에 확인하세요. 메모를 포함해 다운로드할까요?')) {
+      setAnalystReviewExportMessage('메모 포함을 확인하지 않아 다운로드를 취소했습니다.');
+      return;
+    }
+    try {
+      const markdown = createAnalystReviewMarkdown(scanContext, scan, analystReviews, includeAnalystNotes);
+      downloadAnalystReviewMarkdown(markdown);
+      setAnalystReviewExportMessage(includeAnalystNotes ? '분석가 검토 기록과 선택한 메모를 다운로드했습니다. 파일을 외부 공유하기 전에 내용을 확인하세요.' : '분석가 검토 기록을 다운로드했습니다. 메모는 포함하지 않았습니다.');
+    } catch (error) {
+      setAnalystReviewExportMessage(error instanceof Error && error.message === 'analyst_review_export_size_limit_exceeded'
+        ? '보고서가 512 KiB 제한을 초과해 다운로드하지 않았습니다.'
+        : '보고서를 생성하거나 다운로드하지 못했습니다. 검사 결과와 브라우저 다운로드 설정을 확인하세요.');
     }
   }
 
@@ -271,7 +290,8 @@ export function App() {
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
-        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><p className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}</p>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>}
+        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-report-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}
+        </section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         <section className="overview-grid analyst-overview" aria-label="검사 및 분석가 검토 개요"><Metric label="검토 후보" value={scan.finding_count} note="취약점 확정 수 아님"/><Metric label="표시된 결과" value={scan.displayed_finding_count} note="현재 응답"/><Metric label="생략된 결과" value={scan.omitted_finding_count} note="개별 근거 미확인"/><div className="severity-card"><div className="severity-heading"><Icon name="pulse"/><h3>심각도 분포</h3></div><div className="severity-counts">{severityOrder.map((severity) => <span key={severity} className={`severity-count ${severity}`}><i className={`severity-dot ${severity}`} aria-hidden="true"/><span>{severityLabels[severity]}</span><b>{scan.severity_counts[severity]}</b></span>)}</div><small>Semgrep 분류 · 악용 여부 미확인</small></div>
