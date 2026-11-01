@@ -13,6 +13,7 @@ let origin;
 const temporaryDirectory = await mkdtemp(join(await realpath(tmpdir()), 'aicsa-real-browser-e2e-'));
 const targetDirectory = join(temporaryDirectory, 'synthetic-project');
 const secondTargetDirectory = join(temporaryDirectory, 'synthetic-project-selected');
+const workflowTargetDirectory = join(temporaryDirectory, 'synthetic-project-workflow');
 const rulesDirectory = join(temporaryDirectory, 'trusted-rules');
 const token = randomBytes(32).toString('base64url');
 const canary = 'SYNTHETIC_BROWSER_CANARY_MUST_NOT_LEAK';
@@ -69,6 +70,7 @@ try {
   origin = `http://127.0.0.1:${port}`;
   await mkdir(targetDirectory);
   await mkdir(secondTargetDirectory);
+  await mkdir(workflowTargetDirectory);
   await mkdir(join(rulesDirectory, 'experimental'), { recursive: true });
   for (const relativeRule of [
     'security-baseline.yml',
@@ -93,6 +95,19 @@ try {
     '}',
     '',
   ].join('\n'), { mode: 0o600 });
+  await writeFile(join(workflowTargetDirectory, 'stable.js'), [
+    'function stable(input) {',
+    '  return eval(input);',
+    '}',
+    `// ${canary}`,
+    '',
+  ].join('\n'), { mode: 0o600 });
+  await writeFile(join(workflowTargetDirectory, 'retired.js'), [
+    'function retired(input) {',
+    '  return eval(input);',
+    '}',
+    '',
+  ].join('\n'), { mode: 0o600 });
 
   const isolatedServerEntrypoint = [
     'import sys, uvicorn',
@@ -106,6 +121,7 @@ try {
       AI_CODE_SECURITY_TARGETS: JSON.stringify([
         { id: 'synthetic-primary', label: 'Synthetic Primary', path: targetDirectory },
         { id: 'synthetic-selected', label: 'Synthetic Selected', path: secondTargetDirectory },
+        { id: 'synthetic-workflow', label: 'Synthetic Workflow', path: workflowTargetDirectory },
       ]),
       AI_CODE_SECURITY_RULES_DIR: rulesDirectory,
       AI_CODE_SECURITY_API_TOKEN: token,
@@ -118,6 +134,7 @@ try {
     stdio: 'ignore',
   });
   await waitForServer(server);
+  const browserRunStartedAt = Date.now();
   const test = spawnSync('npm', ['run', 'test:browser:real'], {
     cwd: frontendDirectory,
     env: {
@@ -125,11 +142,13 @@ try {
       BROWSER_E2E_BASE_URL: origin,
       BROWSER_E2E_API_TOKEN: token,
       BROWSER_E2E_PRIVATE_PATH: temporaryDirectory,
+      BROWSER_E2E_WORKFLOW_PATH: workflowTargetDirectory,
       BROWSER_E2E_OUTPUT_DIR: join(temporaryDirectory, 'playwright-results'),
       SEMGREP_REQUIRED: '1',
     },
     stdio: 'inherit',
   });
+  process.stdout.write(`real_browser_e2e_elapsed_ms=${Date.now() - browserRunStartedAt}\n`);
   if (test.status !== 0) throw new Error('real_browser_semgrep_e2e_failed');
 } catch (error) {
   process.stderr.write(`${error instanceof Error ? error.message : 'real_browser_semgrep_e2e_failed'}\n`);
