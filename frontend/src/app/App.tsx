@@ -6,6 +6,7 @@ import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups
 import { createComparisonMarkdown, downloadComparisonMarkdown } from '../features/scans/comparisonMarkdownExport';
 import { countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus, getAnalystReviewEntry, hasAnalystReviewWork, setAnalystReviewNote, setAnalystReviewStatus, type AnalystReviewFilter, type AnalystReviewState, type AnalystReviewStatus } from '../features/scans/analystReview';
 import { createAnalystReviewMarkdown, downloadAnalystReviewMarkdown } from '../features/scans/analystReviewMarkdownExport';
+import { ANALYST_REVIEW_BACKUP_FILENAME, createAnalystReviewBackup, downloadAnalystReviewBackup, MAX_ANALYST_REVIEW_BACKUP_BYTES, parseAnalystReviewBackup, validateBackupForRestore, type AnalystReviewBackup, type RestoreBlockReason } from '../features/scans/analystReviewBackup';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -51,6 +52,14 @@ const taskText: Record<FindingKind,string[]> = {
 };
 const statusLabels: Record<string,string> = { completed:'정상 완료', partial:'부분 검사', execution_failed:'실행 실패', not_installed:'Semgrep 미설치', invalid_json:'결과 형식 오류', timed_out:'시간 초과', output_limit_exceeded:'출력 제한 초과' };
 const analystReviewLabels: Record<AnalystReviewStatus,string> = { pending: '검토 대기', needs_followup: '추가 확인 필요', reviewed: '검토 완료' };
+const restoreReasonLabels: Record<RestoreBlockReason, string> = {
+  current_scan_not_completed: '현재 검사가 정상 완료되지 않았습니다.', current_findings_omitted: '현재 결과에 생략된 Finding이 있습니다.',
+  backup_scan_not_completed: '백업 원본 검사가 정상 완료되지 않았습니다.', backup_findings_omitted: '백업에 생략된 Finding이 있습니다.',
+  target_mismatch: '검사 대상 ID가 다릅니다.', rule_profile_mismatch: '규칙 프로필 ID가 다릅니다.', experimental_mismatch: 'Experimental 설정이 다릅니다.',
+  semgrep_version_unavailable: '양쪽 Semgrep 버전을 확인할 수 없습니다.', semgrep_version_mismatch: 'Semgrep 버전이 다릅니다.',
+  finding_set_mismatch: 'Finding ID 구성이 다릅니다.', finding_metadata_mismatch: 'Finding의 규칙·위치·심각도·유형 정보가 다릅니다.',
+  scan_count_inconsistent: '검사 결과 개수가 일치하지 않습니다.', current_context_mismatch: '현재 검사 문맥이 결과와 일치하지 않습니다.',
+};
 const errorLabels: Record<string,string> = {
   unauthorized:'토큰을 확인하세요. 인증되지 않아 검사를 실행하지 않았습니다.', origin_not_allowed:'브라우저 출처가 서버 허용 목록에 없습니다. 서버의 Origin 설정을 확인하세요.',
   scan_already_running:'이미 검사가 진행 중입니다. 완료 후 다시 시도하세요.', target_not_allowed:'허용되지 않은 프로젝트입니다.', rule_profile_not_allowed:'허용되지 않은 규칙 프로필입니다.',
@@ -81,6 +90,15 @@ export function App() {
   const [comparisonExportMessage, setComparisonExportMessage] = useState('');
   const [analystReviewExportMessage, setAnalystReviewExportMessage] = useState('');
   const [includeAnalystNotes, setIncludeAnalystNotes] = useState(false);
+  const [includeBackupNotes, setIncludeBackupNotes] = useState(false);
+  const [backupMessage, setBackupMessage] = useState('');
+  const [backupPreview, setBackupPreview] = useState<{ backup: AnalystReviewBackup; reasons: RestoreBlockReason[]; scan: ScanResponse; context: ScanContext; fileName: string } | null>(null);
+  const [backupAppliedIds, setBackupAppliedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [backupSkippedIds, setBackupSkippedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const currentScanRef = useRef(scan);
+  const currentScanContextRef = useRef(scanContext);
+  currentScanRef.current = scan;
+  currentScanContextRef.current = scanContext;
   const [selectedId, setSelectedId] = useState('');
   const [analystReviews, setAnalystReviews] = useState<AnalystReviewState>(emptyAnalystReviewState);
   const [analystReviewFilter, setAnalystReviewFilter] = useState<AnalystReviewFilter>('all');
@@ -150,7 +168,7 @@ export function App() {
       && !window.confirm('현재 검사에 작성한 분석가 검토 상태와 메모가 새 검사 시작 시 사라집니다. 계속하시겠습니까?')) return;
     const requestSequence = ++scanRequestSequence.current;
     const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
-    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); resetFilters();
+    setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setBackupPreview(null); setBackupMessage(''); setIncludeBackupNotes(false); setBackupAppliedIds(new Set()); setBackupSkippedIds(new Set()); resetFilters();
     try {
       const result = await api.scan(token, targetId, profileId);
       if (requestSequence !== scanRequestSequence.current) return;
@@ -176,7 +194,7 @@ export function App() {
     if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
       && !window.confirm('현재 검사 결과의 분석가 검토 상태와 메모, 비교 기준이 모두 삭제됩니다. 계속하시겠습니까?')) return;
     scanRequestSequence.current += 1;
-    setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
+    setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setBackupPreview(null); setBackupMessage(''); setIncludeBackupNotes(false); setBackupAppliedIds(new Set()); setBackupSkippedIds(new Set()); resetFilters(); setExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
   }
   function setCurrentAsBaseline() {
@@ -217,6 +235,71 @@ export function App() {
         ? '보고서가 512 KiB 제한을 초과해 다운로드하지 않았습니다.'
         : '보고서를 생성하거나 다운로드하지 못했습니다. 검사 결과와 브라우저 다운로드 설정을 확인하세요.');
     }
+  }
+
+  function exportAnalystReviewBackup() {
+    if (state === 'scanning' || !scan || !scanContext) return;
+    if (includeBackupNotes && !window.confirm('분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 저장한 JSON 파일은 디스크에 남으므로 외부 공유 전에 내용을 확인하세요. 메모를 포함할까요?')) {
+      setBackupMessage('메모 포함을 확인하지 않아 백업을 취소했습니다.'); return;
+    }
+    try {
+      const json = createAnalystReviewBackup(scanContext, scan, analystReviews, includeBackupNotes);
+      downloadAnalystReviewBackup(json);
+      setBackupMessage(`검토 기록 백업을 다운로드했습니다: ${ANALYST_REVIEW_BACKUP_FILENAME}`);
+    } catch (error) {
+      setBackupMessage(error instanceof Error && error.message === 'backup_size_limit_exceeded'
+        ? '백업이 256 KiB 제한을 초과해 전체 다운로드를 취소했습니다.'
+        : '검토 기록 백업을 만들거나 다운로드하지 못했습니다. 현재 검사 데이터를 확인하세요.');
+    }
+  }
+
+  async function importAnalystReviewBackup(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file || !scan || !scanContext || state === 'scanning') return;
+    const selectedScan = scan;
+    const selectedContext = scanContext;
+    setBackupPreview(null); setBackupMessage(''); setBackupSkippedIds(new Set()); setBackupAppliedIds(new Set());
+    if (file.size > MAX_ANALYST_REVIEW_BACKUP_BYTES) { setBackupMessage('파일이 256 KiB 제한을 초과합니다. 현재 검토 기록은 변경되지 않았습니다.'); return; }
+    try {
+      const parsed = parseAnalystReviewBackup(new Uint8Array(await file.arrayBuffer()));
+      if (currentScanRef.current !== selectedScan || currentScanContextRef.current !== selectedContext) { setBackupMessage('검사 결과가 변경되어 미리보기를 취소했습니다.'); return; }
+      const reasons = validateBackupForRestore(parsed, selectedContext, selectedScan);
+      setBackupPreview({ backup: parsed, reasons, scan: selectedScan, context: selectedContext, fileName: file.name.replace(/[\p{C}]/gu, '�').slice(0, 128) });
+      setBackupMessage(reasons.length ? '백업은 읽었지만 현재 검사에 적용할 수 없습니다.' : '백업을 검증했습니다. 아직 어떤 기록도 적용되지 않았습니다.');
+    } catch (error) {
+      const code = error instanceof Error ? error.message : '';
+      const messages: Record<string, string> = {
+        backup_size_limit_exceeded: '파일이 256 KiB 제한을 초과합니다.', backup_utf8_invalid: '파일이 올바른 UTF-8 JSON이 아닙니다.',
+        backup_json_invalid: 'JSON 문법을 확인할 수 없습니다.', backup_schema_invalid: '지원하지 않는 스키마이거나 허용되지 않은 필드가 있습니다.',
+        backup_duplicate_key: '중복된 JSON 필드가 있습니다.', backup_depth_limit_exceeded: 'JSON 구조가 허용된 중첩 깊이를 초과합니다.',
+        backup_context_invalid: '백업의 검사 문맥이 올바르지 않습니다.', backup_counts_invalid: '백업의 Finding 개수가 일치하지 않습니다.',
+        backup_finding_invalid: '백업의 Finding 또는 검토 기록 항목을 검증하지 못했습니다.',
+      };
+      setBackupMessage(`${messages[code] ?? '백업 파일을 검증하지 못했습니다.'} 현재 검토 기록은 변경되지 않았습니다.`);
+    }
+  }
+
+  function applyBackupFinding(findingId: string) {
+    if (!backupPreview || backupPreview.reasons.length || backupPreview.scan !== scan || backupPreview.context !== scanContext || state === 'scanning') {
+      setBackupMessage('검사 결과가 변경되었거나 문맥이 일치하지 않아 적용할 수 없습니다.'); setBackupPreview(null); return;
+    }
+    const saved = backupPreview.backup.findings.find((item) => item.finding_id === findingId);
+    if (!saved || !scan?.findings.some((item) => item.finding_id === findingId)) return;
+    const current = getAnalystReviewEntry(analystReviews, scan.findings, findingId);
+    const hasCurrentRecord = analystReviews.has(findingId);
+    const replaces = hasCurrentRecord && (current.status !== saved.review_status || (saved.note !== undefined && current.note !== saved.note));
+    if (replaces && !window.confirm(`현재 Finding의 검토 상태${saved.note !== undefined ? ' 또는 메모' : ''}를 백업 기록으로 덮어씁니다. 계속하시겠습니까?`)) return;
+    let next = setAnalystReviewStatus(analystReviews, scan.findings, findingId, saved.review_status);
+    if (!next) return;
+    if (saved.note !== undefined) {
+      const update = setAnalystReviewNote(next, scan.findings, findingId, saved.note);
+      if (!update.accepted) { setBackupMessage('메모를 적용할 수 없습니다. 현재 기록은 유지됩니다.'); return; }
+      next = update.state;
+    }
+    setAnalystReviews(next);
+    setBackupAppliedIds((previous) => new Set(previous).add(findingId));
+    setBackupMessage('선택한 Finding의 외부 백업 기록을 적용했습니다. 이는 현재 코드에 대한 보안 판정을 의미하지 않습니다.');
   }
 
   const selectedProfile = options?.rule_profiles.find((item) => item.id === profileId);
@@ -290,7 +373,7 @@ export function App() {
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
-        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-report-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}
+        {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><p className="eyebrow">검사 설정 요약</p><h2>검사 정보</h2><p><strong>{scanContext.targetLabel}</strong> <code>{scanContext.targetId}</code><span className="context-divider">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong> <code>{scanContext.ruleProfileId}</code></p><small>결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</small></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-report-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details><details className="analyst-backup-tool"><summary>검토 기록 백업 및 복원</summary><div className="analyst-backup-controls"><p>JSON은 검토 상태를 다시 참고하기 위한 백업입니다. 다운로드 파일은 디스크에 남으며 자동 저장되지 않습니다.</p><label><input type="checkbox" aria-label="JSON 백업에 메모 포함" checked={includeBackupNotes} onChange={(event) => { setIncludeBackupNotes(event.target.checked); setBackupMessage(''); }}/> JSON 백업에 메모 포함</label>{includeBackupNotes && <p className="analyst-report-warning">메모에 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 직전에 다시 확인합니다.</p>}<button type="button" className="button secondary" aria-label="검토 기록 백업 JSON 다운로드" onClick={exportAnalystReviewBackup} disabled={state === 'scanning'}><Icon name="download"/> JSON 백업 다운로드</button><label className="backup-file-label" htmlFor="analyst-review-backup-file">검토 기록 불러오기(JSON)</label><input id="analyst-review-backup-file" className="backup-file-input" type="file" accept=".json,application/json" aria-describedby="backup-file-help" onChange={importAnalystReviewBackup} disabled={state === 'scanning'}/><small id="backup-file-help">최대 256 KiB. 파일은 브라우저 메모리에서만 읽으며 서버로 전송하지 않습니다.</small>{backupMessage && <p className="export-feedback" role="status">{backupMessage}</p>}{backupPreview && <section className="backup-preview" aria-label="검토 기록 복원 미리보기"><h3>외부 백업 미리보기</h3><p>파일: {backupPreview.fileName}</p><p>{backupPreview.backup.findings.length}개 Finding · 대기 {backupPreview.backup.findings.filter((item) => item.review_status === 'pending').length} · 추가 확인 {backupPreview.backup.findings.filter((item) => item.review_status === 'needs_followup').length} · 검토 완료 {backupPreview.backup.findings.filter((item) => item.review_status === 'reviewed').length}</p><p>{backupPreview.backup.findings.some((item) => item.note !== undefined) ? '메모 포함' : '메모 제외'}</p><p>적용 가능: {backupPreview.reasons.length ? 0 : backupPreview.backup.findings.length}건 · 현재 기록과 충돌: {scan ? backupPreview.backup.findings.filter((item) => { const existing = getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id); return analystReviews.has(item.finding_id) && (existing.status !== item.review_status || (item.note !== undefined && existing.note !== item.note)); }).length : 0}건</p><p className="analyst-report-warning">문맥이 일치해도 코드 내용이 같다는 뜻은 아닙니다. 가져온 검토 기록은 현재 코드의 보안 판정이나 수정 여부를 증명하지 않습니다.</p>{backupPreview.reasons.length > 0 ? <div role="alert"><strong>복원 차단</strong><ul>{backupPreview.reasons.map((reason) => <li key={reason}>{restoreReasonLabels[reason]}</li>)}</ul></div> : <details className="backup-finding-preview"><summary>Finding별 기록 확인 ({backupPreview.backup.findings.length})</summary><ul>{backupPreview.backup.findings.map((item) => { const currentEntry = scan ? getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id) : { status: 'pending' as const, note: '' }; const applied = backupAppliedIds.has(item.finding_id); const skipped = backupSkippedIds.has(item.finding_id); return <li key={item.finding_id}><strong>{item.rule_id}</strong><span>{item.file_path ?? '위치 확인 불가'}{item.line_number ? `:${item.line_number}` : ''}</span><span>백업: {analystReviewLabels[item.review_status]} · 현재: {analystReviewLabels[currentEntry.status]}</span>{item.note !== undefined && <p>백업 메모 미리보기: {item.note || '(빈 메모)'}</p>}<p>{currentEntry.note ? '현재 메모 있음' : '현재 메모 없음'}</p><button type="button" className="button secondary" onClick={() => applyBackupFinding(item.finding_id)} disabled={state === 'scanning' || applied || skipped}>{applied ? '적용됨' : skipped ? '건너뜀' : '이 기록 적용'}</button><button type="button" className="button tertiary" onClick={() => setBackupSkippedIds((previous) => new Set(previous).add(item.finding_id))} disabled={applied || skipped}>{skipped ? '건너뜀' : '건너뛰기'}</button></li>; })}</ul></details>}</section>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}
         </section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
@@ -307,7 +390,7 @@ export function App() {
         <section className="findings-section" aria-labelledby="findings-heading">
           <div className="results-heading"><div className="results-title analyst-filter-title"><h2 id="findings-heading">발견 항목 <span className="count-chip">{scan.finding_count}</span></h2><label className="sr-only" htmlFor="analyst-review-status">분석가 검토 상태</label><select id="analyst-review-status" aria-label="분석가 검토 상태" value={analystReviewFilter} onChange={(e) => setAnalystReviewFilter(e.target.value as AnalystReviewFilter)}><option value="all">전체</option><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select>{scan.omitted_finding_count > 0 && <p>목록에는 최대 50건까지 표시됩니다.</p>}</div><div className="filter-row"><label className="search-field"><span className="sr-only">파일 경로, 규칙 이름 또는 ID 검색</span><Icon name="search"/><input aria-label="파일 경로, 규칙 이름 또는 ID 검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="경로·규칙 검색" /></label><label>심각도<select aria-label="심각도" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}><option value="all">모두</option>{severityOrder.map((x) => <option key={x} value={x}>{severityLabels[x]}</option>)}</select></label><label>유형<select aria-label="유형" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}><option value="all">모두</option>{Object.entries(kindLabels).map(([key,value]) => <option key={key} value={key}>{value}</option>)}</select></label><label>검증 상태<select aria-label="검증 상태" value={verificationFilter} onChange={(e) => setVerificationFilter(e.target.value)}><option value="all">모두</option><option value="unverified">미검증</option></select></label></div></div>
           {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} reviewStatus={getAnalystReviewEntry(analystReviews, scan.findings, finding.finding_id).status} selected={selected?.finding_id === finding.finding_id} onSelect={() => { setSelectedId(finding.finding_id); setAnalystNoteError(''); }} />)}</section>
-            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected} reviewEntry={getAnalystReviewEntry(analystReviews, scan.findings, selected.finding_id)} noteError={analystNoteError} onStatusChange={(next) => updateAnalystStatus(selected.finding_id, next)} onNoteChange={(note) => updateAnalystNote(selected.finding_id, note)}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>{selectedId ? '현재 선택한 항목은 필터에서 제외되었습니다. 필터를 바꾸거나 목록에서 다른 항목을 선택하세요.' : '왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.'}</p></div>}</section></div>}
+            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected} reviewEntry={getAnalystReviewEntry(analystReviews, scan.findings, selected.finding_id)} importedFromBackup={backupAppliedIds.has(selected.finding_id)} noteError={analystNoteError} onStatusChange={(next) => updateAnalystStatus(selected.finding_id, next)} onNoteChange={(note) => updateAnalystNote(selected.finding_id, note)}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>{selectedId ? '현재 선택한 항목은 필터에서 제외되었습니다. 필터를 바꾸거나 목록에서 다른 항목을 선택하세요.' : '왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.'}</p></div>}</section></div>}
         </section>
       </div>}
       </main>
@@ -333,12 +416,12 @@ function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'
 }
 function Metric({label,value,note}:{label:string;value:number;note:string}) { return <div className="panel metric"><span className="metric-label">{label}</span><strong>{value.toLocaleString('ko-KR')}</strong><small>{note}</small></div>; }
 function FindingRow({finding,reviewStatus,selected,onSelect}:{finding:ApiFinding;reviewStatus:AnalystReviewStatus;selected:boolean;onSelect:()=>void}) { return <button type="button" className={`finding-row ${selected?'selected':''}`} onClick={onSelect} aria-pressed={selected} aria-label={`${ruleName(finding.rule_id)} (${finding.rule_id}), ${severityLabels[finding.severity]}, ${analystReviewLabels[reviewStatus]}, ${finding.file_path ?? '위치 확인 불가'}${finding.line_number ? ` ${finding.line_number}행` : ''}, 취약점 여부 미확인`}><span className={`severity-rail ${finding.severity}`} aria-hidden="true"/><span className="row-main"><span className="row-topline"><span className={`severity-label ${finding.severity}`}>{severityLabels[finding.severity]}</span><span className="row-kind">{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미확인</span></span><strong>{ruleName(finding.rule_id)}</strong><small className="row-location">{finding.file_path ?? '위치 확인 불가'}{finding.line_number ? `:${finding.line_number}` : ''}</small><code className="row-rule-id">{finding.rule_id}</code><span className={`analyst-review-badge ${reviewStatus}`}>분석가: {analystReviewLabels[reviewStatus]}</span></span><span className={`validation-icon ${finding.evidence_validation_status}`} title={`근거 검증 ${finding.evidence_validation_status}`} aria-label={`근거 연결 ${finding.evidence_validation_status === 'validated' ? '확인됨' : '확인 불가'}`}>{finding.evidence_validation_status === 'validated' ? '✓' : '!'}</span></button>; }
-function FindingDetail({finding,reviewEntry,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;reviewEntry?:{status:AnalystReviewStatus;note:string};noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
+function FindingDetail({finding,reviewEntry,importedFromBackup,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;reviewEntry?:{status:AnalystReviewStatus;note:string};importedFromBackup?:boolean;noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
   return <article>
     <div className="detail-top"><div><p className="eyebrow">발견 항목 요약</p><h2>{ruleName(finding.rule_id)}</h2></div><span className={`severity-label ${finding.severity}`}>심각도: {severityLabels[finding.severity]}</span></div>
     <div className="detail-badges"><span>{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미검증 후보</span></div>
     <div className="detail-location"><span>확인할 파일과 위치</span><strong>{finding.file_path ?? '파일 경로를 확인할 수 없습니다'}{finding.line_number ? `:${finding.line_number}` : ''}</strong><small>이 위치는 규칙이 보고한 매치입니다. 실제 입력 위치나 위험한 함수의 인자 위치와 같다고 확인된 것은 아닙니다.</small></div>
-    {reviewEntry && onStatusChange && onNoteChange && <section className="analyst-review-editor" aria-labelledby="analyst-review-editor-title"><h3 id="analyst-review-editor-title">분석가 검토</h3><label>수동 검토 상태<select aria-label="수동 검토 상태" value={reviewEntry.status} onChange={(event) => onStatusChange(event.target.value as AnalystReviewStatus)}><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select></label><label htmlFor="analyst-note">분석가 메모<textarea id="analyst-note" aria-label="분석가 메모" aria-describedby={`analyst-note-help analyst-note-count${noteError ? ' analyst-note-error' : ''}`} value={reviewEntry.note} onChange={(event) => onNoteChange(event.target.value)} rows={4}/></label><p id="analyst-note-help" className="analyst-note-help">임시 저장: 이 탭의 메모리에만 보관되며 새 검사·결과 삭제·새로고침 시 사라집니다. 토큰, 개인정보, 비밀정보는 입력하지 마세요.</p><p id="analyst-note-count" className="analyst-note-count">UTF-8 {new TextEncoder().encode(reviewEntry.note).byteLength} / 2,048 bytes</p>{noteError && <p id="analyst-note-error" className="analyst-note-error" role="alert">{noteError}</p>}</section>}
+    {reviewEntry && onStatusChange && onNoteChange && <section className="analyst-review-editor" aria-labelledby="analyst-review-editor-title"><h3 id="analyst-review-editor-title">분석가 검토</h3>{importedFromBackup && <p className="backup-origin-note" role="status">외부 백업에서 가져온 기록입니다. 현재 코드에 대한 보안 판정은 아닙니다.</p>}<label>수동 검토 상태<select aria-label="수동 검토 상태" value={reviewEntry.status} onChange={(event) => onStatusChange(event.target.value as AnalystReviewStatus)}><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select></label><label htmlFor="analyst-note">분석가 메모<textarea id="analyst-note" aria-label="분석가 메모" aria-describedby={`analyst-note-help analyst-note-count${noteError ? ' analyst-note-error' : ''}`} value={reviewEntry.note} onChange={(event) => onNoteChange(event.target.value)} rows={4}/></label><p id="analyst-note-help" className="analyst-note-help">임시 저장: 이 탭의 메모리에만 보관되며 새 검사·결과 삭제·새로고침 시 사라집니다. 토큰, 개인정보, 비밀정보는 입력하지 마세요.</p><p id="analyst-note-count" className="analyst-note-count">UTF-8 {new TextEncoder().encode(reviewEntry.note).byteLength} / 2,048 bytes</p>{noteError && <p id="analyst-note-error" className="analyst-note-error" role="alert">{noteError}</p>}</section>}
     {finding.evidence_validation_status !== 'validated' && <div className="alert warning" role="note">근거 연결을 검증하지 못해 지원된 근거는 표시하지 않습니다. 자세한 상태와 코드는 기술 상세에서 확인할 수 있습니다.</div>}
     <section className="analyst-tasks"><h3>먼저 확인할 내용</h3><p>아래는 검토 제안입니다. 아직 완료된 확인이 아닙니다.</p><ol>{taskText[finding.finding_kind].map((task) => <li key={task}>{task}</li>)}</ol></section>
     <div className="basic-evidence-limit" role="note"><strong>중요한 제한</strong><p>이 결과는 검토 후보이며 실제 취약점으로 확정되지 않았습니다. Source/Sink 위치와 전체 데이터 전달 경로는 확인되지 않았을 수 있습니다.</p></div>
