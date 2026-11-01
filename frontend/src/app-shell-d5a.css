@@ -288,7 +288,11 @@
 }
 
 @media (min-width: 761px) and (max-width: 1500px) {
-  #main-content .overview-grid.analyst-overview { margin-bottom: 16px; }
+  #main-content .overview-grid.analyst-overview { margin-bottom: 8px; }
+  #main-content .overview-grid.analyst-overview > .metric small { word-break: keep-all; }
+  #main-content .overview-grid.analyst-overview .severity-card { padding-block: 4px; }
+  #main-content .overview-grid.analyst-overview .severity-counts { margin-block: 0; }
+  #main-content .overview-grid.analyst-overview .severity-card > small { margin-top: 0; line-height: 1.3; }
   #main-content .severity-counts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   #main-content .severity-count { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 2px 4px; padding: 2px 3px; }
   #main-content .severity-count span { min-width: 0; font-size: 16px; line-height: 1.2; overflow-wrap: anywhere; }
