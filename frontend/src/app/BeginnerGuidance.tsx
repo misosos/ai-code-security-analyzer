@@ -41,9 +41,9 @@ export function ServerAdminSettings() {
     <div className="quick-start-content">
       <h3>빌드된 대시보드와 분석 서버</h3>
       <p>저장소 루트에서 화면과 서버 의존성을 준비합니다.</p>
-      <pre><code>{'cd frontend\nnpm ci\nnpm run build\ncd ..\nuv sync --locked --dev'}</code></pre>
+      <pre tabIndex={0} aria-label="서버 준비 명령어"><code>{'cd frontend\nnpm ci\nnpm run build\ncd ..\nuv sync --locked --dev'}</code></pre>
       <p>서버 환경에 프로젝트 ID, 표시 이름, 절대 경로와 무작위 토큰을 설정한 뒤 재시작하세요. 생성된 토큰은 터미널에서 한 번 복사해 대시보드에 입력하고, 커밋하거나 공유하지 마세요.</p>
-      <pre><code>{`export AI_CODE_SECURITY_TARGETS='[{"id":"app","label":"Application","path":"/absolute/path/to/approved/project"},{"id":"worker","label":"Worker","path":"/absolute/path/to/another/project"}]'
+      <pre tabIndex={0} aria-label="서버 실행 및 토큰 설정 명령어"><code>{`export AI_CODE_SECURITY_TARGETS='[{"id":"app","label":"Application","path":"/absolute/path/to/approved/project"},{"id":"worker","label":"Worker","path":"/absolute/path/to/another/project"}]'
 export AI_CODE_SECURITY_API_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
 printf '%s\\n' "$AI_CODE_SECURITY_API_TOKEN"
 export AI_CODE_SECURITY_ALLOWED_ORIGINS="http://127.0.0.1:8765"
@@ -51,7 +51,7 @@ uv run python -m ai_code_security_analyzer.api`}</code></pre>
       <p>기본 화면은 <code>http://127.0.0.1:8765</code>에서 제공합니다. 기존 단일 프로젝트 설정인 <code>AI_CODE_SECURITY_TARGET</code>도 지원하지만, 두 프로젝트 설정을 동시에 지정하면 서버가 거부합니다.</p>
       <h3>개발용 Vite 화면</h3>
       <p>서버의 허용 출처에 <code>http://127.0.0.1:5173</code>을 추가하고 다른 터미널에서 실행합니다.</p>
-      <pre><code>{'cd frontend\nnpm ci\nnpm run dev'}</code></pre>
+      <pre tabIndex={0} aria-label="개발 서버 실행 명령어"><code>{'cd frontend\nnpm ci\nnpm run dev'}</code></pre>
       <p>두 방식 모두 분석 서버는 <code>127.0.0.1:8765</code>에만 바인딩됩니다. 화면이 서버를 자동 실행하지 않습니다.</p>
     </div>
   </details>;

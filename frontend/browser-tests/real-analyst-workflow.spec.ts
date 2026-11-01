@@ -127,7 +127,7 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
 
   const findingsList = page.getByRole('region', { name: 'Finding 목록' });
   const selectFinding = async (finding: Finding) => {
-    await findingsList.getByRole('button', { name: new RegExp(finding.file_path!.replace('.', '\\.') + `.*${finding.line_number}행`) }).click();
+    await findingsList.getByRole('button', { name: new RegExp(finding.file_path!.replace('.', '\\.') + `:${finding.line_number}`) }).click();
     await expect(page.getByLabel('선택한 Finding 상세')).toBeVisible();
   };
   await selectFinding(stableA!);
