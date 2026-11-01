@@ -21,8 +21,9 @@ if (
 
 export default defineConfig({
   testDir: './browser-tests',
-  testMatch: '**/real-semgrep.spec.ts',
+  testMatch: '**/real-*.spec.ts',
   fullyParallel: false,
+  workers: 1,
   reporter: 'dot',
   outputDir,
   timeout: 90_000,
