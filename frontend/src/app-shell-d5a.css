@@ -344,11 +344,11 @@
 #main-content .overview-analysis-grid .analyst-review-count strong { font-size: 17px; line-height: 1.35; overflow-wrap: anywhere; white-space: normal; }
 #main-content .overview-analysis-grid .analyst-review-scope { margin-top: 4px; }
 
-#main-content .scan-comparison-compact { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; margin: 4px 0 9px; padding: 8px 12px; border: 0; border-block: 1px solid #30465e; border-left: 2px solid var(--d2-cyan, #56e6f3); background: rgb(10 22 38 / 55%); box-shadow: none; }
-#main-content .comparison-compact-copy { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
+#main-content .scan-comparison-compact { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 20px; margin: 4px 0 9px; padding: 8px 12px; border: 0; border-block: 1px solid #30465e; border-left: 2px solid var(--d2-cyan, #56e6f3); background: rgb(10 22 38 / 55%); box-shadow: none; }
+#main-content .comparison-compact-copy { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; gap: 4px 12px; min-width: 0; }
 #main-content .comparison-compact-copy h2 { margin: 0; font-size: 21px; line-height: 1.35; }
 #main-content .comparison-baseline-state { color: #ffdb99; font-size: 17px; font-weight: 700; }
-#main-content .comparison-compact-copy p { flex: 1 1 20rem; margin: 0; color: #c4cfe1; font-size: 18px; line-height: 1.45; }
+#main-content .comparison-compact-copy p { min-width: 0; margin: 0; color: #c4cfe1; font-size: 18px; line-height: 1.45; }
 #main-content .scan-comparison-compact .comparison-baseline-action { min-height: 46px; padding-inline: 14px; }
 
 #main-content .results-heading { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 7px; margin: 8px 0 10px; }
@@ -410,7 +410,8 @@
   #main-content .filter-row .filter-control select,
   #main-content .filter-row .filter-input-wrap,
   #main-content .filter-row .filter-control input { font-size: 18px; }
-  #main-content .comparison-compact-copy { flex: 1 1 100%; }
+  #main-content .scan-comparison-compact { grid-template-columns: minmax(0, 1fr); }
+  #main-content .comparison-compact-copy { grid-template-columns: minmax(0, 1fr); }
   #main-content .scan-comparison-compact .comparison-baseline-action { width: 100%; }
 }
 @media (max-width: 380px) {

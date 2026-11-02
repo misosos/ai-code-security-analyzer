@@ -59,7 +59,7 @@ describe('검사 결과 비교 UI', () => {
     await screen.findByText('API 연결됨');
     await runScan(user);
     expect(screen.getByRole('heading', { name: '검사 결과 비교' })).toBeInTheDocument();
-    expect(screen.getByText(/비교 기준이 없습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/기준을 저장하면 다음 검사와 비교할 수 있습니다/)).toBeInTheDocument();
     expect(screen.queryByText(/양쪽에서 관찰/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));

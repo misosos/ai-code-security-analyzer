@@ -99,13 +99,21 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
   await expect(analysis.getByRole('heading', { name: '분석가 검토 현황' })).toBeVisible();
   await expect(analysis).toContainText('Semgrep 분류');
   await expect(analysis).toContainText('검토 완료');
-  await expect(analysis).toContainText('취약점 확정이나 수정 완료를 뜻하지 않습니다');
+  await expect(analysis).toContainText('검토 상태는 취약점 확정·수정 완료가 아닙니다.');
 
   const comparison = page.locator('.scan-comparison');
   await expect(comparison).toContainText('비교 기준 없음');
   await expect(comparison.getByRole('button', { name: '비교 기준으로 지정' })).toBeVisible();
   await expect(comparison.getByRole('button', { name: '비교 보고서 내보내기' })).toHaveCount(0);
   await expect(comparison.locator('.comparison-blocked')).toHaveCount(0);
+  const compactHeight = await comparison.evaluate((element) => element.getBoundingClientRect().height);
+  expect(compactHeight).toBeLessThanOrEqual(72);
+  const reviewDisclaimerLines = await page.locator('.analyst-review-scope').first().evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getClientRects().length;
+  });
+  expect(reviewDisclaimerLines).toBe(1);
 
   const positions = await page.evaluate(() => {
     const list = document.querySelector('.results-layout');
@@ -116,6 +124,7 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
       firstY: Math.round(first.getBoundingClientRect().top + window.scrollY),
     };
   });
+  console.log('[analyst workspace Finding coordinates]', JSON.stringify(positions));
   expect(positions.listY).toBeLessThan(810);
   expect(positions.firstY).toBeLessThan(870);
 });

@@ -118,9 +118,9 @@ test('UI-D3 result review preserves hierarchy and common actions at desktop and 
   if (!titleBox || !filterBox || !listBox) throw new Error('결과 화면 레이아웃 측정 요소 누락');
   expect(titleBox.y + titleBox.height).toBeLessThanOrEqual(filterBox.y);
   const listDocumentY = listBox.y + await page.evaluate(() => window.scrollY);
-  console.log('[UI-D3 결과 목록 첫 화면 위치]', listDocumentY);
-  expect(listDocumentY).toBeLessThan(810);
   const firstRowDocumentY = await page.locator('.finding-row').first().evaluate((el) => Math.round(el.getBoundingClientRect().top + window.scrollY));
+  console.log('[UI-D3 Finding 좌표]', JSON.stringify({ listY: listDocumentY, firstRowY: firstRowDocumentY }));
+  expect(listDocumentY).toBeLessThan(810);
   expect(firstRowDocumentY).toBeLessThan(870);
 
   const downloadPromise = page.waitForEvent('download');

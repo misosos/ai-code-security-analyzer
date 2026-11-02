@@ -384,7 +384,7 @@ export function App() {
             <div className="analyst-review-counts">
               {(['pending', 'needs_followup', 'reviewed'] as const).map((status) => <div className={`analyst-review-count ${status}`} key={status}><span>{analystReviewLabels[status]}</span><strong>{analystReviewCounts[status]}건</strong></div>)}
             </div>
-            <p className="analyst-review-scope">수동 작업 상태이며 취약점 확정이나 수정 완료를 뜻하지 않습니다.</p>
+            <p className="analyst-review-scope">검토 상태는 취약점 확정·수정 완료가 아닙니다.</p>
             {scan.omitted_finding_count > 0 && <p className="analyst-review-scope">생략된 {scan.omitted_finding_count}개는 포함하지 않습니다.</p>}
           </section></div>
         <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} onExport={exportComparisonReport} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />
@@ -493,7 +493,7 @@ function ScanComparisonPanel({
   const canSetBaseline = Boolean(current?.scan.scan_status === 'completed' && current.scan.completed);
 
   if (!baseline && current?.scan.scan_status === 'completed' && current.scan.completed) return <section className="scan-comparison scan-comparison-compact" aria-labelledby="scan-comparison-title">
-    <div className="comparison-compact-copy"><h2 id="scan-comparison-title">검사 결과 비교</h2><span className="comparison-baseline-state">비교 기준 없음</span><p>비교 기준이 없습니다. 정상 완료된 검사를 저장하면 다음 결과와 비교할 수 있습니다.</p></div>
+    <div className="comparison-compact-copy"><h2 id="scan-comparison-title">검사 결과 비교</h2><span className="comparison-baseline-state">비교 기준 없음</span><p>기준을 저장하면 다음 검사와 비교할 수 있습니다.</p></div>
     <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>비교 기준으로 지정</button>
   </section>;
 
