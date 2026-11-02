@@ -20,7 +20,7 @@ test('분석가 JSON 백업은 명시적으로 만들고 검증 후 Finding 단�
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   await page.getByText('검토 기록 백업 및 복원', { exact: true }).click();
-  const panel = page.getByLabel('이 결과를 생성한 검사 설정');
+  const panel = page.getByLabel('보고서와 검토 기록 내보내기');
   let downloadPromise = page.waitForEvent('download');
   await panel.getByRole('button', { name: '검토 기록 백업 JSON 다운로드' }).click();
   const download = await downloadPromise;

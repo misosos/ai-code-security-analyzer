@@ -152,8 +152,8 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
   expect(currentMarkdown).not.toContain(canary);
 
   await page.getByText('분석가 검토 기록 내보내기', { exact: true }).click();
-  const analystPanel = page.getByLabel('이 결과를 생성한 검사 설정');
-  const analystMarkdown = await downloadText(page, analystPanel.getByRole('button', { name: '분석가 검토 기록 내보내기' }), 'ai-code-security-analyst-review.md');
+  const analystPanel = page.getByLabel('보고서와 검토 기록 내보내기');
+  const analystMarkdown = await downloadText(page, analystPanel.getByRole('button', { name: '분석가 검토 기록 내보내기 · Markdown 다운로드' }), 'ai-code-security-analyst-review.md');
   expect(analystMarkdown).toContain('추가 확인 필요: 1');
   expect(analystMarkdown).toContain('검토 완료: 1');
   expect(analystMarkdown).not.toContain(memoA);
@@ -163,7 +163,7 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
   expect(analystMarkdown).not.toContain(canary);
 
   await page.getByText('검토 기록 백업 및 복원', { exact: true }).click();
-  const backupPanel = page.getByLabel('이 결과를 생성한 검사 설정');
+  const backupPanel = page.getByLabel('보고서와 검토 기록 내보내기');
   const initialBackup = await downloadText(page, backupPanel.getByRole('button', { name: '검토 기록 백업 JSON 다운로드' }), 'ai-code-security-analyst-review-backup.json');
   expect(initialBackup).not.toContain(memoA);
   expect(initialBackup).not.toContain(memoB);

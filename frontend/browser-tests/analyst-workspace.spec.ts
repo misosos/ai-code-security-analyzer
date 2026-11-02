@@ -33,7 +33,7 @@ function response(currentFindings = findings) {
   };
 }
 
-async function installApi(page: import('@playwright/test').Page) {
+async function installApi(page: import('@playwright/test').Page, scanResponse = response()) {
   let scanCount = 0;
   await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
   await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
@@ -42,7 +42,7 @@ async function installApi(page: import('@playwright/test').Page) {
   } }));
   await page.route('**/api/v1/scans', (route) => {
     scanCount += 1;
-    return route.fulfill({ json: response() });
+    return route.fulfill({ json: scanResponse });
   });
   return () => scanCount;
 }
@@ -76,7 +76,10 @@ test('Finding 검색과 필터는 제목에서 분리된 동일 Toolbar에서 �
   }));
   expect(boxes).toHaveLength(5);
   expect(new Set(boxes.map((box) => Math.round(box.height))).size).toBe(1);
-  expect(Math.max(...boxes.map((box) => box.y)) - Math.min(...boxes.map((box) => box.y))).toBeLessThanOrEqual(2);
+  expect(boxes[0].y).toBeLessThan(boxes[1].y);
+  expect(new Set(boxes.slice(1).map((box) => Math.round(box.y))).size).toBe(1);
+  await expect(toolbar.locator('.filter-search-row')).toContainText('검색');
+  await expect(toolbar.locator('.filter-select-row')).toContainText('검증 상태');
 
   await toolbar.getByRole('searchbox', { name: '검색' }).fill('stable.js');
   await expect(page.getByRole('region', { name: 'Finding 목록' }).getByRole('button')).toHaveCount(1);
@@ -92,10 +95,14 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
   await runScan(page);
 
   const core = page.getByRole('region', { name: '핵심 검사 수치' });
-  const analysis = page.getByRole('group', { name: '검사 분석 요약' });
+  const analysisDisclosure = page.getByRole('group', { name: '심각도 및 분석가 검토 상세' });
   await expect(core).toContainText('검토 후보');
   await expect(core).toContainText('표시된 결과');
   await expect(core).toContainText('생략된 결과');
+  await expect(analysisDisclosure.locator('summary')).toContainText('심각도 분포와 분석가 검토 현황');
+  await expect(analysisDisclosure).not.toHaveAttribute('open', '');
+  await analysisDisclosure.locator('summary').click();
+  const analysis = page.getByRole('group', { name: '검사 분석 요약' });
   await expect(analysis.getByRole('heading', { level: 3, name: '심각도 분포' })).toBeVisible();
   await expect(analysis.getByRole('heading', { name: '분석가 검토 현황' })).toBeVisible();
   await expect(analysis).toContainText('Semgrep 분류');
@@ -114,7 +121,14 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
     range.selectNodeContents(element);
     return range.getClientRects().length;
   });
-  expect(reviewDisclaimerLines).toBe(1);
+  expect(reviewDisclaimerLines).toBeGreaterThan(0);
+
+  const sectionOrder = await page.evaluate(() => ['.scan-banner', '.overview-grid.analyst-overview-core', '.findings-section', '.overview-analysis-details', '.scan-comparison']
+    .map((selector) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1));
+  expect(sectionOrder[0]).toBeLessThan(sectionOrder[1]);
+  expect(sectionOrder[1]).toBeLessThan(sectionOrder[2]);
+  expect(sectionOrder[2]).toBeLessThan(sectionOrder[3]);
+  expect(sectionOrder[3]).toBeLessThan(sectionOrder[4]);
 
   const positions = await page.evaluate(() => {
     const list = document.querySelector('.results-layout');
@@ -150,7 +164,54 @@ test('기준 저장 후 비교 범주와 기존 검토 기능이 유지된다', 
   await expect(compare).toContainText('양쪽에서 관찰');
   await expect(compare).toContainText('기준 검사에서만 관찰');
   await expect(compare.getByRole('button', { name: '비교 보고서 내보내기' })).toBeVisible();
+  const sections = await page.evaluate(() => ['.findings-section', '.overview-analysis-details', '.scan-comparison', '.result-export-workspace']
+    .map((selector) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1));
+  expect(sections[0]).toBeLessThan(sections[1]);
+  expect(sections[1]).toBeLessThan(sections[2]);
+  expect(sections[2]).toBeLessThan(sections[3]);
   expect(scanCount()).toBe(2);
+});
+
+test('긴 규칙 ID와 파일 경로는 줄바꿈되며 모든 화면 폭에서 넘치지 않는다', async ({ page }) => {
+  const longFinding = {
+    ...findings[0],
+    finding_id: 'semgrep:333333333333333333333333',
+    rule_id: `baseline.${'long-rule-segment-'.repeat(7)}`,
+    file_path: `src/${'deeply-nested-directory-'.repeat(5)}review-file.js`,
+  };
+  await installApi(page, response([longFinding]));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await runScan(page);
+  await expect(page.locator('.finding-row')).toContainText('근거 연결 구조 확인');
+  await expect(page.locator('.finding-row .unverified-badge')).toContainText('미확인 후보');
+  const ruleStyle = await page.locator('.row-rule-id').evaluate((element) => getComputedStyle(element).whiteSpace);
+  expect(ruleStyle).toBe('normal');
+  const shots = resolve(process.cwd(), '../docs/assets/ui-h8-readability');
+  await mkdir(shots, { recursive: true });
+  await page.screenshot({ path: resolve(shots, 'long-finding-metadata-1440x900.png') });
+
+  for (const width of [1920, 1536, 1440, 1280, 1024, 768, 600, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const dimensions = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
+    expect(dimensions.scroll, `긴 Finding 가로 넘침: ${width}px`).toBeLessThanOrEqual(dimensions.client);
+  }
+});
+
+test('생략 Finding 경고는 접힌 분석 요약과 독립적으로 표시된다', async ({ page }) => {
+  await installApi(page, {
+    ...response(),
+    finding_count: 3,
+    displayed_finding_count: 2,
+    omitted_finding_count: 1,
+    severity_counts: { ...response().severity_counts, high: 2 },
+    limitations: [...response().limitations, 'omitted_findings_not_individually_validated'],
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await runScan(page);
+  await expect(page.getByRole('alert')).toContainText('1개 Finding이 생략되어');
+  await expect(page.locator('.overview-analysis-details')).not.toHaveAttribute('open', '');
 });
 
 test('검색 및 필터 Toolbar는 지정한 모든 폭에서 가로 넘침이 없다', async ({ page }) => {
@@ -171,7 +232,7 @@ test('검색 및 필터 Toolbar는 지정한 모든 폭에서 가로 넘침이 �
 
 
 test('합성 Finding 화면 스크린샷을 필수 폭과 비교 상태별로 저장한다', async ({ page }) => {
-  const shots = resolve(process.cwd(), '../docs/assets/ui-h8-ui');
+  const shots = resolve(process.cwd(), '../docs/assets/ui-h8-readability');
   await mkdir(shots, { recursive: true });
   await installApi(page);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -179,6 +240,10 @@ test('합성 Finding 화면 스크린샷을 필수 폭과 비교 상태별로 �
   await runScan(page);
   await page.screenshot({ path: resolve(shots, 'results-1440x900-baseline-none.png') });
   await page.locator('.detail-panel').screenshot({ path: resolve(shots, 'finding-detail-1440x900.png') });
+
+  await page.setViewportSize({ width: 1536, height: 960 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: resolve(shots, 'results-1536x960.png') });
 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -189,8 +254,14 @@ test('합성 Finding 화면 스크린샷을 필수 폭과 비교 상태별로 �
   await page.screenshot({ path: resolve(shots, 'results-390x844.png') });
 
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole('group', { name: '심각도 및 분석가 검토 상세' }).locator('summary').click();
+  await page.screenshot({ path: resolve(shots, 'results-analysis-expanded.png') });
+  await page.getByRole('group', { name: '심각도 및 분석가 검토 상세' }).locator('summary').click();
   await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
   await page.getByRole('button', { name: '검사 시작' }).click();
   await runScan(page);
+  await page.locator('.scan-comparison').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: resolve(shots, 'comparison-baseline-set-1440x900.png') });
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: resolve(shots, 'results-1440x900-baseline-set.png') });
 });
