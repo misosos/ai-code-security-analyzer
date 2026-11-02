@@ -350,6 +350,10 @@
   border-top: 1px solid #314052;
   color: var(--text);
 }
+.ui-d2 .guide-additional > .guide-disclosure {
+  box-sizing: border-box;
+  padding: 0;
+}
 .ui-d2 .guide-disclosure:last-child { border-bottom: 1px solid #314052; }
 .ui-d2 .guide-disclosure > summary {
   display: flex;

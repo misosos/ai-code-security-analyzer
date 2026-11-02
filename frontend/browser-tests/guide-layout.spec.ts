@@ -98,3 +98,68 @@ test('UI-D4C-R guide reads as one document and progressively reveals advanced he
   layoutMeasurements.push({ viewport: { width: 390, height: 844 }, ...mobileMetrics });
   await writeFile(resolve(output, 'layout-measurements.json'), JSON.stringify(layoutMeasurements, null, 2));
 });
+
+test('추가 안내의 관리자 설정과 용어 설명 행은 모든 화면 폭에서 정렬과 여백이 같다', async ({ page }) => {
+  await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+  await page.route('**/api/v1/options', (route) => route.fulfill({ json: {
+    targets: [{ id: 'synthetic-project', label: '합성 검수 프로젝트' }],
+    rule_profiles: [{ id: 'baseline', label: '기본 보안 규칙', experimental: false }],
+  } }));
+
+  const measurements: Array<Record<string, unknown>> = [];
+  for (const viewport of [
+    { width: 1440, height: 900 }, { width: 1920, height: 1080 }, { width: 1024, height: 768 },
+    { width: 390, height: 844 }, { width: 320, height: 800 },
+  ]) {
+    await openGuide(page, viewport.width, viewport.height);
+    const adminSummary = page.locator('.advanced-setup > summary');
+    const glossarySummary = page.locator('.guide-additional > .glossary > summary');
+    const rows = await Promise.all([adminSummary, glossarySummary].map((summary) => summary.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return {
+        textX: range.getBoundingClientRect().x,
+        x: rect.x,
+        width: rect.width,
+        height: rect.height,
+        paddingLeft: style.paddingLeft,
+        paddingRight: style.paddingRight,
+        paddingTop: style.paddingTop,
+        paddingBottom: style.paddingBottom,
+        minHeight: style.minHeight,
+        lineHeight: style.lineHeight,
+        display: style.display,
+        boxSizing: style.boxSizing,
+      };
+    })));
+    console.log('[guide additional disclosure alignment]', JSON.stringify({ viewport, rows }));
+    expect(Math.abs(rows[0].textX - rows[1].textX), `텍스트 시작 X 불일치: ${viewport.width}px`).toBeLessThanOrEqual(2);
+    for (const property of ['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'minHeight', 'lineHeight', 'display', 'boxSizing'] as const) {
+      expect(rows[0][property], `${property} 불일치: ${viewport.width}px`).toBe(rows[1][property]);
+    }
+    expect(rows[0].height, `행 높이 불일치: ${viewport.width}px`).toBe(rows[1].height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), `가로 넘침: ${viewport.width}px`).toBe(0);
+    measurements.push({ viewport, rows });
+  }
+
+  await openGuide(page, 1440, 900);
+  const admin = page.locator('.advanced-setup');
+  const glossary = page.locator('.glossary');
+  const adminBefore = await admin.locator('summary').boundingBox();
+  await admin.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(admin).toHaveAttribute('open');
+  await expect(admin).toContainText('AI_CODE_SECURITY_TARGETS');
+  expect(await admin.locator('summary').boundingBox()).toEqual(adminBefore);
+  await admin.locator('summary').press('Space');
+  await expect(admin).not.toHaveAttribute('open');
+  await glossary.locator('summary').focus();
+  const glossaryBefore = await glossary.locator('summary').boundingBox();
+  await page.keyboard.press('Space');
+  await expect(glossary).toHaveAttribute('open');
+  await expect(glossary).toContainText('근거 연결 확인 (Validated Evidence)');
+  expect(await glossary.locator('summary').boundingBox()).toEqual(glossaryBefore);
+  await expect(page.getByText('Trace가 없다고 데이터 흐름이 없다는 뜻은 아닙니다')).toBeVisible();
+});
