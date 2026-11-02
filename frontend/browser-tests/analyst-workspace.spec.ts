@@ -172,6 +172,64 @@ test('기준 저장 후 비교 범주와 기존 검토 기능이 유지된다', 
   expect(scanCount()).toBe(2);
 });
 
+test('근거 검증 아이콘은 원형 안에서 중앙 정렬되고 상태별 표시를 유지한다', async ({ page }) => {
+  const statusFindings = [
+    { ...findings[0], evidence_validation_status: 'validated' },
+    { ...findings[1], evidence_validation_status: 'rejected', validation_error_code: 'evidence_unavailable' },
+    { ...findings[1], finding_id: 'semgrep:333333333333333333333333', rule_id: 'baseline.synthetic-unavailable', evidence_validation_status: 'unavailable', validation_error_code: 'evidence_unavailable' },
+    { ...findings[1], finding_id: 'semgrep:444444444444444444444444', rule_id: `baseline.${'very-long-rule-segment-'.repeat(8)}`, file_path: `src/${'nested-directory-'.repeat(8)}review.js`, evidence_validation_status: 'unavailable', validation_error_code: 'evidence_unavailable' },
+  ];
+  await installApi(page, response(statusFindings));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await runScan(page);
+
+  const rows = page.getByRole('region', { name: 'Finding 목록' }).getByRole('button');
+  await expect(rows).toHaveCount(4);
+  await expect(page.locator('.validation-icon.validated')).toHaveCount(1);
+  await expect(page.locator('.validation-icon.rejected')).toHaveCount(1);
+  await expect(page.locator('.validation-icon.unavailable')).toHaveCount(2);
+  const widths = [1920, 1440, 1024, 390, 320];
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const selector of ['.validation-icon.validated', '.validation-icon.rejected', '.validation-icon.unavailable']) {
+      const icon = page.locator(selector).first();
+      const svg = icon.locator('svg');
+      await expect(svg).toHaveAttribute('aria-hidden', 'true');
+      const alignment = await icon.evaluate((container) => {
+        const iconSvg = container.querySelector('svg');
+        if (!iconSvg) throw new Error('검증 아이콘 SVG 누락');
+        const outer = container.getBoundingClientRect();
+        const inner = iconSvg.getBoundingClientRect();
+        return {
+          outerWidth: outer.width,
+          outerHeight: outer.height,
+          innerWidth: inner.width,
+          innerHeight: inner.height,
+          centerDeltaX: Math.abs(outer.left + outer.width / 2 - inner.left - inner.width / 2),
+          centerDeltaY: Math.abs(outer.top + outer.height / 2 - inner.top - inner.height / 2),
+        };
+      });
+      expect(alignment.outerWidth).toBe(20);
+      expect(alignment.outerHeight).toBe(20);
+      expect(alignment.innerWidth).toBe(12);
+      expect(alignment.innerHeight).toBe(12);
+      expect(alignment.centerDeltaX).toBeLessThanOrEqual(1);
+      expect(alignment.centerDeltaY).toBeLessThanOrEqual(1);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.screenshot({ path: 'test-results/validation-icon-after.png', fullPage: false });
+  await expect(rows.nth(0)).toContainText('근거 연결 구조 확인');
+  await expect(rows.nth(1)).toContainText('근거 연결 확인 불가');
+  await expect(rows.nth(2)).toContainText('근거 연결 확인 불가');
+  await rows.first().focus();
+  await expect(rows.first()).toHaveCSS('outline-style', 'solid');
+  await rows.first().click();
+  await expect(rows.first()).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('긴 규칙 ID와 파일 경로는 줄바꿈되며 모든 화면 폭에서 넘치지 않는다', async ({ page }) => {
   const longFinding = {
     ...findings[0],

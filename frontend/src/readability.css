@@ -158,7 +158,6 @@ select option { font-size: 1.125rem; }
 .row-main > strong { font-size: 1.1875rem; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
 .row-location { font-size: 1.0625rem; line-height: 1.55; overflow-wrap: anywhere; }
 .row-rule-id { font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
-.validation-icon { font-size: 1.125rem; }
 .detail-panel { padding: 1.75rem; }
 .detail-top { flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
 .detail-top h2 { font-size: 1.625rem; line-height: 1.4; overflow-wrap: anywhere; }

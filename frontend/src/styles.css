@@ -189,7 +189,8 @@ select:disabled, input:disabled { opacity: .66; cursor: not-allowed; }
 .row-main > strong { overflow: hidden; color: var(--text); font-size: 15px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .row-location { overflow: hidden; color: var(--muted); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .row-rule-id { overflow: hidden; color: var(--muted-dim); font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
-.validation-icon { width: 20px; height: 20px; display: grid; place-items: center; align-self: center; border: 1px solid #367660; border-radius: 50%; color: var(--success); font-size: 12px; font-weight: 800; }
+.validation-icon { box-sizing: border-box; width: 20px; height: 20px; display: grid; place-items: center; align-self: center; flex: 0 0 20px; border: 1px solid #367660; border-radius: 50%; color: var(--success); line-height: 0; }
+.validation-icon > .validation-mark { display: block; width: 12px; height: 12px; flex: 0 0 12px; }
 .validation-icon.rejected, .validation-icon.unavailable { border-color: #815067; color: var(--danger); }
 .no-filter-results { padding: 22px; color: var(--muted); font-size: 13px; }
 .detail-panel { padding: 13px; }
@@ -932,7 +933,7 @@ body { font-size: var(--type-body); line-height: 1.6; }
 .dashboard-main :where(.eyebrow, .deck-signal, .metric-label, .severity-count, .severity-label, .unverified-badge,
   .nav-result-count, .list-caption, .row-kind, .row-rule-id, .row-location, .technical-content,
   .finding-technical-meta, .claim-section, .detail-badges, .state-pill, .context-copy, .export-note,
-  .export-feedback, .toolbar-help, .live-message, .status-help, .no-filter-results, .count-chip, .validation-icon) { font-size: 15px; line-height: 1.55; }
+  .export-feedback, .toolbar-help, .live-message, .status-help, .no-filter-results, .count-chip) { font-size: 15px; line-height: 1.55; }
 .dashboard-main :where(h2, .results-title h2, .detail-top h2, .guide-section h2, .guide-limit h2) { font-size: 24px; line-height: 1.35; }
 .dashboard-main h1, .dashboard-main h2, .dashboard-main h3, .dashboard-main h4 { text-wrap: pretty; }
 .dashboard-main :where(.workspace-title h1, .results-empty-state h2) { font-size: 32px; line-height: 1.3; }
