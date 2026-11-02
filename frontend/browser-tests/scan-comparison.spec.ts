@@ -45,7 +45,12 @@ test('baseline comparison can be saved, compared, and read without narrow-screen
   await page.getByLabel('로컬 API 토큰').fill('synthetic-browser-token');
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
-  await page.getByRole('button', { name: /비교 기준/ }).click();
+  await page.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' }).click();
+  await expect(page.getByRole('button', { name: '비교 기준 해제' })).toBeVisible();
+  await page.getByRole('button', { name: '비교 기준 해제' }).click();
+  await expect(page.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await page.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' }).click();
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 시작/ }).click();
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();

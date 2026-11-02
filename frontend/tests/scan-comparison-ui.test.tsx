@@ -81,6 +81,24 @@ describe('검사 결과 비교 UI', () => {
     expect(screen.getByRole('region', { name: '비교 항목 근거' })).toHaveTextContent('취약점으로 확정되지 않았습니다');
   });
 
+  it('비교 기준 해제는 현재 검사와 분석가 검토 기록을 유지한다', async () => {
+    installApi([scan([finding('one')])]);
+    const user = userEvent.setup(); render(<App/>);
+    await screen.findByText('API 연결됨'); await runScan(user);
+    await user.selectOptions(screen.getByLabelText('수동 검토 상태'), 'reviewed');
+    await user.type(screen.getByLabelText('분석가 메모'), '계속 보존할 검토 메모');
+    await user.click(screen.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' }));
+    expect(screen.getByRole('button', { name: '비교 기준 해제' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '비교 기준 해제' }));
+    expect(screen.queryByRole('button', { name: '비교 기준 해제' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '정상 완료' })).toBeInTheDocument();
+    expect(screen.getByLabelText('수동 검토 상태')).toHaveValue('reviewed');
+    expect(screen.getByLabelText('분석가 메모')).toHaveValue('계속 보존할 검토 메모');
+    expect(screen.getByText(/비교 기준을 해제했습니다/)).toBeInTheDocument();
+  });
+
   it('대상·프로필·버전 문맥이 맞지 않거나 결과가 생략되면 비교를 차단한다', async () => {
     installApi([scan([finding('one')]), scan([finding('two')])]);
     const user = userEvent.setup(); render(<App/>);
