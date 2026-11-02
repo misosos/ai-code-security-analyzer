@@ -324,10 +324,10 @@
 #main-content .d2-results-workspace .context-identifiers code { margin-inline-start: 4px; color: #cbd7e8; font-size: 18px; overflow-wrap: anywhere; }
 
 #main-content .overview-grid.analyst-overview-core { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 0; padding: 5px 0; border-bottom: 1px solid var(--d2-rule); }
-#main-content .overview-grid.analyst-overview-core > .metric { min-width: 0; min-height: 88px; padding: 8px 14px; border: 0; border-right: 1px solid var(--d2-rule); background: transparent; box-shadow: none; }
+#main-content .overview-grid.analyst-overview-core > .metric { min-width: 0; min-height: 76px; padding: 6px 14px; border: 0; border-right: 1px solid var(--d2-rule); background: transparent; box-shadow: none; }
 #main-content .overview-grid.analyst-overview-core > .metric:first-child { padding-left: 0; }
 #main-content .overview-grid.analyst-overview-core > .metric:last-child { border-right: 0; }
-#main-content .overview-analysis-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: stretch; padding: 8px 0 10px; border-bottom: 1px solid var(--d2-rule); }
+#main-content .overview-analysis-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: stretch; padding: 4px 0 6px; border-bottom: 1px solid var(--d2-rule); }
 #main-content .overview-analysis-grid > .severity-card,
 #main-content .overview-analysis-grid > .analyst-review-summary { min-width: 0; min-height: 0; margin: 0; padding: 4px 12px; border: 0; background: transparent; box-shadow: none; }
 #main-content .overview-analysis-grid > .severity-card { border-right: 1px solid var(--d2-rule); }
@@ -344,14 +344,14 @@
 #main-content .overview-analysis-grid .analyst-review-count strong { font-size: 17px; line-height: 1.35; overflow-wrap: anywhere; white-space: normal; }
 #main-content .overview-analysis-grid .analyst-review-scope { margin-top: 4px; }
 
-#main-content .scan-comparison-compact { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 20px; margin: 4px 0 9px; padding: 8px 12px; border: 0; border-block: 1px solid #30465e; border-left: 2px solid var(--d2-cyan, #56e6f3); background: rgb(10 22 38 / 55%); box-shadow: none; }
+#main-content .scan-comparison-compact { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 20px; margin: 3px 0 5px; padding: 5px 12px; border: 0; border-block: 1px solid #30465e; border-left: 2px solid var(--d2-cyan, #56e6f3); background: rgb(10 22 38 / 55%); box-shadow: none; }
 #main-content .comparison-compact-copy { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; gap: 4px 12px; min-width: 0; }
 #main-content .comparison-compact-copy h2 { margin: 0; font-size: 21px; line-height: 1.35; }
 #main-content .comparison-baseline-state { color: #ffdb99; font-size: 17px; font-weight: 700; }
 #main-content .comparison-compact-copy p { min-width: 0; margin: 0; color: #c4cfe1; font-size: 18px; line-height: 1.45; }
 #main-content .scan-comparison-compact .comparison-baseline-action { min-height: 46px; padding-inline: 14px; }
 
-#main-content .results-heading { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 7px; margin: 8px 0 10px; }
+#main-content .results-heading { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 4px; margin: 4px 0 6px; }
 #main-content .results-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; min-width: 0; }
 #main-content .results-title h2 { margin: 0; font-size: 26px; line-height: 1.3; }
 #main-content .results-title .count-chip { margin-inline-start: 8px; vertical-align: middle; }

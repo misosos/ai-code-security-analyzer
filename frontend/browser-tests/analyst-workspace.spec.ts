@@ -1,6 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, test } from '@playwright/test';
+import { measureAnalystLayout } from './analyst-layout-measurements';
 
 const findings = [
   {
@@ -124,9 +125,12 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
       firstY: Math.round(first.getBoundingClientRect().top + window.scrollY),
     };
   });
+  console.log('[analyst workspace vertical layout]', JSON.stringify(await measureAnalystLayout(page)));
   console.log('[analyst workspace Finding coordinates]', JSON.stringify(positions));
   expect(positions.listY).toBeLessThan(810);
   expect(positions.firstY).toBeLessThan(870);
+  expect(positions.listY, '목록 위치는 Linux 글꼴 메트릭 변동에도 20px 이상 여유를 둔다').toBeLessThan(790);
+  expect(positions.firstY, '첫 Finding 행은 Linux 글꼴 메트릭 변동에도 20px 이상 여유를 둔다').toBeLessThan(850);
 });
 
 test('기준 저장 후 비교 범주와 기존 검토 기능이 유지된다', async ({ page }) => {

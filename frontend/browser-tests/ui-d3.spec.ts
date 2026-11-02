@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { measureAnalystLayout } from './analyst-layout-measurements';
 
 const finding = {
   finding_id: 'semgrep:2123456789abcdef01234567', rule_id: 'synthetic.eval-example', severity: 'high',
@@ -112,6 +113,7 @@ test('UI-D3 result review preserves hierarchy and common actions at desktop and 
     return [selector, { x: Math.round(box.x), y: Math.round(box.y), documentY: Math.round(box.y + window.scrollY), width: Math.round(box.width), height: Math.round(box.height), display: css.display, gridColumns: css.gridTemplateColumns }];
   })));
   console.log('[UI-D3 결과 화면 측정]', JSON.stringify({ values, resultLayout }));
+  console.log('[UI-D3 vertical layout]', JSON.stringify(await measureAnalystLayout(page)));
   const titleBox = await page.locator('.results-title').boundingBox();
   const filterBox = await page.locator('.filter-row').boundingBox();
   const listBox = await page.locator('.results-layout').boundingBox();
@@ -122,6 +124,8 @@ test('UI-D3 result review preserves hierarchy and common actions at desktop and 
   console.log('[UI-D3 Finding 좌표]', JSON.stringify({ listY: listDocumentY, firstRowY: firstRowDocumentY }));
   expect(listDocumentY).toBeLessThan(810);
   expect(firstRowDocumentY).toBeLessThan(870);
+  expect(listDocumentY, 'UI-D3 목록 위치에 20px 이상의 여유를 둔다').toBeLessThan(790);
+  expect(firstRowDocumentY, 'UI-D3 첫 Finding 행에 20px 이상의 여유를 둔다').toBeLessThan(850);
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: '현재 검사 결과 내보내기' }).click();
