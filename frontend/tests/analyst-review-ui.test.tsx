@@ -77,7 +77,7 @@ describe('분석가 Finding 검토 UI', () => {
   it('새 검사 취소 시 기존 메모를 보존하고 확인 후에만 초기화한다', async () => {
     const first = finding('1'); installApi([scan([first]), scan([finding('1')])]);
     const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
     await user.type(screen.getByLabelText('분석가 메모'), '보존되어야 하는 노트');
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
     await user.click(screen.getByRole('button', { name: '검사 시작' }));
@@ -99,7 +99,7 @@ describe('분석가 Finding 검토 UI', () => {
 
   it('결과 삭제 취소는 기록을 유지하고 확인 후 결과·기준·검토 기록을 함께 지운다', async () => {
     installApi([scan([finding('1')])]); const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
     await user.type(screen.getByLabelText('분석가 메모'), '삭제 확인 메모');
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
     await user.click(screen.getByRole('button', { name: '결과 지우기' }));

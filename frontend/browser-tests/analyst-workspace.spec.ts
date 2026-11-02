@@ -111,7 +111,7 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
 
   const comparison = page.locator('.scan-comparison');
   await expect(comparison).toContainText('비교 기준 없음');
-  await expect(comparison.getByRole('button', { name: '비교 기준으로 지정' })).toBeVisible();
+  await expect(comparison.getByRole('button', { name: /비교 기준/ })).toBeVisible();
   await expect(comparison.getByRole('button', { name: '비교 보고서 내보내기' })).toHaveCount(0);
   await expect(comparison.locator('.comparison-blocked')).toHaveCount(0);
   const compactHeight = await comparison.evaluate((element) => element.getBoundingClientRect().height);
@@ -152,8 +152,10 @@ test('기준 저장 후 비교 범주와 기존 검토 기능이 유지된다', 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await runScan(page);
-  await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
-  await expect(page.locator('.comparison-heading')).toContainText('비교 기준 교체');
+  await page.getByRole('button', { name: /비교 기준/ }).click();
+  await expect(page.locator('.scan-comparison')).toContainText('비교 기준이 저장되었습니다');
+  await expect(page.locator('.scan-comparison')).toContainText('같은 대상과 규칙으로 새 검사를 실행');
+  await expect(page.locator('.comparison-baseline-action')).toHaveText('현재 결과로 비교 기준 다시 저장');
 
   await page.getByRole('button', { name: '검사 시작' }).click();
   await page.getByRole('button', { name: '검사 실행' }).click();
@@ -315,7 +317,7 @@ test('합성 Finding 화면 스크린샷을 필수 폭과 비교 상태별로 �
   await page.getByRole('group', { name: '심각도 및 분석가 검토 상세' }).locator('summary').click();
   await page.screenshot({ path: resolve(shots, 'results-analysis-expanded.png') });
   await page.getByRole('group', { name: '심각도 및 분석가 검토 상세' }).locator('summary').click();
-  await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
+  await page.getByRole('button', { name: /비교 기준/ }).click();
   await page.getByRole('button', { name: '검사 시작' }).click();
   await runScan(page);
   await page.locator('.scan-comparison').scrollIntoViewIfNeeded();

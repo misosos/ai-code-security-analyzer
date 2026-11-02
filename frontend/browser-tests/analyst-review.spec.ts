@@ -23,7 +23,7 @@ test('Finding 검토 상태와 메모는 현재 검사에 격리되고 확인·�
   await page.getByLabel('로컬 API 토큰').fill('synthetic-review-token');
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
-  await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
+  await page.getByRole('button', { name: /비교 기준/ }).click();
   await page.getByRole('button', { name: '검사 시작' }).click();
   await page.getByRole('button', { name: '검사 실행' }).click();
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();

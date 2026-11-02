@@ -109,7 +109,7 @@ test('axe: 비교 기준, 비교 범주와 비교 보고서 내보내기', async
   await fixture(page);
   await page.goto('/');
   await runScan(page);
-  await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
+  await page.getByRole('button', { name: /비교 기준/ }).click();
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
   await runScan(page);
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 결과' }).click();

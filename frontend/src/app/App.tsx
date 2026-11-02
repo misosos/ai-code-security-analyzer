@@ -201,7 +201,7 @@ export function App() {
     if (!scan || !scanContext || scan.scan_status !== 'completed' || !scan.completed) return;
     setBaselineSnapshot({ scan, context: scanContext });
     setComparisonExportMessage('');
-    setMessage('현재 검사 결과를 비교 기준으로 지정했습니다. 다음 검사를 실행하면 관찰 차이를 비교합니다.');
+    setMessage('현재 검사 결과를 비교 기준으로 저장했습니다. 같은 대상과 규칙으로 새 검사를 실행하면 결과 차이를 확인할 수 있습니다.');
   }
   function exportResults() {
     if (!scan || !scanContext) return;
@@ -451,8 +451,8 @@ function FindingDetail({finding,reviewEntry,importedFromBackup,noteError,onStatu
 
 const comparisonReasonLabels: Record<ComparisonBlockReason, string> = {
   baseline_missing: '비교 기준이 없습니다. 정상 완료된 검사를 기준으로 지정하세요.',
-  current_missing: '비교할 현재 검사가 없습니다. 같은 대상과 규칙으로 다시 검사하세요.',
-  same_scan_snapshot: '기준 지정 직후입니다. 이후 검사를 실행하면 두 결과를 비교합니다.',
+  current_missing: '비교 기준이 저장되었습니다. 검사 시작에서 같은 대상과 규칙으로 새 검사를 실행하세요.',
+  same_scan_snapshot: '비교 기준이 저장되었습니다. 같은 대상과 규칙으로 새 검사를 실행하면 결과 차이를 확인할 수 있습니다.',
   baseline_not_completed: '기준 검사가 정상 완료되지 않아 비교할 수 없습니다.',
   current_not_completed: '부분 검사 또는 실패한 결과는 비교할 수 없습니다.',
   baseline_findings_omitted: '기준 응답에서 Finding이 생략되어 전체 비교를 할 수 없습니다.',
@@ -498,8 +498,8 @@ function ScanComparisonPanel({
   const canSetBaseline = Boolean(current?.scan.scan_status === 'completed' && current.scan.completed);
 
   if (!baseline && current?.scan.scan_status === 'completed' && current.scan.completed) return <section className="scan-comparison scan-comparison-compact" aria-labelledby="scan-comparison-title">
-    <div className="comparison-compact-copy"><h2 id="scan-comparison-title">검사 결과 비교</h2><span className="comparison-baseline-state">비교 기준 없음</span><p>기준을 저장하면 다음 검사와 비교할 수 있습니다.</p></div>
-    <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>비교 기준으로 지정</button>
+    <div className="comparison-compact-copy"><h2 id="scan-comparison-title">검사 결과 비교</h2><span className="comparison-baseline-state">비교 기준 없음</span><p>현재 결과를 기준으로 저장한 뒤, 같은 대상과 규칙으로 다시 검사하면 결과 차이를 확인할 수 있습니다.</p></div>
+    <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>현재 결과를 비교 기준으로 저장</button>
   </section>;
 
   return <section className="scan-comparison" aria-labelledby="scan-comparison-title">
@@ -547,7 +547,7 @@ function ScanComparisonPanel({
         <h2 id="scan-comparison-title">검사 결과 비교</h2>
       </div>}
       <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>
-        {baseline ? '비교 기준 교체' : '비교 기준으로 지정'}
+        {baseline ? '현재 결과로 비교 기준 다시 저장' : '현재 결과를 비교 기준으로 저장'}
       </button>
       <button type="button" className="button secondary comparison-export-action" onClick={onExport} disabled={!comparison.comparable || !groups || exporting}>
         비교 보고서 내보내기

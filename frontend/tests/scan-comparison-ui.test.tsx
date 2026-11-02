@@ -59,11 +59,12 @@ describe('검사 결과 비교 UI', () => {
     await screen.findByText('API 연결됨');
     await runScan(user);
     expect(screen.getByRole('heading', { name: '검사 결과 비교' })).toBeInTheDocument();
-    expect(screen.getByText(/기준을 저장하면 다음 검사와 비교할 수 있습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/현재 결과를 기준으로 저장한 뒤/)).toBeInTheDocument();
     expect(screen.queryByText(/양쪽에서 관찰/)).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
-    expect(screen.getByText(/기준 지정 직후/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
+    expect(screen.getByText(/기준이 저장되었습니다/)).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: '검사 결과 비교' })).getByText(/같은 대상과 규칙으로 새 검사를 실행/)).toBeInTheDocument();
     await runScan(user);
 
     await user.click(screen.getByText('검사 결과 비교'));
@@ -84,7 +85,7 @@ describe('검사 결과 비교 UI', () => {
     installApi([scan([finding('one')]), scan([finding('two')])]);
     const user = userEvent.setup(); render(<App/>);
     await screen.findByText('API 연결됨'); await runScan(user);
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
     await user.click(within(screen.getByRole('navigation', { name: '화면 이동' })).getByRole('button', { name: '검사 시작' }));
     await user.selectOptions(screen.getByLabelText('검사 대상'), 'project-b');
     await user.click(screen.getByRole('button', { name: '검사 실행' }));
@@ -98,13 +99,13 @@ describe('검사 결과 비교 UI', () => {
     installApi([scan([finding('one')]), json({ error: 'internal_error' }, 500)]);
     const user = userEvent.setup(); render(<App/>);
     await screen.findByText('API 연결됨'); await runScan(user);
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
     await user.click(screen.getByRole('button', { name: '검사 시작' }));
     await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
     await user.click(screen.getByRole('button', { name: '검사 실행' }));
     await screen.findByRole('alert');
     await user.click(screen.getByRole('button', { name: '검사 결과' }));
-    expect(screen.getByText(/비교할 현재 검사가 없습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/비교 기준이 저장되었습니다/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '아직 검사 결과가 없습니다.' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: '정상 완료' })).not.toBeInTheDocument();
   });
@@ -123,7 +124,7 @@ describe('검사 결과 비교 UI', () => {
     await screen.findByText('API 연결됨'); await runScan(user);
     expect(screen.getByText(dangerousLabel)).toBeInTheDocument();
     expect(document.querySelector('img')).toBeNull();
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
     await user.click(screen.getByRole('button', { name: '결과 지우기' }));
     expect(screen.queryByRole('heading', { name: '검사 결과 비교' })).not.toBeInTheDocument();
     expect(screen.getByText(/비교 기준을 지웠습니다/)).toBeInTheDocument();
@@ -140,7 +141,7 @@ describe('검사 결과 비교 UI', () => {
     await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
     await user.click(screen.getByRole('button', { name: '검사 실행' }));
     await screen.findByRole('heading', { name: '부분 검사' });
-    const setBaseline = screen.getByRole('button', { name: '비교 기준으로 지정' });
+    const setBaseline = screen.getByRole('button', { name: /비교 기준/ });
     expect(setBaseline).toBeDisabled();
     expect(screen.getByText(/부분 검사 또는 실패한 결과는 비교할 수 없습니다/)).toBeInTheDocument();
   });
@@ -158,7 +159,7 @@ describe('검사 결과 비교 UI', () => {
       const user = userEvent.setup(); render(<App/>);
       await screen.findByText('API 연결됨'); await runScan(user);
       expect(screen.queryByRole('button', { name: '비교 보고서 내보내기' })).not.toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+      await user.click(screen.getByRole('button', { name: /비교 기준/ }));
       await user.click(screen.getByRole('button', { name: '검사 시작' }));
       await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
       await user.click(screen.getByRole('button', { name: '검사 실행' }));
@@ -193,7 +194,7 @@ describe('검사 결과 비교 UI', () => {
     });
     const user = userEvent.setup(); render(<App/>);
     await screen.findByText('API 연결됨'); await runScan(user);
-    await user.click(screen.getByRole('button', { name: '비교 기준으로 지정' }));
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
     await user.click(screen.getByRole('button', { name: '검사 시작' }));
     await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
     await user.click(screen.getByRole('button', { name: '검사 실행' }));

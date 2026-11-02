@@ -118,11 +118,11 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   await expect(page.locator('body')).not.toContainText(token);
   await expect(page.locator('body')).not.toContainText(safePrivateRoot);
-  await expect(page.getByRole('button', { name: '비교 기준으로 지정' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /비교 기준/ })).toBeVisible();
   await expect(page.getByRole('button', { name: '비교 보고서 내보내기' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: '비교 기준으로 지정' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '현재 검사 결과를 비교 기준으로 지정했습니다' })).toBeVisible();
+  await page.getByRole('button', { name: /비교 기준/ }).click();
+  await expect(page.getByRole('status').filter({ hasText: '현재 검사 결과를 비교 기준으로 저장했습니다' })).toBeVisible();
   await expect(page.getByText('Semgrep 1.182.1').first()).toBeVisible();
 
   const findingsList = page.getByRole('region', { name: 'Finding 목록' });
