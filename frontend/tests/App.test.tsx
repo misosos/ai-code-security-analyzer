@@ -259,7 +259,7 @@ describe('Analyst dashboard',()=>{
     expect(create).toHaveBeenCalledOnce();
     const blob=create.mock.calls[0][0] as Blob; const content=await blob.text();
     expect(content).toContain('Baseline Rules'); expect(content).not.toContain('Experimental · Command Injection');
-    expect(content).toContain('Semgrep 규칙 매치 보고'); expect(content).not.toContain('test-local-token-which-is-not-persisted');
+    expect(content).toContain('Semgrep 매치가 응답에 보고됐습니다.'); expect(content).not.toContain('test-local-token-which-is-not-persisted');
     await user.click(screen.getByRole('button',{name:'결과 지우기'}));
     expect(screen.queryByRole('heading',{name:'정상 완료'})).not.toBeInTheDocument();
     expect(screen.queryByText(/이 결과를 생성한 검사 설정/)).not.toBeInTheDocument();

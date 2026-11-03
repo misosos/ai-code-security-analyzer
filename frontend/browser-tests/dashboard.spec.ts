@@ -91,8 +91,8 @@ test('browser preserves scan context, downloads the current summary on click, an
   let markdown = '';
   for await (const chunk of stream!) markdown += chunk.toString('utf8');
   expect(markdown).toContain('Baseline Rules');
-  expect(markdown).toContain('Semgrep 규칙 매치 보고');
-  expect(markdown).toContain('취약점 확정 문서가 아니며');
+  expect(markdown).toContain('Semgrep 매치가 응답에 보고됐습니다.');
+  expect(markdown).toContain('취약점의 발생·확정·수정을 증명하지 않으며');
   expect(markdown).not.toContain('Experimental Command Injection (command-injection-experimental)');
   expect(markdown).not.toContain(token);
   expect(scans).toBe(1);

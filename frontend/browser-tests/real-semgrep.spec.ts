@@ -97,11 +97,11 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   expect(markdown).toContain(finding!.finding_id);
   expect(markdown).toContain('synthetic-selected');
   expect(markdown).toContain('experimental.javascript-command-injection-taint');
-  expect(markdown).toContain('신뢰된 taint 규칙 매치 보고');
-  expect(markdown).toContain('source&#x5F;location&#x5F;identified');
-  expect(markdown).toContain('sink&#x5F;argument&#x5F;location&#x5F;identified');
-  expect(markdown).toContain('flow&#x5F;trace&#x5F;available');
-  expect(markdown).toContain('취약점 확정 문서가 아니며');
+  expect(markdown).toContain('신뢰된 Taint 규칙 매치가 보고됐습니다.');
+  expect(markdown).toContain('`source_location_identified`');
+  expect(markdown).toContain('`sink_argument_location_identified`');
+  expect(markdown).toContain('`flow_trace_available`');
+  expect(markdown).toContain('취약점의 발생·확정·수정을 증명하지 않으며');
   expect(markdown).not.toContain(canary);
   expect(markdown).not.toContain(token);
   expect(markdown).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
