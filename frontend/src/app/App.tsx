@@ -7,6 +7,8 @@ import { createComparisonMarkdown, downloadComparisonMarkdown } from '../feature
 import { countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus, getAnalystReviewEntry, hasAnalystReviewWork, setAnalystReviewNote, setAnalystReviewStatus, type AnalystReviewFilter, type AnalystReviewState, type AnalystReviewStatus } from '../features/scans/analystReview';
 import { createAnalystReviewMarkdown, downloadAnalystReviewMarkdown } from '../features/scans/analystReviewMarkdownExport';
 import { ANALYST_REVIEW_BACKUP_FILENAME, createAnalystReviewBackup, downloadAnalystReviewBackup, MAX_ANALYST_REVIEW_BACKUP_BYTES, parseAnalystReviewBackup, validateBackupForRestore, type AnalystReviewBackup, type RestoreBlockReason } from '../features/scans/analystReviewBackup';
+import { createScanTriage, type FindingTriage } from '../features/scans/findingTriage';
+import { getFindingReviewGuidance } from '../features/scans/reviewGuidance';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -44,11 +46,6 @@ const reasonLabels: Record<string,string> = {
   analysis_scope_derived_from_engine_metadata:'분석 범위는 엔진 메타데이터를 바탕으로 추정됐습니다.',
   static_evidence_cannot_support_claim:'현재 정적 근거로는 이 주장을 지원할 수 없습니다.', scan_partial:'검사가 일부만 완료됐습니다.',
   scan_not_complete:'전체 검사가 완료되지 않았습니다.', scan_failed:'검사가 실패해 매치를 확인할 수 없습니다.',
-};
-const taskText: Record<FindingKind,string[]> = {
-  taint: ['실제 입력 출처를 코드에서 확인하세요.','위험 함수에 전달되는 인자와 변수 관계를 확인하세요.','입력 검증과 정제 로직의 구현 및 호출 순서를 확인하세요.','함수 경계 밖의 전달 흐름을 직접 검토하세요.','런타임에서 해당 코드에 도달하는 조건을 확인하세요.'],
-  pattern: ['탐지된 패턴과 표시 위치의 코드를 확인하세요.','입력값과 데이터 출처를 직접 확인하세요.','주변의 입력 검증 및 방어 조건을 검토하세요.'],
-  unclassified: ['규칙과 근거 연결을 확인하세요.','매치 위치와 규칙 ID를 원본 프로젝트에서 확인하세요.','분류에 필요한 근거가 누락됐는지 검토하세요.'],
 };
 const statusLabels: Record<string,string> = { completed:'정상 완료', partial:'부분 검사', execution_failed:'실행 실패', not_installed:'Semgrep 미설치', invalid_json:'결과 형식 오류', timed_out:'시간 초과', output_limit_exceeded:'출력 제한 초과' };
 const analystReviewLabels: Record<AnalystReviewStatus,string> = { pending: '검토 대기', needs_followup: '추가 확인 필요', reviewed: '검토 완료' };
@@ -149,6 +146,7 @@ export function App() {
     (verificationFilter === 'all' || finding.verification_status === verificationFilter) &&
     (!searchQuery.trim() || [ruleName(finding.rule_id), finding.rule_id, finding.file_path ?? '', finding.line_number?.toString() ?? ''].some((value) => value.toLocaleLowerCase('ko-KR').includes(searchQuery.trim().toLocaleLowerCase('ko-KR'))))), [scan, severityFilter, kindFilter, verificationFilter, searchQuery]);
   const visibleFindings = useMemo(() => filterFindingsByAnalystStatus(baseVisibleFindings, analystReviews, analystReviewFilter), [baseVisibleFindings, analystReviews, analystReviewFilter]);
+  const scanTriage = useMemo(() => scan ? createScanTriage(scan) : null, [scan]);
   const selected = selectedId
     ? visibleFindings.find((finding) => finding.finding_id === selectedId)
     : visibleFindings[0];
@@ -395,7 +393,7 @@ export function App() {
             </div>
           </div></div>
           {scan.finding_count === 0 ? <div className="empty-state panel glass-surface"><span className="empty-icon" aria-hidden="true"><Icon name="check"/></span><div><h3>발견 항목이 없습니다</h3><p>이번 검사에서 후보가 나오지 않았습니다. 검사되지 않은 문제까지 안전하다는 뜻은 아닙니다.</p></div></div> : <div className="results-layout"><section className="finding-list data-console" aria-label="Finding 목록" tabIndex={0}><div className="list-caption"><span>검토 후보 목록</span><span>{visibleFindings.length} / {scan.displayed_finding_count} 표시</span></div>{visibleFindings.length === 0 ? <p className="no-filter-results">검색 또는 필터와 일치하는 결과가 없습니다.</p> : visibleFindings.map((finding) => <FindingRow key={finding.finding_id} finding={finding} reviewStatus={getAnalystReviewEntry(analystReviews, scan.findings, finding.finding_id).status} selected={selected?.finding_id === finding.finding_id} onSelect={() => { setSelectedId(finding.finding_id); setAnalystNoteError(''); }} />)}</section>
-            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected} reviewEntry={getAnalystReviewEntry(analystReviews, scan.findings, selected.finding_id)} importedFromBackup={backupAppliedIds.has(selected.finding_id)} noteError={analystNoteError} onStatusChange={(next) => updateAnalystStatus(selected.finding_id, next)} onNoteChange={(note) => updateAnalystNote(selected.finding_id, note)}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>{selectedId ? '현재 선택한 항목은 필터에서 제외되었습니다. 필터를 바꾸거나 목록에서 다른 항목을 선택하세요.' : '왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.'}</p></div>}</section></div>}
+            <section className="detail-panel review-hud" aria-label="선택한 Finding 상세" tabIndex={0}>{selected ? <FindingDetail finding={selected} triage={scanTriage?.findings.find((item) => item.findingId === selected.finding_id)} reviewEntry={getAnalystReviewEntry(analystReviews, scan.findings, selected.finding_id)} importedFromBackup={backupAppliedIds.has(selected.finding_id)} noteError={analystNoteError} onStatusChange={(next) => updateAnalystStatus(selected.finding_id, next)} onNoteChange={(note) => updateAnalystNote(selected.finding_id, note)}/> : <div className="select-prompt"><span aria-hidden="true"><Icon name="cursor"/></span><p>{selectedId ? '현재 선택한 항목은 필터에서 제외되었습니다. 필터를 바꾸거나 목록에서 다른 항목을 선택하세요.' : '왼쪽 목록에서 항목을 선택하면 근거와 검토할 내용을 볼 수 있습니다.'}</p></div>}</section></div>}
         </section>
         <details className="overview-analysis-details" role="group" aria-label="심각도 및 분석가 검토 상세">
           <summary>심각도 분포와 분석가 검토 현황</summary>
@@ -433,14 +431,35 @@ function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'
 }
 function Metric({label,value,note}:{label:string;value:number;note:string}) { return <div className="panel metric"><span className="metric-label">{label}</span><strong>{value.toLocaleString('ko-KR')}</strong><small>{note}</small></div>; }
 function FindingRow({finding,reviewStatus,selected,onSelect}:{finding:ApiFinding;reviewStatus:AnalystReviewStatus;selected:boolean;onSelect:()=>void}) { const location = finding.file_path ?? '위치 확인 불가'; const line = finding.line_number ? `:${finding.line_number}` : ''; const validated = finding.evidence_validation_status === 'validated'; const evidence = validated ? '근거 연결 구조 확인' : '근거 연결 확인 불가'; return <button type="button" className={`finding-row ${selected?'selected':''}`} onClick={onSelect} aria-pressed={selected}><span className={`severity-rail ${finding.severity}`} aria-hidden="true"/><span className="row-main"><span className="row-main-heading"><strong>{ruleName(finding.rule_id)}</strong><span className={`severity-label ${finding.severity}`}>{severityLabels[finding.severity]}</span></span><small className="row-location">{location}{line}</small><span className="row-secondary-meta"><code className="row-rule-id">{finding.rule_id}</code><span className="row-kind">{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미확인 후보</span><span className={`evidence-validation-label ${finding.evidence_validation_status}`}>{evidence}</span><span className={`analyst-review-badge ${reviewStatus}`}>분석가: {analystReviewLabels[reviewStatus]}</span></span></span><span className={`validation-icon ${finding.evidence_validation_status}`} title={`근거 검증 ${finding.evidence_validation_status}`} aria-hidden="true">{validated ? <svg className="validation-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg> : <svg className="validation-mark" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M10 4.5v7"/><circle cx="10" cy="15" r=".8" fill="currentColor" stroke="none"/></svg>}</span></button>; }
-function FindingDetail({finding,reviewEntry,importedFromBackup,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;reviewEntry?:{status:AnalystReviewStatus;note:string};importedFromBackup?:boolean;noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
+function FindingDetail({finding,triage,reviewEntry,importedFromBackup,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;triage?:FindingTriage;reviewEntry?:{status:AnalystReviewStatus;note:string};importedFromBackup?:boolean;noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
+  const guidance = getFindingReviewGuidance(finding.rule_id, finding.finding_kind);
   return <article>
     <div className="detail-top"><div><p className="eyebrow">발견 항목 요약</p><h2>{ruleName(finding.rule_id)}</h2></div><span className={`severity-label ${finding.severity}`}>심각도: {severityLabels[finding.severity]}</span></div>
     <div className="detail-badges"><span>{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미검증 후보</span></div>
     <div className="detail-location"><span>확인할 파일과 위치</span><strong>{finding.file_path ?? '파일 경로를 확인할 수 없습니다'}{finding.line_number ? `:${finding.line_number}` : ''}</strong><small>이 위치는 규칙이 보고한 매치입니다. 실제 입력 위치나 위험한 함수의 인자 위치와 같다고 확인된 것은 아닙니다.</small></div>
     {reviewEntry && onStatusChange && onNoteChange && <section className="analyst-review-editor" aria-labelledby="analyst-review-editor-title"><h3 id="analyst-review-editor-title">분석가 검토</h3>{importedFromBackup && <p className="backup-origin-note" role="status">외부 백업에서 가져온 기록입니다. 현재 코드에 대한 보안 판정은 아닙니다.</p>}<label>수동 검토 상태<select aria-label="수동 검토 상태" value={reviewEntry.status} onChange={(event) => onStatusChange(event.target.value as AnalystReviewStatus)}><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select></label><label htmlFor="analyst-note">분석가 메모<textarea id="analyst-note" aria-label="분석가 메모" aria-describedby={`analyst-note-help analyst-note-count${noteError ? ' analyst-note-error' : ''}`} value={reviewEntry.note} onChange={(event) => onNoteChange(event.target.value)} rows={4}/></label><p id="analyst-note-help" className="analyst-note-help">임시 저장: 이 탭의 메모리에만 보관되며 새 검사·결과 삭제·새로고침 시 사라집니다. 토큰, 개인정보, 비밀정보는 입력하지 마세요.</p><p id="analyst-note-count" className="analyst-note-count">UTF-8 {new TextEncoder().encode(reviewEntry.note).byteLength} / 2,048 bytes</p>{noteError && <p id="analyst-note-error" className="analyst-note-error" role="alert">{noteError}</p>}</section>}
     {finding.evidence_validation_status !== 'validated' && <div className="alert warning" role="note">근거 연결을 검증하지 못해 지원된 근거는 표시하지 않습니다. 자세한 상태와 코드는 기술 상세에서 확인할 수 있습니다.</div>}
-    <section className="analyst-tasks"><h3>먼저 확인할 내용</h3><p>아래는 검토 제안입니다. 아직 완료된 확인이 아닙니다.</p><ol>{taskText[finding.finding_kind].map((task) => <li key={task}>{task}</li>)}</ol></section>
+    <section className="analyst-triage" aria-label="분석가 검토 가이드">
+      <div className="analyst-triage-heading"><h3>분석가 검토 가이드</h3>{triage && <span className={`triage-recommendation ${triage.recommendation}`}>{triage.recommendationLabel}</span>}</div>
+      {triage ? <>
+        <p className="triage-explanation">{triage.explanation}</p>
+        <p className="triage-risk-limit" role="note">검토 작업 제안이며 위험 점수·취약점 확정·자동 수정이 아닙니다. 분석가 검토 상태는 별도로 관리됩니다.</p>
+        {triage.scopeNotice && <p className="triage-scope-warning" role="note">{triage.scopeNotice}</p>}
+        <details className="triage-details">
+          <summary>판단 근거, 단계별 검토 절차 및 권장 조치</summary>
+          <div className="triage-detail-content">
+            <h4>이 제안에 사용한 정보</h4><ul>{triage.basis.map((item) => <li key={item}>{item}</li>)}</ul>
+            <h4>{triage.structuralEvidence.length ? '구조적으로 연결 검증된 근거' : '근거 연결 상태'}</h4>{triage.structuralEvidence.length ? <><ul>{triage.structuralEvidence.map((item) => <li key={item}>{item}</li>)}</ul><p>API의 지원 Claim 식별자: {triage.supportedClaims.length ? triage.supportedClaims.map((claim) => <code key={claim}>{claim} </code>) : '없음'}</p></> : <p>근거 연결이 검증되지 않아 지원된 근거를 표시하지 않습니다. 부족한 근거가 위험도가 낮다는 뜻은 아닙니다.</p>}
+            <h4>아직 검증되지 않은 사항</h4><ul>{triage.notVerified.map((item) => <li key={item}>{item}</li>)}</ul>
+            <h4>먼저 확인할 내용 · {triage.ruleTitle}</h4><p>{triage.ruleFinding}</p><ol>{triage.tasks.map((task) => <li key={task}>{task}</li>)}</ol>
+            <h4>고려할 조치 방향</h4><ul>{triage.actions.map((action) => <li key={action}>{action}</li>)}</ul>
+          </div>
+        </details>
+      </> : <>
+        <p className="triage-explanation">비교 결과의 검사 범위 정보가 이 화면에 포함되지 않아 우선순위를 산출하지 않습니다. 아래는 일반적인 검토 제안입니다.</p>
+        <details className="triage-details"><summary>단계별 검토 절차 및 권장 조치</summary><div className="triage-detail-content"><h4>먼저 확인할 내용 · {guidance.title}</h4><p>{guidance.finding}</p><ol>{guidance.tasks.map((task) => <li key={task}>{task}</li>)}</ol><h4>고려할 조치 방향</h4><ul>{guidance.actions.map((action) => <li key={action}>{action}</li>)}</ul></div></details>
+      </>}
+    </section>
     <div className="basic-evidence-limit" role="note"><strong>중요한 제한</strong><p>이 결과는 검토 후보이며 실제 취약점으로 확정되지 않았습니다. Source/Sink 위치와 전체 데이터 전달 경로는 확인되지 않았을 수 있습니다.</p></div>
     <details className="technical-details">
       <summary>기술 근거와 제한 자세히 보기</summary>

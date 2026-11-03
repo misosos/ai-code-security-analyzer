@@ -131,6 +131,12 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
     await expect(page.getByLabel('선택한 Finding 상세')).toBeVisible();
   };
   await selectFinding(stableA!);
+  const stableTriage = page.getByLabel('선택한 Finding 상세').getByRole('region', { name: '분석가 검토 가이드' });
+  await expect(stableTriage).toContainText(stableA!.evidence_validation_status === 'validated' ? '우선 코드 검토 권장' : '근거 연결 확인 필요');
+  await expect(stableTriage).toContainText('실제 취약점 여부와 악용 가능성');
+  await stableTriage.getByText('판단 근거, 단계별 검토 절차 및 권장 조치').click();
+  await expect(stableTriage).toContainText('eval');
+  expect(await page.getByLabel('선택한 Finding 상세').innerText()).toContain('stable.js');
   await page.getByLabel('수동 검토 상태').selectOption('needs_followup');
   await page.getByLabel('분석가 메모').fill(memoA);
   await page.getByText('기술 근거와 제한 자세히 보기').click();
@@ -138,6 +144,9 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
   expect(stableTechnicalBefore).toContain('미검증');
   expect(stableTechnicalBefore).toContain(stableA!.evidence_validation_status);
   await selectFinding(retiredB!);
+  const retiredTriage = page.getByLabel('선택한 Finding 상세').getByRole('region', { name: '분석가 검토 가이드' });
+  await expect(retiredTriage).toContainText(retiredB!.evidence_validation_status === 'validated' ? '우선 코드 검토 권장' : '근거 연결 확인 필요');
+  expect(await page.getByLabel('선택한 Finding 상세').innerText()).toContain('retired.js');
   await page.getByLabel('수동 검토 상태').selectOption('reviewed');
   await page.getByLabel('분석가 메모').fill(memoB);
   expect(await page.getByLabel('수동 검토 상태').inputValue()).toBe('reviewed');

@@ -1,4 +1,5 @@
 import { parseScan, type ApiFinding, type ClaimDecision, type ClaimType, type FindingKind, type ScanResponse } from '../../api/types';
+import { getFindingReviewGuidance, hasKnownRuleGuidance } from './reviewGuidance';
 
 export interface ScanContext {
   targetId: string;
@@ -52,61 +53,6 @@ const taintFlowClaims = new Set<ClaimType>([
   'taint_rule_match_reported', 'source_pattern_declared', 'sink_pattern_declared', 'source_location_identified',
   'sink_argument_location_identified', 'flow_trace_available',
 ]);
-
-const ruleGuidance: Record<string, { title: string; finding: string; tasks: readonly string[] }> = {
-  'baseline.javascript-dynamic-eval': {
-    title: 'JavaScript 동적 코드 실행',
-    finding: 'Semgrep이 JavaScript 동적 코드 실행 패턴과 일치하는 코드를 보고했습니다.',
-    tasks: [
-      '`eval` 또는 `new Function` 호출과 전달 인자를 확인합니다.',
-      '인자 값이 어디서 만들어지고 전달되는지 추적해 외부 입력이 영향을 주는지 확인합니다.',
-      '주변의 입력 검증, 허용 목록, 실행 조건을 확인합니다. 이 보고서는 해당 방어의 존재나 효과를 확인하지 않았습니다.',
-      '호출에 도달할 수 있는 실행 경로와 프로세스 권한을 검토합니다.',
-      '동적 코드 실행을 데이터 파싱이나 허용된 작업 선택으로 대체할 수 있는지 검토합니다.',
-    ],
-  },
-  'baseline.react-dangerous-html': {
-    title: 'React의 HTML 삽입 패턴',
-    finding: 'Semgrep이 JSX의 `dangerouslySetInnerHTML` 사용 패턴을 보고했습니다.',
-    tasks: [
-      '`dangerouslySetInnerHTML`에 전달되는 `__html` 값이 생성되는 위치를 확인합니다.',
-      '값의 신뢰 경계와 외부 입력이 영향을 주는 경로를 검토합니다.',
-      '사용 중인 HTML 정제 방식이 출력 문맥에 적합한지 확인합니다. 정제 효과는 이 보고서에서 검증되지 않았습니다.',
-      'HTML 삽입이 불필요하면 일반 텍스트 렌더링으로 대체할 수 있는지 검토합니다.',
-    ],
-  },
-  'baseline.firestore-unconditional-write': {
-    title: 'Firestore 쓰기 권한 조건',
-    finding: 'Semgrep이 Firestore 규칙에서 조건이 리터럴 `true`인 쓰기 권한 패턴을 보고했습니다.',
-    tasks: [
-      '표시된 `firestore.rules` 위치의 `allow` 선언과 해당 `match` 경로를 확인합니다.',
-      '상위·중첩 `match` 범위와 겹치는 권한 선언을 함께 검토합니다.',
-      '인증, 사용자 소유권, 데이터 조건이 실제 정책에서 어떻게 적용되는지 확인합니다.',
-      '배포된 규칙이 로컬 파일과 같은지 별도로 확인합니다. 이 검사는 배포 상태를 조회하지 않았습니다.',
-      '필요한 최소 권한만 허용하도록 조건과 범위를 좁힐 수 있는지 검토합니다.',
-    ],
-  },
-};
-
-const genericTasks: Record<FindingKind, readonly string[]> = {
-  pattern: [
-    '표시된 위치에서 규칙과 일치한 코드 및 주변 조건을 확인합니다.',
-    '관련 값의 출처와 실행 지점까지의 전달 경로를 검토합니다.',
-    '입력 검증·권한 확인·정제 등 방어 조건의 적용 범위를 확인합니다.',
-    '해당 코드 경로에 도달할 수 있는 런타임 조건과 권한을 검토합니다.',
-  ],
-  taint: [
-    '응답에서 구조적으로 확인된 Source/Sink 규칙 선언과 실제 코드 위치를 구분해 확인합니다.',
-    'Source와 Sink 위치 및 두 지점 사이의 전달 경로를 코드에서 직접 검토합니다.',
-    '응답에 제공된 Flow Trace와 Sanitizer 근거의 범위를 확인하고, 자료가 없으면 직접 검증합니다.',
-    '입력 검증, 정제 효과, 실행 도달 조건을 별도로 확인합니다.',
-  ],
-  unclassified: [
-    '규칙 ID, 매치 위치와 근거 연결 상태를 확인합니다.',
-    '분류에 필요한 Source/Sink 또는 패턴 문맥이 결과에 있는지 확인합니다.',
-    '주변 입력 출처, 방어 조건과 실행 경로를 직접 검토합니다.',
-  ],
-};
 
 // Plain prose uses the existing entity escaping policy. Machine identifiers and paths
 // use a separate inline-code serializer so underscores remain readable without opening
@@ -174,15 +120,8 @@ function issueText(code: string): string { return Object.hasOwn(issueLabels, cod
 function limitationText(code: string): string { return Object.hasOwn(limitationLabels, code) ? limitationLabels[code] : '검사 범위에 제한이 있습니다.'; }
 
 function titleAndFindingText(finding: ApiFinding): { title: string; text: string } {
-  const known = Object.hasOwn(ruleGuidance, finding.rule_id) ? ruleGuidance[finding.rule_id] : undefined;
-  if (known) return { title: known.title, text: known.finding };
-  if (finding.finding_kind === 'taint') return {
-    title: 'Taint 흐름 검토 후보', text: 'Semgrep 응답이 이 Finding을 Taint 유형으로 분류했습니다. 이는 도구 응답의 분류이며 실제 입력 도달 경로나 취약점 확정을 뜻하지 않습니다.',
-  };
-  if (finding.finding_kind === 'pattern') return {
-    title: '규칙 매치 검토', text: 'Semgrep이 규칙과 일치하는 패턴을 보고했습니다. 실제 입력 영향과 실행 조건은 별도로 확인해야 합니다.',
-  };
-  return { title: '분류되지 않은 Finding 검토', text: '응답에서 탐지 유형을 확정할 수 없습니다. 규칙과 근거 연결을 확인해야 합니다.' };
+  const guidance = getFindingReviewGuidance(finding.rule_id, finding.finding_kind);
+  return { title: guidance.title, text: guidance.finding };
 }
 
 function supportedFact(claim: ClaimType): string {
@@ -260,10 +199,6 @@ function mainLimitations(finding: ApiFinding): string[] {
   return [...new Set(output)];
 }
 
-function recommendationTasks(finding: ApiFinding): readonly string[] {
-  return ruleGuidance[finding.rule_id]?.tasks ?? genericTasks[finding.finding_kind];
-}
-
 function findingBody(finding: ApiFinding): string[] {
   const location = `${safeRelativePath(finding.file_path)}${finding.line_number === null ? '' : `:${finding.line_number}`}`;
   const display = titleAndFindingText(finding);
@@ -287,7 +222,9 @@ function findingBody(finding: ApiFinding): string[] {
   lines.push('', '#### 아직 확인되지 않은 사항', '- 실제 취약점 여부와 악용 가능성은 이 결과만으로 확정되지 않았습니다.');
   if (finding.verification_status === 'unverified') lines.push('- 취약점 검증 상태는 `unverified`입니다.');
   for (const limitation of mainLimitations(finding)) lines.push(`- ${limitation}`);
-  lines.push('', '#### 권장 추가 검토', ...recommendationTasks(finding).map((task, taskIndex) => `${taskIndex + 1}. ${task}`));
+  const guidance = getFindingReviewGuidance(finding.rule_id, finding.finding_kind);
+  lines.push('', '#### 권장 추가 검토', ...guidance.tasks.map((task, taskIndex) => `${taskIndex + 1}. ${task}`));
+  lines.push('', '#### 검토 시 고려할 조치 방향', ...guidance.actions.map((action) => `- ${action}`));
   lines.push('', '#### 보안적 해석의 한계', '이 항목은 도구가 보고한 검토 후보입니다. 줄 이동, 입력 출처, 실행 경로, 방어 조건 및 운영 환경을 직접 확인하기 전까지 취약점 확정이나 수정 완료로 해석하지 않습니다.');
   return lines;
 }
@@ -353,7 +290,7 @@ export function createReviewMarkdown(context: ScanContext, input: ScanResponse):
     ...(['critical', 'high', 'medium', 'low', 'info'] as const).map((severity) => `- ${severityLabels[severity]} (${severity}): ${scan.severity_counts[severity]}`),
     '', '### 주요 탐지 규칙',
     ...(ruleIds.length ? ruleIds.map((ruleId) => {
-      const guidance = Object.hasOwn(ruleGuidance, ruleId) ? ruleGuidance[ruleId] : undefined;
+      const guidance = hasKnownRuleGuidance(ruleId) ? getFindingReviewGuidance(ruleId, findings.find((item) => item.rule_id === ruleId)!.finding_kind) : undefined;
       return `- ${codeSpan(ruleId)}${guidance ? ` · ${prose(guidance.title)}` : ''}`;
     }) : ['- 표시된 Finding이 없습니다.']),
     '', `- 근거 연결이 \`validated\`인 표시 Finding: ${linkedEvidenceCount}/${findings.length}건. 구조적 연결 상태이며 취약점 검증과는 다릅니다.`,

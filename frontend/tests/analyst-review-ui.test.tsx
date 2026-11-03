@@ -28,6 +28,41 @@ describe('분석가 Finding 검토 UI', () => {
   beforeEach(() => { vi.stubGlobal('fetch', vi.fn()); vi.spyOn(Storage.prototype, 'setItem'); });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
+  it('검토 우선순위를 설명하고 단계별 절차를 제공하되 분석가 상태나 검사 응답을 바꾸지 않는다', async () => {
+    const row = { ...finding('1'), rule_id: 'baseline.javascript-dynamic-eval' };
+    const response = scan([row]);
+    installApi([response]);
+    const user = userEvent.setup(); render(<App/>);
+    await screen.findByText('API 연결됨'); await performScan(user);
+    const detail = screen.getByLabelText('선택한 Finding 상세');
+    const guide = within(detail).getByRole('region', { name: '분석가 검토 가이드' });
+    expect(guide).toHaveTextContent('우선 코드 검토 권장');
+    expect(guide).toHaveTextContent('high');
+    expect(guide).toHaveTextContent('실제 취약점 여부와 악용 가능성은 추가 확인이 필요합니다');
+    expect(guide).toHaveTextContent('검토 작업 제안이며 위험 점수');
+    await user.click(within(guide).getByText('판단 근거, 단계별 검토 절차 및 권장 조치'));
+    expect(guide).toHaveTextContent('eval');
+    expect(guide).toHaveTextContent('외부 입력이 인자 값을 제어할 수 있는지');
+    expect(guide).toHaveTextContent('JSON 파싱');
+    await user.selectOptions(within(detail).getByLabelText('수동 검토 상태'), 'reviewed');
+    expect(guide).toHaveTextContent('우선 코드 검토 권장');
+    expect(row.verification_status).toBe('unverified');
+    expect(response.findings[0]).toEqual(row);
+    expect(vi.mocked(fetch).mock.calls.filter((call) => String(call[0]).endsWith('/scans'))).toHaveLength(1);
+  });
+
+  it('근거 연결 확인 필요를 High 심각도와 함께 표시하고 위험이 낮다고 해석하지 않는다', async () => {
+    const row = { ...finding('1'), evidence_validation_status: 'rejected' as const };
+    installApi([scan([row])]);
+    const user = userEvent.setup(); render(<App/>);
+    await screen.findByText('API 연결됨'); await performScan(user);
+    const guide = within(screen.getByLabelText('선택한 Finding 상세')).getByRole('region', { name: '분석가 검토 가이드' });
+    expect(guide).toHaveTextContent('근거 연결 확인 필요');
+    expect(guide).toHaveTextContent('높음');
+    expect(guide).toHaveTextContent('위험도가 낮다는 뜻은 아닙니다');
+    expect(guide).toHaveTextContent('근거 연결이 검증되지 않아 지원된 근거를 표시하지 않습니다');
+  });
+
   it('Finding 상태와 메모를 세션 메모리에만 보관하고 API 판정과 DOM을 변경하지 않는다', async () => {
     const rows = [finding('1'), finding('2')];
     installApi([scan(rows)]);

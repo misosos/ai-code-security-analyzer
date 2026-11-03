@@ -83,6 +83,8 @@ test('axe: Finding 결과, 분석가 검토, 내보내기와 JSON 복원 미리�
   await nav.getByRole('button', { name: '검사 결과' }).click();
   await page.getByLabel('Finding 목록').getByRole('button').click();
   await expectAxeClean(page, 'Finding 상세 및 검토 상태');
+  await page.getByText('판단 근거, 단계별 검토 절차 및 권장 조치').click();
+  await expectAxeClean(page, '분석가 검토 가이드 펼침');
 
   await page.getByLabel('수동 검토 상태').selectOption('needs_followup');
   await page.getByLabel('분석가 메모').fill('합성 접근성 검사 메모');

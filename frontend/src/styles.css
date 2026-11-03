@@ -1165,6 +1165,30 @@ body { font-size: var(--type-body); line-height: 1.6; }
   .detail-top { align-items: start; flex-direction: column; }
 }
 
+.analyst-triage { display: grid; gap: 12px; min-width: 0; padding: 16px 18px; border: 1px solid rgb(75 201 226 / 32%); border-left: 3px solid var(--cyan); border-radius: 8px; background: linear-gradient(110deg, rgb(9 35 53 / 76%), rgb(9 16 32 / 70%)); }
+.analyst-triage-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.analyst-triage-heading h3 { margin: 0; color: var(--cyan); font-size: 19px; line-height: 1.4; }
+.triage-recommendation { display: inline-flex; align-items: center; min-height: 36px; padding: 5px 11px; border: 1px solid #4b9eb3; border-radius: 999px; color: #c6f6ff; font-weight: 700; line-height: 1.35; }
+.triage-recommendation.priority_code_review { border-color: #ff9c69; color: #ffe0cb; background: rgb(109 45 18 / 35%); }
+.triage-recommendation.evidence_review { border-color: #e1a64f; color: #ffe9bc; background: rgb(96 66 13 / 32%); }
+.triage-explanation, .triage-risk-limit, .triage-scope-warning { margin: 0; font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
+.triage-risk-limit { padding-left: 12px; border-left: 2px solid var(--violet); color: var(--muted); }
+.triage-scope-warning { padding: 10px 12px; border: 1px solid #b9853b; border-radius: 6px; color: #ffdfa6; background: rgb(91 57 8 / 28%); }
+.triage-details { min-width: 0; border-top: 1px solid rgb(98 154 181 / 34%); }
+.triage-details > summary { min-height: 48px; padding: 12px 4px; color: #d8f7ff; font-size: 17px; font-weight: 700; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }
+.triage-detail-content { display: grid; gap: 8px; padding: 4px 2px 8px; }
+.triage-detail-content h4 { margin: 12px 0 0; color: #8deaff; font-size: 18px; line-height: 1.45; }
+.triage-detail-content p, .triage-detail-content li { font-size: 15px; line-height: 1.65; overflow-wrap: anywhere; }
+.triage-detail-content p { margin: 0; color: var(--muted); }
+.triage-detail-content ul, .triage-detail-content ol { display: grid; gap: 7px; margin: 0; padding-left: 24px; }
+.triage-detail-content li { padding-left: 3px; color: var(--text); }
+.triage-details > summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; border-radius: 4px; }
+@media (max-width: 760px) {
+  .analyst-triage { padding: 14px; }
+  .analyst-triage-heading { align-items: flex-start; }
+  .triage-detail-content p, .triage-detail-content li { font-size: 14px; }
+}
+
 /* 결과 맥락과 사이드바의 숫자도 보조 정보지만 읽을 수 있는 크기를 유지한다. */
 .context-copy code { font-size: 14px; line-height: 1.5; }
 .workspace-sidebar .nav-result-count { font-size: 14px; }
