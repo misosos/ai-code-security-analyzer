@@ -63,14 +63,24 @@ test('baseline comparison can be saved, compared, and read without narrow-screen
   await expect(counts).toContainText('기준 검사에서만 관찰');
   await expect(counts).toContainText('1');
   await expect(page.getByText(/취약점의 신규 발생이나 해결을 확정하지 않습니다/)).toBeVisible();
-  await expect(page.getByRole('region', { name: '비교 항목 근거' })).toContainText('취약점으로 확정되지 않았습니다');
+  const followup = page.getByRole('region', { name: '비교 항목 후속 검토' });
+  await expect(followup).toContainText('새로운 취약점이 발생했다는 증거가 아닙니다');
+  await expect(followup).toContainText('우선 코드 검토 권장');
+  await page.getByRole('searchbox', { name: '검색' }).fill('hidden-by-filter');
+  await expect(page.getByText('검색 또는 필터와 일치하는 결과가 없습니다.')).toBeVisible();
+  await followup.getByRole('button', { name: '현재 Finding 검토하기' }).click();
+  await expect(page.getByRole('searchbox', { name: '검색' })).toHaveValue('');
+  await expect(page.getByRole('region', { name: '선택한 Finding 상세' })).toContainText('src/cccccccccccccccccccccccc.js:9');
 
-  const screenshotDir = resolve(process.cwd(), '../output/playwright/phase8a');
+  const screenshotDir = resolve(process.cwd(), '../docs/assets/phase8l');
   await mkdir(screenshotDir, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.screenshot({ path: resolve(screenshotDir, 'comparison-1440.png'), fullPage: true });
+  await page.screenshot({ path: resolve(screenshotDir, 'followup-current-only-1440.png'), fullPage: true });
+  await page.getByRole('button', { name: /양쪽에서 관찰/ }).click();
+  await expect(followup).toContainText('동일 Finding ID가 유지돼도 코드 내용과 실제 보안 상태가 동일하다는 뜻은 아닙니다');
+  await page.screenshot({ path: resolve(screenshotDir, 'followup-shared-1440.png'), fullPage: true });
 
-  for (const width of [1920, 1440, 1024, 768, 390, 320]) {
+  for (const width of [1920, 1536, 1440, 1280, 1024, 768, 600, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     const dimensions = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
@@ -85,9 +95,12 @@ test('baseline comparison can be saved, compared, and read without narrow-screen
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole('heading', { name: '검사 결과 비교' })).toBeVisible();
-  await page.screenshot({ path: resolve(screenshotDir, 'comparison-390.png'), fullPage: true });
+  await page.screenshot({ path: resolve(screenshotDir, 'followup-current-only-390.png'), fullPage: true });
   await page.getByRole('button', { name: /기준 검사에서만 관찰/ }).click();
   await expect(page.getByRole('region', { name: '기준 검사에서만 관찰 목록' })).toContainText('src/bbbbbbbbbbbbbbbbbbbbbbbb.js:7');
+  await expect(followup).toContainText('읽기 전용');
+  await expect(followup.getByRole('button', { name: '현재 Finding 검토하기' })).toHaveCount(0);
+  await page.screenshot({ path: resolve(screenshotDir, 'followup-baseline-only-390.png'), fullPage: true });
 });
 
 test('comparison report download contains every comparison group without another API request', async ({ page }) => {
@@ -126,6 +139,8 @@ test('comparison report download contains every comparison group without another
   expect(content).toContain('semgrep:bbbbbbbbbbbbbbbbbbbbbbbb');
   expect(content).toContain('semgrep:cccccccccccccccccccccccc');
   expect(content).toContain('취약점의 발생·해결');
+  expect(content).toContain('재검사 후속 검토 안내');
+  expect(content).toContain('현재 검사에서 관찰되지 않는다는 사실은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
   expect(scanRequests).toBe(2);
   await expect(page.getByText(/비교 보고서를 다운로드했습니다/)).toBeVisible();
 });

@@ -77,8 +77,40 @@ describe('검사 결과 비교 UI', () => {
     await user.click(screen.getByRole('button', { name: /기준 검사에서만 관찰/ }));
     const baselineList = screen.getByRole('region', { name: '기준 검사에서만 관찰 목록' });
     await user.click(within(baselineList).getByRole('button', { name: /src\/before\.js:7/ }));
-    expect(screen.getByRole('region', { name: '비교 항목 근거' })).toHaveTextContent('중요한 제한');
-    expect(screen.getByRole('region', { name: '비교 항목 근거' })).toHaveTextContent('취약점으로 확정되지 않았습니다');
+    const comparisonDetail = screen.getByRole('region', { name: '비교 항목 후속 검토' });
+    expect(comparisonDetail).toHaveTextContent('중요한 제한');
+    expect(comparisonDetail).toHaveTextContent('취약점으로 확정되지 않았습니다');
+    expect(comparisonDetail).toHaveTextContent('읽기 전용');
+    expect(within(comparisonDetail).queryByRole('button', { name: '현재 Finding 검토하기' })).not.toBeInTheDocument();
+  });
+
+  it('현재 검사 항목의 후속 검토에서 필터를 해제하고 현재 Finding 상세와 Triage로 이동한다', async () => {
+    const shared = finding('shared');
+    const beforeOnly = finding('before');
+    const afterOnly = finding('after', { rule_id: 'baseline.javascript-dynamic-eval' });
+    installApi([scan([shared, beforeOnly]), scan([afterOnly, shared])]);
+    const user = userEvent.setup(); render(<App/>);
+    await screen.findByText('API 연결됨'); await runScan(user);
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
+    await runScan(user);
+
+    await user.type(screen.getByLabelText('검색'), '숨겨진 항목');
+    expect(screen.getByText('검색 또는 필터와 일치하는 결과가 없습니다.')).toBeInTheDocument();
+    await user.click(screen.getByText('검사 결과 비교'));
+    const currentList = screen.getByRole('region', { name: '이번 검사에서만 관찰 목록' });
+    await user.click(within(currentList).getByRole('button', { name: /src\/after\.js:7/ }));
+    const followup = screen.getByRole('region', { name: '비교 항목 후속 검토' });
+    expect(followup).toHaveTextContent('새로운 취약점이 발생했다는 증거가 아닙니다');
+    expect(followup).toHaveTextContent('우선 코드 검토 권장');
+    const requestCountBeforeNavigation = vi.mocked(fetch).mock.calls.length;
+    await user.click(within(followup).getByRole('button', { name: '현재 Finding 검토하기' }));
+
+    expect(screen.getByLabelText('검색')).toHaveValue('');
+    const currentDetail = screen.getByRole('region', { name: '선택한 Finding 상세' });
+    expect(currentDetail).toHaveTextContent('src/after.js:7');
+    expect(currentDetail).toHaveTextContent('우선 코드 검토 권장');
+    expect(screen.getByText(/현재 Finding으로 이동했습니다/)).toBeInTheDocument();
+    expect(vi.mocked(fetch).mock.calls).toHaveLength(requestCountBeforeNavigation);
   });
 
   it('비교 기준 해제는 현재 검사와 분석가 검토 기록을 유지한다', async () => {

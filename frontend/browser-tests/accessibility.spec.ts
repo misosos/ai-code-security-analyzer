@@ -117,8 +117,9 @@ test('axe: 비교 기준, 비교 범주와 비교 보고서 내보내기', async
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 결과' }).click();
   await page.getByText('검사 결과 비교', { exact: true }).click();
   await expectAxeClean(page, '검사 결과 비교');
-  await page.getByRole('button', { name: /이번 검사에서만 관찰/ }).click();
-  await expectAxeClean(page, '비교 결과 범주');
+  await page.getByRole('button', { name: /양쪽에서 관찰/ }).click();
+  await page.getByRole('region', { name: '비교 항목 후속 검토' }).getByText('권장 후속 검토 절차').click();
+  await expectAxeClean(page, '비교 결과 후속 검토');
 });
 
 test('axe: 사용 안내의 제목 계층과 접이식 도움말', async ({ page }) => {

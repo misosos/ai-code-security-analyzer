@@ -1,6 +1,7 @@
 import type { ApiFinding, ClaimType, ScanStatus } from '../../api/types';
 import { compareScanSnapshots, type ScanSnapshot } from './compare';
 import { escapeMarkdownText } from './markdownExport';
+import { createRescanFollowup, type RescanFollowup, type RescanObservationCategory } from './rescanFollowup';
 
 export const MAX_COMPARISON_MARKDOWN_BYTES = 512 * 1024;
 export const COMPARISON_MARKDOWN_FILENAME = 'ai-code-security-comparison.md';
@@ -80,6 +81,30 @@ function sharedFindingSection(baseline: ApiFinding[], current: ApiFinding[]): st
   return lines;
 }
 
+const followupCategoryLabels: Record<RescanObservationCategory, string> = {
+  currentOnly: '이번 검사에서만 관찰', shared: '양쪽 검사에서 관찰', baselineOnly: '기준 검사에서만 관찰',
+};
+
+function followupSection(followup: RescanFollowup): string[] {
+  const lines = ['## 재검사 후속 검토 안내', '', '> 아래 내용은 비교 결과를 확인하기 위한 작업 제안이며 취약점 발생·해결, 코드 동일성 또는 검토 완료를 자동 판정하지 않습니다.', ''];
+  (Object.keys(followupCategoryLabels) as RescanObservationCategory[]).forEach((category) => {
+    const items = followup.groups[category];
+    lines.push(`### ${followupCategoryLabels[category]}`, '');
+    if (!items.length) {
+      lines.push('해당하는 Finding이 없습니다.', '');
+      return;
+    }
+    lines.push(`- 관찰된 Finding: ${items.map((item) => text(item.findingId)).join(', ')}`);
+    items[0].tasks.forEach((task) => lines.push(`- ${text(task)}`));
+    lines.push(`- 한계: ${text(items[0].limitation)}`);
+    if (category === 'shared') {
+      items.forEach((item) => lines.push(`- ${text(item.findingId)}: ${text(item.metadataSummary ?? '응답 메타데이터 비교 정보가 없습니다.')}`));
+    }
+    lines.push('');
+  });
+  return lines;
+}
+
 /** Build a complete report only when the Phase 8A comparison contract is satisfied. */
 export function createComparisonMarkdown(baseline: ScanSnapshot | null, current: ScanSnapshot | null): string {
   const comparison = compareScanSnapshots(baseline, current);
@@ -87,6 +112,7 @@ export function createComparisonMarkdown(baseline: ScanSnapshot | null, current:
     throw new Error('comparison_not_exportable');
   }
   const groups = comparison.groups;
+  const followup = createRescanFollowup(comparison, baseline, current, null);
   const sections = [
     '# AI Code Security Analyzer — 검사 결과 비교 보고서',
     '',
@@ -113,6 +139,7 @@ export function createComparisonMarkdown(baseline: ScanSnapshot | null, current:
     ...singleFindingSection('이번 검사에서만 관찰', groups.currentOnly),
     ...sharedFindingSection(baseline.scan.findings, groups.shared),
     ...singleFindingSection('기준 검사에서만 관찰', groups.baselineOnly),
+    ...followupSection(followup),
     '## 분석 한계와 후속 검토',
     '',
     '- Finding ID는 규칙 및 코드 위치 기반 식별자입니다. 줄 이동이나 파일·규칙 변경으로 분류가 달라질 수 있습니다.',

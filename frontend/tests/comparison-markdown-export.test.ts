@@ -42,6 +42,12 @@ describe('검사 비교 Markdown 보고서', () => {
     expect(report).toContain('규칙 매치 보고 (match&#x5F;reported)');
     expect(report).toContain('independent&#x5F;confirmation&#x5F;required');
     expect(report).toContain('실제 취약점의 발생·해결');
+    expect(report).toContain('재검사 후속 검토 안내');
+    expect(report).toContain('현재 탐지 위치와 규칙 ID를 확인합니다.');
+    expect(report).toContain('이전 검토 결과와 무관하게 현재 코드를 다시 확인합니다.');
+    expect(report).toContain('현재 검사에서 관찰되지 않는다는 사실은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
+    expect(report).toContain('비교 가능한 응답 메타데이터에서 차이가 관찰됐습니다');
+    expect(report).not.toMatch(/상태: (resolved|fixed|closed|remediated)/i);
     expect(report).toContain('CLI의 정식 보안 검토 보고서를 대체하지 않습니다');
   });
 

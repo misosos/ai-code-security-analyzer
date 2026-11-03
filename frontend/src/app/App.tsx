@@ -9,6 +9,7 @@ import { createAnalystReviewMarkdown, downloadAnalystReviewMarkdown } from '../f
 import { ANALYST_REVIEW_BACKUP_FILENAME, createAnalystReviewBackup, downloadAnalystReviewBackup, MAX_ANALYST_REVIEW_BACKUP_BYTES, parseAnalystReviewBackup, validateBackupForRestore, type AnalystReviewBackup, type RestoreBlockReason } from '../features/scans/analystReviewBackup';
 import { createScanTriage, type FindingTriage } from '../features/scans/findingTriage';
 import { getFindingReviewGuidance } from '../features/scans/reviewGuidance';
+import { createRescanFollowup, type RescanFollowup } from '../features/scans/rescanFollowup';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -154,6 +155,12 @@ export function App() {
     baselineSnapshot,
     scan && scanContext ? { scan, context: scanContext } : null,
   ), [baselineSnapshot, scan, scanContext]);
+  const rescanFollowup = useMemo(() => createRescanFollowup(
+    comparison,
+    baselineSnapshot,
+    scan && scanContext ? { scan, context: scanContext } : null,
+    scanTriage,
+  ), [comparison, baselineSnapshot, scan, scanContext, scanTriage]);
   const analystReviewCounts = useMemo(() => countAnalystReviewStatuses(scan?.findings ?? [], analystReviews), [scan, analystReviews]);
 
   async function runScan(event: React.FormEvent) {
@@ -205,6 +212,15 @@ export function App() {
     setBaselineSnapshot(null);
     setComparisonExportMessage('');
     setMessage('비교 기준을 해제했습니다. 현재 검사 결과와 분석가 검토 기록은 유지됩니다.');
+  }
+  function openCurrentFindingFromComparison(findingId: string) {
+    if (!scan?.findings.some((finding) => finding.finding_id === findingId)) return;
+    resetFilters();
+    setAnalystReviewFilter('all');
+    setSelectedId(findingId);
+    setActiveView('results');
+    setMessage('비교 후속 검토에서 현재 Finding으로 이동했습니다. 검색과 필터는 해당 항목을 표시하도록 초기화했으며 검토 상태와 메모는 유지했습니다.');
+    window.setTimeout(() => document.querySelector<HTMLElement>('.detail-panel[aria-label="선택한 Finding 상세"]')?.focus(), 0);
   }
   function exportResults() {
     if (!scan || !scanContext) return;
@@ -372,7 +388,7 @@ export function App() {
       </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {activeView === 'results' && !scan && <>
-        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />}
+        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />}
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
@@ -405,7 +421,7 @@ export function App() {
               {scan.omitted_finding_count > 0 && <p className="analyst-review-scope">생략된 {scan.omitted_finding_count}개는 포함하지 않습니다.</p>}
             </section></div>
         </details>
-        <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />
+        <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />
         <section className="result-export-workspace" aria-label="보고서와 검토 기록 내보내기"><h2>보고서 및 검토 기록</h2><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-review-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기 · Markdown 다운로드" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details><details className="analyst-backup-tool"><summary>검토 기록 백업 및 복원</summary><div className="analyst-backup-controls"><p>JSON은 검토 상태를 다시 참고하기 위한 백업입니다. 다운로드 파일은 디스크에 남으며 자동 저장되지 않습니다.</p><label><input type="checkbox" aria-label="JSON 백업에 메모 포함" checked={includeBackupNotes} onChange={(event) => { setIncludeBackupNotes(event.target.checked); setBackupMessage(''); }}/> JSON 백업에 메모 포함</label>{includeBackupNotes && <p className="analyst-report-warning">메모에 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="검토 기록 백업 JSON 다운로드" onClick={exportAnalystReviewBackup} disabled={state === 'scanning'}><Icon name="download"/> 검토 기록 백업 JSON 다운로드</button><label className="backup-file-label" htmlFor="analyst-review-backup-file">검토 기록 불러오기(JSON)</label><input id="analyst-review-backup-file" className="backup-file-input" type="file" accept=".json,application/json" aria-describedby="backup-file-help" onChange={importAnalystReviewBackup} disabled={state === 'scanning'}/><small id="backup-file-help">최대 256 KiB. 파일은 브라우저 메모리에서만 읽으며 서버로 전송하지 않습니다.</small>{backupMessage && <p className="export-feedback" role="status">{backupMessage}</p>}{backupPreview && <section className="backup-preview" aria-label="검토 기록 복원 미리보기"><h3>외부 백업 미리보기</h3><p>파일: {backupPreview.fileName}</p><p>{backupPreview.backup.findings.length}개 Finding · 대기 {backupPreview.backup.findings.filter((item) => item.review_status === 'pending').length} · 추가 확인 {backupPreview.backup.findings.filter((item) => item.review_status === 'needs_followup').length} · 검토 완료 {backupPreview.backup.findings.filter((item) => item.review_status === 'reviewed').length}건</p><p>{backupPreview.backup.findings.some((item) => item.note !== undefined) ? '메모 포함' : '메모 제외'}</p><p>적용 가능: {backupPreview.reasons.length ? 0 : backupPreview.backup.findings.length}건 · 현재 기록과 충돌: {scan ? backupPreview.backup.findings.filter((item) => { const existing = getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id); return analystReviews.has(item.finding_id) && (existing.status !== item.review_status || (item.note !== undefined && existing.note !== item.note)); }).length : 0}건</p><p className="analyst-report-warning">문맥이 일치해도 코드 내용이 같다는 뜻은 아닙니다. 가져온 검토 기록은 현재 코드의 보안 판정이나 수정 여부를 증명하지 않습니다.</p>{backupPreview.reasons.length > 0 ? <div role="alert"><strong>복원 차단</strong><ul>{backupPreview.reasons.map((reason) => <li key={reason}>{restoreReasonLabels[reason]}</li>)}</ul></div> : <details className="backup-finding-preview"><summary>Finding별 기록 확인 ({backupPreview.backup.findings.length})</summary><ul>{backupPreview.backup.findings.map((item) => { const currentEntry = scan ? getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id) : { status: 'pending' as const, note: '' }; const applied = backupAppliedIds.has(item.finding_id); const skipped = backupSkippedIds.has(item.finding_id); return <li key={item.finding_id}><strong>{item.rule_id}</strong><span>{item.file_path ?? '위치 확인 불가'}{item.line_number ? `:${item.line_number}` : ''}</span><span>백업: {analystReviewLabels[item.review_status]} · 현재: {analystReviewLabels[currentEntry.status]}</span>{item.note !== undefined && <p>백업 메모 미리보기: {item.note || '(빈 메모)'}</p>}<p>{currentEntry.note ? '현재 메모 있음' : '현재 메모 없음'}</p><button type="button" className="button secondary" onClick={() => applyBackupFinding(item.finding_id)} disabled={state === 'scanning' || applied || skipped}>{applied ? '적용됨' : skipped ? '건너뜀' : '이 기록 적용'}</button><button type="button" className="button tertiary" onClick={() => setBackupSkippedIds((previous) => new Set(previous).add(item.finding_id))} disabled={applied || skipped}>{skipped ? '건너뜀' : '건너뛰기'}</button></li>; })}</ul></details>}</section>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>
       </div>}
       </main>
@@ -431,7 +447,7 @@ function Icon({name}:{name:'sliders'|'play'|'book'|'download'|'pulse'|'search'|'
 }
 function Metric({label,value,note}:{label:string;value:number;note:string}) { return <div className="panel metric"><span className="metric-label">{label}</span><strong>{value.toLocaleString('ko-KR')}</strong><small>{note}</small></div>; }
 function FindingRow({finding,reviewStatus,selected,onSelect}:{finding:ApiFinding;reviewStatus:AnalystReviewStatus;selected:boolean;onSelect:()=>void}) { const location = finding.file_path ?? '위치 확인 불가'; const line = finding.line_number ? `:${finding.line_number}` : ''; const validated = finding.evidence_validation_status === 'validated'; const evidence = validated ? '근거 연결 구조 확인' : '근거 연결 확인 불가'; return <button type="button" className={`finding-row ${selected?'selected':''}`} onClick={onSelect} aria-pressed={selected}><span className={`severity-rail ${finding.severity}`} aria-hidden="true"/><span className="row-main"><span className="row-main-heading"><strong>{ruleName(finding.rule_id)}</strong><span className={`severity-label ${finding.severity}`}>{severityLabels[finding.severity]}</span></span><small className="row-location">{location}{line}</small><span className="row-secondary-meta"><code className="row-rule-id">{finding.rule_id}</code><span className="row-kind">{kindLabels[finding.finding_kind]}</span><span className="unverified-badge">미확인 후보</span><span className={`evidence-validation-label ${finding.evidence_validation_status}`}>{evidence}</span><span className={`analyst-review-badge ${reviewStatus}`}>분석가: {analystReviewLabels[reviewStatus]}</span></span></span><span className={`validation-icon ${finding.evidence_validation_status}`} title={`근거 검증 ${finding.evidence_validation_status}`} aria-hidden="true">{validated ? <svg className="validation-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg> : <svg className="validation-mark" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M10 4.5v7"/><circle cx="10" cy="15" r=".8" fill="currentColor" stroke="none"/></svg>}</span></button>; }
-function FindingDetail({finding,triage,reviewEntry,importedFromBackup,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;triage?:FindingTriage;reviewEntry?:{status:AnalystReviewStatus;note:string};importedFromBackup?:boolean;noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
+function FindingDetail({finding,triage,triageLabel='분석가 검토 가이드',reviewEntry,importedFromBackup,noteError,onStatusChange,onNoteChange}:{finding:ApiFinding;triage?:FindingTriage;triageLabel?:string;reviewEntry?:{status:AnalystReviewStatus;note:string};importedFromBackup?:boolean;noteError?:string;onStatusChange?:(status:AnalystReviewStatus)=>void;onNoteChange?:(note:string)=>void}) {
   const guidance = getFindingReviewGuidance(finding.rule_id, finding.finding_kind);
   return <article>
     <div className="detail-top"><div><p className="eyebrow">발견 항목 요약</p><h2>{ruleName(finding.rule_id)}</h2></div><span className={`severity-label ${finding.severity}`}>심각도: {severityLabels[finding.severity]}</span></div>
@@ -439,7 +455,7 @@ function FindingDetail({finding,triage,reviewEntry,importedFromBackup,noteError,
     <div className="detail-location"><span>확인할 파일과 위치</span><strong>{finding.file_path ?? '파일 경로를 확인할 수 없습니다'}{finding.line_number ? `:${finding.line_number}` : ''}</strong><small>이 위치는 규칙이 보고한 매치입니다. 실제 입력 위치나 위험한 함수의 인자 위치와 같다고 확인된 것은 아닙니다.</small></div>
     {reviewEntry && onStatusChange && onNoteChange && <section className="analyst-review-editor" aria-labelledby="analyst-review-editor-title"><h3 id="analyst-review-editor-title">분석가 검토</h3>{importedFromBackup && <p className="backup-origin-note" role="status">외부 백업에서 가져온 기록입니다. 현재 코드에 대한 보안 판정은 아닙니다.</p>}<label>수동 검토 상태<select aria-label="수동 검토 상태" value={reviewEntry.status} onChange={(event) => onStatusChange(event.target.value as AnalystReviewStatus)}><option value="pending">검토 대기</option><option value="needs_followup">추가 확인 필요</option><option value="reviewed">검토 완료</option></select></label><label htmlFor="analyst-note">분석가 메모<textarea id="analyst-note" aria-label="분석가 메모" aria-describedby={`analyst-note-help analyst-note-count${noteError ? ' analyst-note-error' : ''}`} value={reviewEntry.note} onChange={(event) => onNoteChange(event.target.value)} rows={4}/></label><p id="analyst-note-help" className="analyst-note-help">임시 저장: 이 탭의 메모리에만 보관되며 새 검사·결과 삭제·새로고침 시 사라집니다. 토큰, 개인정보, 비밀정보는 입력하지 마세요.</p><p id="analyst-note-count" className="analyst-note-count">UTF-8 {new TextEncoder().encode(reviewEntry.note).byteLength} / 2,048 bytes</p>{noteError && <p id="analyst-note-error" className="analyst-note-error" role="alert">{noteError}</p>}</section>}
     {finding.evidence_validation_status !== 'validated' && <div className="alert warning" role="note">근거 연결을 검증하지 못해 지원된 근거는 표시하지 않습니다. 자세한 상태와 코드는 기술 상세에서 확인할 수 있습니다.</div>}
-    <section className="analyst-triage" aria-label="분석가 검토 가이드">
+    <section className="analyst-triage" aria-label={triageLabel}>
       <div className="analyst-triage-heading"><h3>분석가 검토 가이드</h3>{triage && <span className={`triage-recommendation ${triage.recommendation}`}>{triage.recommendationLabel}</span>}</div>
       {triage ? <>
         <p className="triage-explanation">{triage.explanation}</p>
@@ -504,22 +520,24 @@ function receivedAtLabel(value: string): string {
 }
 
 function ScanComparisonPanel({
-  baseline, current, comparison, onSetBaseline, onClearBaseline, onExport, exportMessage, exporting,
+  baseline, current, comparison, followup, onSetBaseline, onClearBaseline, onExport, onOpenCurrentFinding, exportMessage, exporting,
 }: {
   baseline: ScanSnapshot | null;
   current: ScanSnapshot | null;
   comparison: ReturnType<typeof compareScanSnapshots>;
+  followup: RescanFollowup;
   onSetBaseline: () => void;
   onClearBaseline: () => void;
   onExport: () => void;
+  onOpenCurrentFinding: (findingId: string) => void;
   exportMessage: string;
   exporting: boolean;
 }) {
   const [category, setCategory] = useState<ComparisonCategory>('currentOnly');
   const [selectedFindingId, setSelectedFindingId] = useState('');
   const groups = comparison.groups;
-  const items = groups?.[category] ?? [];
-  const selected = items.find((finding) => finding.finding_id === selectedFindingId) ?? items[0];
+  const items = followup.groups[category];
+  const selected = items.find((item) => item.findingId === selectedFindingId) ?? items[0];
   const canSetBaseline = Boolean(current?.scan.scan_status === 'completed' && current.scan.completed);
 
   if (!baseline && current?.scan.scan_status === 'completed' && current.scan.completed) return <section className="scan-comparison scan-comparison-compact" aria-labelledby="scan-comparison-title">
@@ -553,16 +571,34 @@ function ScanComparisonPanel({
           <div className="comparison-review">
             <section className="comparison-finding-list" aria-label={`${comparisonCategoryLabels[category]} 목록`}>
               <h3>{comparisonCategoryLabels[category]}</h3>
-              {items.length === 0 ? <p>이 범주에 해당하는 항목이 없습니다.</p> : <ul>{items.map((finding) => <li key={finding.finding_id}>
-                <button type="button" className={finding.finding_id === selected?.finding_id ? 'selected' : ''} aria-pressed={finding.finding_id === selected?.finding_id} onClick={() => setSelectedFindingId(finding.finding_id)}>
-                  <span className={`comparison-severity ${finding.severity}`}>{severityLabels[finding.severity]}</span>
-                  <strong>{ruleName(finding.rule_id)}</strong>
-                  <span>{finding.file_path ?? '파일 위치 확인 불가'}{finding.line_number ? `:${finding.line_number}` : ''}</span>
+              {items.length === 0 ? <p>이 범주에 해당하는 항목이 없습니다.</p> : <ul>{items.map((item) => <li key={item.findingId}>
+                <button type="button" className={item.findingId === selected?.findingId ? 'selected' : ''} aria-pressed={item.findingId === selected?.findingId} onClick={() => setSelectedFindingId(item.findingId)}>
+                  <span className={`comparison-severity ${item.finding.severity}`}>{severityLabels[item.finding.severity]}</span>
+                  <strong>{ruleName(item.finding.rule_id)}</strong>
+                  <span>{item.finding.file_path ?? '파일 위치 확인 불가'}{item.finding.line_number ? `:${item.finding.line_number}` : ''}</span>
                 </button>
               </li>)}</ul>}
             </section>
-            <section className="comparison-finding-detail" aria-label="비교 항목 근거">
-              {selected ? <><p>{comparisonCategoryLabels[category]} · 아래는 API가 반환한 기존 근거입니다.</p><FindingDetail finding={selected}/></> : <p>항목을 선택하면 기존 근거와 제한을 확인할 수 있습니다.</p>}
+            <section className="comparison-finding-detail" aria-label="비교 항목 후속 검토">
+              {selected ? <>
+                <div className="comparison-followup-summary">
+                  <p className="eyebrow">{comparisonCategoryLabels[category]}</p>
+                  <h3>재검사 후속 검토</h3>
+                  <dl>
+                    <div><dt>규칙 ID</dt><dd><code>{selected.finding.rule_id}</code></dd></div>
+                    <div><dt>위치</dt><dd>{selected.finding.file_path ?? '파일 위치 확인 불가'}{selected.finding.line_number ? `:${selected.finding.line_number}` : ''}</dd></div>
+                    <div><dt>도구 심각도</dt><dd>{severityLabels[selected.finding.severity]}</dd></div>
+                  </dl>
+                  {selected.triage && <p><strong>현재 Triage:</strong> {selected.triage.recommendationLabel}</p>}
+                  {selected.metadataSummary && <p>{selected.metadataSummary}</p>}
+                  <p className="comparison-followup-limit" role="note">{selected.limitation}</p>
+                  <details className="comparison-followup-tasks"><summary>권장 후속 검토 절차</summary><ol>{selected.tasks.map((task) => <li key={task}>{task}</li>)}</ol></details>
+                  {selected.canOpenCurrentFinding
+                    ? <button type="button" className="button secondary comparison-open-current" onClick={() => onOpenCurrentFinding(selected.findingId)}>현재 Finding 검토하기</button>
+                    : <p className="comparison-readonly-note">현재 검사에 포함되지 않은 기준 Finding이므로 과거 응답 근거만 읽기 전용으로 표시합니다.</p>}
+                </div>
+                <FindingDetail finding={selected.finding} triage={selected.triage ?? undefined} triageLabel="비교 항목 분석가 검토 가이드"/>
+              </> : <p>항목을 선택하면 후속 검토 제안과 기존 근거를 확인할 수 있습니다.</p>}
             </section>
           </div>
         </div>

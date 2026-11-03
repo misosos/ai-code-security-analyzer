@@ -270,14 +270,34 @@ test('실제 FastAPI·Semgrep에서 분석가 검토·백업·비교 전체 업�
   await expect(categories).toContainText('기준 검사에서만 관찰');
   await expect(categories).toContainText('1');
   await page.getByRole('group', { name: '비교 항목 범주' }).getByRole('button', { name: /이번 검사에서만 관찰/ }).click();
-  await expect(page.getByRole('region', { name: '이번 검사에서만 관찰 목록' })).toContainText('added.js');
+  const currentOnlyList = page.getByRole('region', { name: '이번 검사에서만 관찰 목록' });
+  await expect(currentOnlyList).toContainText('added.js');
+  await currentOnlyList.getByRole('button', { name: /added\.js/ }).click();
+  const comparisonFollowup = page.getByRole('region', { name: '비교 항목 후속 검토' });
+  await expect(comparisonFollowup).toContainText('새로운 취약점이 발생했다는 증거가 아닙니다');
+  await comparisonFollowup.getByRole('button', { name: '현재 Finding 검토하기' }).click();
+  await expect(page.getByLabel('선택한 Finding 상세')).toContainText('added.js');
+  await expect(page.getByLabel('수동 검토 상태')).toHaveValue('pending');
+  await expect(page.getByLabel('분석가 메모')).toHaveValue('');
   await page.getByRole('group', { name: '비교 항목 범주' }).getByRole('button', { name: /양쪽에서 관찰/ }).click();
-  await expect(page.getByRole('region', { name: '양쪽에서 관찰 목록' })).toContainText('stable.js');
+  const sharedList = page.getByRole('region', { name: '양쪽에서 관찰 목록' });
+  await expect(sharedList).toContainText('stable.js');
+  await sharedList.getByRole('button', { name: /stable\.js/ }).click();
+  await expect(comparisonFollowup).toContainText('동일 Finding ID가 유지돼도 코드 내용과 실제 보안 상태가 동일하다는 뜻은 아닙니다');
+  await comparisonFollowup.getByRole('button', { name: '현재 Finding 검토하기' }).click();
+  await expect(page.getByLabel('선택한 Finding 상세')).toContainText('stable.js');
+  await expect(page.getByLabel('수동 검토 상태')).toHaveValue('pending');
+  await expect(page.getByLabel('분석가 메모')).toHaveValue('');
   await page.getByRole('group', { name: '비교 항목 범주' }).getByRole('button', { name: /기준 검사에서만 관찰/ }).click();
-  await expect(page.getByRole('region', { name: '기준 검사에서만 관찰 목록' })).toContainText('retired.js');
+  const baselineOnlyList = page.getByRole('region', { name: '기준 검사에서만 관찰 목록' });
+  await expect(baselineOnlyList).toContainText('retired.js');
+  await baselineOnlyList.getByRole('button', { name: /retired\.js/ }).click();
+  await expect(comparisonFollowup).toContainText('현재 검사에서 관찰되지 않는다는 사실은 취약점 수정이나 해결 완료의 증거가 아닙니다');
+  await expect(comparisonFollowup).toContainText('읽기 전용');
+  await expect(comparisonFollowup.getByRole('button', { name: '현재 Finding 검토하기' })).toHaveCount(0);
 
   const comparisonMarkdown = await downloadText(page, page.getByRole('button', { name: '비교 보고서 내보내기' }), 'ai-code-security-comparison.md');
-  for (const value of ['이번 검사에서만 관찰: 1', '양쪽에서 관찰: 1', '기준 검사에서만 관찰: 1', stableA!.finding_id, retiredB!.finding_id, addedC!.finding_id, 'Semgrep 버전: 1.182.1', '취약점의 발생·해결']) {
+  for (const value of ['이번 검사에서만 관찰: 1', '양쪽에서 관찰: 1', '기준 검사에서만 관찰: 1', stableA!.finding_id, retiredB!.finding_id, addedC!.finding_id, 'Semgrep 버전: 1.182.1', '취약점의 발생·해결', '재검사 후속 검토 안내']) {
     expect(comparisonMarkdown).toContain(value);
   }
   expect(comparisonMarkdown).not.toContain(memoA);
