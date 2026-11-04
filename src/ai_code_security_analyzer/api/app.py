@@ -16,6 +16,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from ai_code_security_analyzer.api.routes import router
 from ai_code_security_analyzer.api.schemas import ErrorResponse
 from ai_code_security_analyzer.api.security import ApiBoundaryMiddleware, SecurityHeadersMiddleware
+from ai_code_security_analyzer.investigation_evidence_registry import RunEvidenceRegistry
 from ai_code_security_analyzer.services.scan_service import ApiSettings, ProjectTarget, ScanService
 
 
@@ -43,6 +44,9 @@ def create_app(
     )
     app.state.api_settings = settings
     app.state.scan_service = scan_service or ScanService(settings)
+    # One bounded in-memory evidence registry per app instance. It is private
+    # state only; this phase intentionally adds no route or response field.
+    app.state.investigation_registry = RunEvidenceRegistry()
 
     # Exact configured loopback Origins only; no wildcard and no credentials.
     # Boundary middleware is outermost, so preflight still passes Host/Origin checks.

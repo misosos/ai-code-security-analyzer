@@ -22,6 +22,7 @@ def main() -> None:
         port=8765,
         access_log=False,
         reload=False,
+        workers=1,
     )
 
 
