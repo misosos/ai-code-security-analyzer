@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import Ajv from 'ajv-draft-04';
 import addFormats from 'ajv-formats';
@@ -42,6 +43,12 @@ test('downloads schema-valid SARIF on an explicit click without another API requ
   await expect(page.getByRole('button', { name: 'SARIF 다운로드' })).toHaveCount(0);
   await page.getByText('SARIF 내보내기', { exact: true }).click();
   await expect(page.getByText(/GitHub 자동 업로드를 수행하지 않습니다/)).toBeVisible();
+  await page.getByText(/GitHub Code Scanning 연동 사전 확인/).click();
+  await expect(page.getByText('원격 저장소 및 commit의 파일 일치')).toBeVisible();
+  await expect(page.getByText(/업로드 준비 상태:/)).toContainText('REQUIRES_VERIFICATION');
+  await expect(page.getByText('Finding ID는 GitHub fingerprint가 아닙니다.')).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include('.code-scanning-preflight').analyze();
+  expect(accessibility.violations, JSON.stringify(accessibility.violations)).toEqual([]);
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'SARIF 다운로드' }).click();
