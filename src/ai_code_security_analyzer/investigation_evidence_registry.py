@@ -243,10 +243,16 @@ def serialize_run_evidence(bundle: RunEvidenceBundle) -> bytes:
     """Serialize only closed Response/Manifest fields after C2 binding."""
     try:
         validated = bind_run_evidence(bundle.response, bundle.manifest)
+        manifest_data = asdict(validated.manifest)
+        response_data = validated.response.model_dump(mode="json")
+        manifest_bytes = _json_bytes(manifest_data)
+        response_bytes = _json_bytes(response_data)
+        if len(manifest_bytes) > MAX_MANIFEST_BYTES or len(response_bytes) > 4_194_304:
+            raise EvidenceRegistryError(RegistryErrorCode.RESOURCE_LIMIT)
         document = {
             "contract_version": CONTRACT_VERSION,
-            "response": validated.response.model_dump(mode="json"),
-            "manifest": asdict(validated.manifest),
+            "response": response_data,
+            "manifest": manifest_data,
         }
         payload = _json_bytes(document)
         if len(payload) > MAX_RUN_RECORD_BYTES:

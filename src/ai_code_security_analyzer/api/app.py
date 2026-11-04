@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from ai_code_security_analyzer.api.routes import router
+from ai_code_security_analyzer.api.routes import AppRateLimiter, investigation_router, router
 from ai_code_security_analyzer.api.schemas import ErrorResponse
 from ai_code_security_analyzer.api.security import ApiBoundaryMiddleware, SecurityHeadersMiddleware
 from ai_code_security_analyzer.investigation_evidence_registry import RunEvidenceRegistry
@@ -34,6 +34,7 @@ def create_app(
     *,
     scan_service: ScanService | None = None,
     static_directory: Path | None = None,
+    investigation_api_enabled: bool = False,
 ) -> SecurityHeadersMiddleware:
     app = FastAPI(
         title="AI Code Security Analyzer Local API",
@@ -44,9 +45,13 @@ def create_app(
     )
     app.state.api_settings = settings
     app.state.scan_service = scan_service or ScanService(settings)
-    # One bounded in-memory evidence registry per app instance. It is private
-    # state only; this phase intentionally adds no route or response field.
+    # One bounded in-memory evidence registry per app instance. The separate
+    # v2 router is disabled unless a trusted launcher explicitly opts in.
     app.state.investigation_registry = RunEvidenceRegistry()
+    app.state.investigation_rate_limiter = AppRateLimiter()
+    # This flag is enabled only by the official single-worker launcher or
+    # explicit trusted tests. Arbitrary ASGI deployments default to disabled.
+    app.state.investigation_api_enabled = investigation_api_enabled
 
     # Exact configured loopback Origins only; no wildcard and no credentials.
     # Boundary middleware is outermost, so preflight still passes Host/Origin checks.
@@ -80,6 +85,7 @@ def create_app(
         return JSONResponse(status_code=exc.status_code, content=ErrorResponse(error=code).model_dump())
 
     app.include_router(router, prefix="/api/v1")
+    app.include_router(investigation_router, prefix="/api/v2", include_in_schema=False)
     ui_directory = static_directory or (Path(__file__).resolve().parents[3] / "frontend" / "dist")
     if ui_directory.is_dir():
         app.mount("/", StaticFiles(directory=ui_directory, html=True, check_dir=True), name="dashboard")
@@ -88,7 +94,7 @@ def create_app(
     return SecurityHeadersMiddleware(app)
 
 
-def create_app_from_env() -> SecurityHeadersMiddleware:
+def create_app_from_env(*, investigation_api_enabled: bool = False) -> SecurityHeadersMiddleware:
     target_present = "AI_CODE_SECURITY_TARGET" in os.environ
     targets_present = "AI_CODE_SECURITY_TARGETS" in os.environ
     target_value = os.environ.get("AI_CODE_SECURITY_TARGET")
@@ -134,4 +140,4 @@ def create_app_from_env() -> SecurityHeadersMiddleware:
         )
     except (OSError, ValueError, TypeError, json.JSONDecodeError, RecursionError):
         raise RuntimeError("local_api_configuration_invalid") from None
-    return create_app(settings)
+    return create_app(settings, investigation_api_enabled=investigation_api_enabled)

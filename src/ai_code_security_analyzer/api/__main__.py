@@ -11,7 +11,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the loopback-only analyzer API")
     parser.parse_args()
     try:
-        app = create_app_from_env()
+        app = create_app_from_env(investigation_api_enabled=True)
     except RuntimeError as error:
         if str(error) in {"local_api_configuration_required", "local_api_configuration_invalid"}:
             raise SystemExit(str(error)) from None

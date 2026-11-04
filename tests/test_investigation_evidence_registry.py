@@ -151,6 +151,22 @@ def test_per_record_and_total_byte_caps_reject_without_partial_admission() -> No
     assert too_small_total.active_run_count == 0
 
 
+def test_serializer_rejects_manifest_bytes_over_c1_limit_before_registry_admission() -> None:
+    from dataclasses import asdict
+    import json
+
+    paths = tuple(f"src/{index:05d}/" + "x" * 88 + ".js" for index in range(10_000))
+    valid = bundle(finding("a"), scanned=paths)
+    assert len(json.dumps(asdict(valid.manifest), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()) < 1_048_576
+    serialize_run_evidence(valid)
+    too_long_paths = tuple(f"src/{index:05d}/" + "x" * 89 + ".js" for index in range(10_000))
+    invalid = bundle(finding("b"), scanned=too_long_paths)
+    assert len(json.dumps(asdict(invalid.manifest), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()) > 1_048_576
+    with pytest.raises(EvidenceRegistryError) as error:
+        serialize_run_evidence(invalid)
+    assert error.value.code is RegistryErrorCode.RESOURCE_LIMIT
+
+
 def test_session_count_limit_does_not_evict_live_session() -> None:
     registry = RunEvidenceRegistry(max_sessions=1)
     runs = [bundle(finding(char)) for char in "abcd"]
@@ -279,12 +295,13 @@ def test_app_factory_owns_an_independent_registry(tmp_path) -> None:
 def test_local_launcher_explicitly_uses_one_non_reloading_worker(monkeypatch) -> None:
     captured = {}
     monkeypatch.setattr(sys, "argv", ["ai-code-security-analyzer-api"])
-    monkeypatch.setattr(api_main, "create_app_from_env", lambda: object())
+    monkeypatch.setattr(api_main, "create_app_from_env", lambda **kwargs: captured.update(enabled=kwargs.get("investigation_api_enabled")) or object())
     monkeypatch.setattr(api_main.uvicorn, "run", lambda app, **kwargs: captured.update(kwargs))
     api_main.main()
     assert captured["workers"] == 1
     assert captured["reload"] is False
     assert captured["host"] == "127.0.0.1"
+    assert captured["enabled"] is True
 
 
 def test_expiry_during_evaluation_discards_result() -> None:

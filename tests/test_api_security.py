@@ -206,6 +206,37 @@ def test_exact_loopback_origin_cors_preflight_requires_configured_origin(tmp_pat
         assert denied.status_code == 403
 
 
+def test_investigation_api_requires_explicit_single_worker_activation(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.api.app import create_app
+
+    rules, target = tmp_path / "rules", tmp_path / "target"
+    rules.mkdir(); target.mkdir()
+    settings = ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",))
+    with TestClient(create_app(settings)) as client:
+        response = client.post("/api/v2/investigation-scans", headers={"X-Local-API-Token": TOKEN}, json={
+            "target_id": "local-project", "rule_profile_id": "baseline",
+        })
+    assert response.status_code == 503
+    assert response.json() == {"error": "unsupported_deployment"}
+
+
+def test_investigation_routes_reject_duplicate_json_keys_and_bad_token(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.api.app import create_app
+
+    rules, target = tmp_path / "rules", tmp_path / "target"
+    rules.mkdir(); target.mkdir()
+    settings = ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",))
+    with TestClient(create_app(settings, investigation_api_enabled=True)) as client:
+        duplicate = client.post("/api/v2/investigations/evaluate", headers={
+            "X-Local-API-Token": TOKEN, "Content-Type": "application/json",
+        }, content=b'{"investigation_handle":"a","investigation_handle":"b"}')
+        denied = client.post("/api/v2/investigations/evaluate", headers={
+            "Content-Type": "application/json",
+        }, json={"investigation_handle": "a"})
+    assert duplicate.status_code == 400 and duplicate.json() == {"error": "invalid_request"}
+    assert denied.status_code == 401 and denied.json() == {"error": "unauthorized"}
+
+
 def test_static_dashboard_optional_serving_has_security_and_no_store_headers(tmp_path: Path) -> None:
     from ai_code_security_analyzer.api.app import create_app
 

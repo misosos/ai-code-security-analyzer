@@ -44,6 +44,80 @@ class ScanRequest(ClosedModel):
     rule_profile_id: StrictStr = Field(min_length=1, max_length=64)
 
 
+class InvestigationScanRequest(ScanRequest):
+    """Closed request for one evidence-backed scan on the supported launcher."""
+
+
+class InvestigationCreateRequest(ClosedModel):
+    baseline_handle: StrictStr = Field(min_length=43, max_length=43, pattern=r"\A[A-Za-z0-9_-]{43}\z")
+    current_handle: StrictStr = Field(min_length=43, max_length=43, pattern=r"\A[A-Za-z0-9_-]{43}\z")
+
+
+class InvestigationEvaluateRequest(ClosedModel):
+    investigation_handle: StrictStr = Field(min_length=43, max_length=43, pattern=r"\A[A-Za-z0-9_-]{43}\z")
+
+
+class InvestigationReleaseRequest(ClosedModel):
+    kind: Literal["run", "investigation"]
+    handle: StrictStr = Field(min_length=43, max_length=43, pattern=r"\A[A-Za-z0-9_-]{43}\z")
+
+
+class InvestigationScanResponse(ClosedModel):
+    contract_version: Literal["investigation-scan/v1"]
+    run_handle: str = Field(pattern=r"\A[A-Za-z0-9_-]{43}\z")
+    scan: ScanResponse
+
+
+class InvestigationSessionResponse(ClosedModel):
+    contract_version: Literal["investigation-session/v1"]
+    investigation_handle: str = Field(pattern=r"\A[A-Za-z0-9_-]{43}\z")
+
+
+class InvestigationFindingEvaluation(ClosedModel):
+    finding_id: str = Field(pattern=r"\Asemgrep:[a-f0-9]{24}\z")
+    category: Literal["currentOnly", "shared", "baselineOnly"]
+    path_observation: Literal[
+        "PATH_REPORTED_SCANNED", "PATH_EXPLICITLY_SKIPPED", "PATH_NOT_REPORTED",
+        "SKIP_EVIDENCE_NOT_COLLECTED", "SCOPE_EVIDENCE_UNAVAILABLE",
+        "FINDING_PATH_UNAVAILABLE", "CONFLICTING",
+    ] | None
+    skip_hypothesis: Literal[
+        "COMPARABLE", "SUPPORTED", "CONTRADICTED", "UNDETERMINED", "INCOMPARABLE",
+        "EXPLANATION_SUPPORTED", "MULTIPLE_EXPLANATIONS_POSSIBLE",
+    ] | None
+    source_snapshot_hypothesis: Literal[
+        "COMPARABLE", "SUPPORTED", "CONTRADICTED", "UNDETERMINED", "INCOMPARABLE",
+        "EXPLANATION_SUPPORTED", "MULTIPLE_EXPLANATIONS_POSSIBLE",
+    ] | None
+    rule_identity_hypothesis: Literal[
+        "COMPARABLE", "SUPPORTED", "CONTRADICTED", "UNDETERMINED", "INCOMPARABLE",
+        "EXPLANATION_SUPPORTED", "MULTIPLE_EXPLANATIONS_POSSIBLE",
+    ] | None
+
+
+class InvestigationEvaluationResponse(ClosedModel):
+    contract_version: Literal["finding-disappearance-evaluation/v1"]
+    comparability: Literal[
+        "COMPARABLE", "SUPPORTED", "CONTRADICTED", "UNDETERMINED", "INCOMPARABLE",
+        "EXPLANATION_SUPPORTED", "MULTIPLE_EXPLANATIONS_POSSIBLE",
+    ]
+    overall_assessment: Literal[
+        "COMPARABLE", "SUPPORTED", "CONTRADICTED", "UNDETERMINED", "INCOMPARABLE",
+        "EXPLANATION_SUPPORTED", "MULTIPLE_EXPLANATIONS_POSSIBLE",
+    ]
+    findings: tuple[InvestigationFindingEvaluation, ...] = Field(max_length=100)
+    limitation_codes: tuple[Literal[
+        "scan_context_mismatch", "scan_reference_collision", "manifest_binding_invalid",
+        "response_manifest_binding_invalid", "duplicate_finding_id", "finding_id_not_observed",
+        "scan_incomplete", "finding_omitted", "rule_bytes_unverified",
+        "loaded_rule_identity_unverified", "source_snapshot_not_collected",
+        "scope_completeness_unverified", "path_reported_scanned", "path_explicitly_skipped",
+        "path_not_reported", "skip_details_not_collected", "scope_evidence_unavailable",
+        "finding_path_unavailable", "scanned_skipped_path_conflict",
+        "evaluation_output_limit_exceeded", "scan_result_is_not_safety_proof",
+    ], ...] = Field(max_length=64)
+
+
 class RestrictedClaim(ClosedModel):
     claim_type: ClaimType
     decision: Literal[
