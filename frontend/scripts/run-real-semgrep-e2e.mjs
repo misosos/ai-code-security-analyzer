@@ -112,7 +112,7 @@ try {
   const isolatedServerEntrypoint = [
     'import sys, uvicorn',
     'from ai_code_security_analyzer.api.app import create_app_from_env',
-    "uvicorn.run(create_app_from_env(), host='127.0.0.1', port=int(sys.argv[1]), access_log=False, reload=False)",
+    "uvicorn.run(create_app_from_env(investigation_api_enabled=True), host='127.0.0.1', port=int(sys.argv[1]), access_log=False, reload=False, workers=1)",
   ].join('; ');
   server = spawn('uv', ['run', '--locked', 'python', '-c', isolatedServerEntrypoint, String(port)], {
     cwd: repositoryDirectory,

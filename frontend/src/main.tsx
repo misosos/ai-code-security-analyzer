@@ -5,5 +5,6 @@ import './styles.css';
 import './readability.css';
 import './ui-d2.css';
 import './app-shell-d5a.css';
+import './investigation.css';
 
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);

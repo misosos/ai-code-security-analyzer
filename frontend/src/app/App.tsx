@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError } from '../api/client';
+import { investigationApi, type InvestigationEvaluation, type InvestigationCategory } from '../api/investigation';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
@@ -12,6 +13,8 @@ import { getFindingReviewGuidance } from '../features/scans/reviewGuidance';
 import { createRescanFollowup, type RescanFollowup } from '../features/scans/rescanFollowup';
 import { createSarifReport, downloadSarifReport, SARIF_FILENAME } from '../features/scans/sarifExport';
 import { createCodeScanningPreflight, type CodeScanningPreflight } from '../features/scans/codeScanningPreflight';
+import { validateInvestigationContext, validateInvestigationRuns, type EvidenceBackedScan } from '../features/scans/investigationWorkflow';
+import { investigationAssessmentLabels, investigationErrorMessage, investigationLimitationLabels, investigationPathLabels } from '../features/scans/investigationMessages';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
@@ -66,6 +69,9 @@ const errorLabels: Record<string,string> = {
   response_limit_exceeded:'응답이 허용 크기를 초과했습니다.', invalid_request:'요청을 확인할 수 없습니다.', internal_error:'서버 내부 오류가 발생했습니다.',
   connection_error:'로컬 API에 연결할 수 없습니다.', invalid_api_response:'서버 응답 형식을 확인할 수 없습니다.', request_failed:'요청이 거부되었습니다.',
 };
+async function releaseEvidenceHandle(token: string, kind: 'run' | 'investigation', handle: string): Promise<void> {
+  try { await investigationApi.release(token, kind, handle); } catch { /* The server's absolute TTL remains the cleanup bound. */ }
+}
 function safeError(error: unknown): { state: RequestState; message: string } {
   if (!(error instanceof ApiError)) return { state:'failed', message:'요청을 완료하지 못했습니다.' };
   const state: RequestState = error.code === 'connection_error' || error.status === 0 ? 'connection_error' : error.code === 'unauthorized' || error.status === 401 ? 'unauthorized' : error.code === 'scan_already_running' || error.status === 409 ? 'scan_already_running' : 'failed';
@@ -86,6 +92,14 @@ export function App() {
   const [scanContext, setScanContext] = useState<ScanContext | null>(null);
   const [baselineSnapshot, setBaselineSnapshot] = useState<ScanSnapshot | null>(null);
   const scanRequestSequence = useRef(0);
+  const [investigationMode, setInvestigationMode] = useState(false);
+  const [currentEvidence, setCurrentEvidence] = useState<EvidenceBackedScan | null>(null);
+  const [baselineEvidence, setBaselineEvidence] = useState<EvidenceBackedScan | null>(null);
+  const [investigationHandle, setInvestigationHandle] = useState<string | null>(null);
+  const [investigationEvaluation, setInvestigationEvaluation] = useState<InvestigationEvaluation | null>(null);
+  const [investigationState, setInvestigationState] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
+  const [investigationMessage, setInvestigationMessage] = useState('');
+  const investigationRequestSequence = useRef(0);
   const [exportMessage, setExportMessage] = useState('');
   const [sarifExportMessage, setSarifExportMessage] = useState('');
   const [comparisonExportMessage, setComparisonExportMessage] = useState('');
@@ -98,8 +112,16 @@ export function App() {
   const [backupSkippedIds, setBackupSkippedIds] = useState<ReadonlySet<string>>(() => new Set());
   const currentScanRef = useRef(scan);
   const currentScanContextRef = useRef(scanContext);
+  const currentEvidenceRef = useRef(currentEvidence);
+  const baselineEvidenceRef = useRef(baselineEvidence);
+  const investigationHandleRef = useRef(investigationHandle);
+  const tokenRef = useRef(token);
   currentScanRef.current = scan;
   currentScanContextRef.current = scanContext;
+  currentEvidenceRef.current = currentEvidence;
+  baselineEvidenceRef.current = baselineEvidence;
+  investigationHandleRef.current = investigationHandle;
+  tokenRef.current = token;
   const [selectedId, setSelectedId] = useState('');
   const [analystReviews, setAnalystReviews] = useState<AnalystReviewState>(emptyAnalystReviewState);
   const [analystReviewFilter, setAnalystReviewFilter] = useState<AnalystReviewFilter>('all');
@@ -130,7 +152,15 @@ export function App() {
     return () => window.removeEventListener('keydown', handleDrawerKeys);
   }, [mobileNavOpen]);
 
-  useEffect(() => () => { scanRequestSequence.current += 1; }, []);
+  useEffect(() => () => {
+    scanRequestSequence.current += 1;
+    investigationRequestSequence.current += 1;
+    const activeToken = tokenRef.current;
+    const session = investigationHandleRef.current;
+    const runs = new Set([currentEvidenceRef.current?.runHandle, baselineEvidenceRef.current?.runHandle].filter((value): value is string => Boolean(value)));
+    if (activeToken && session) void releaseEvidenceHandle(activeToken, 'investigation', session);
+    if (activeToken) for (const handle of runs) void releaseEvidenceHandle(activeToken, 'run', handle);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -159,17 +189,53 @@ export function App() {
   const selected = selectedId
     ? visibleFindings.find((finding) => finding.finding_id === selectedId)
     : visibleFindings[0];
-  const comparison = useMemo(() => compareScanSnapshots(
-    baselineSnapshot,
-    scan && scanContext ? { scan, context: scanContext } : null,
-  ), [baselineSnapshot, scan, scanContext]);
+  const currentSnapshot = useMemo(() => scan && scanContext ? { scan, context: scanContext } : null, [scan, scanContext]);
+  const comparison = useMemo(() => compareScanSnapshots(baselineSnapshot, currentSnapshot), [baselineSnapshot, currentSnapshot]);
   const rescanFollowup = useMemo(() => createRescanFollowup(
     comparison,
     baselineSnapshot,
-    scan && scanContext ? { scan, context: scanContext } : null,
+    currentSnapshot,
     scanTriage,
-  ), [comparison, baselineSnapshot, scan, scanContext, scanTriage]);
+  ), [comparison, baselineSnapshot, currentSnapshot, scanTriage]);
   const analystReviewCounts = useMemo(() => countAnalystReviewStatuses(scan?.findings ?? [], analystReviews), [scan, analystReviews]);
+
+  async function dropInvestigationSession(): Promise<void> {
+    investigationRequestSequence.current += 1;
+    const handle = investigationHandleRef.current;
+    investigationHandleRef.current = null;
+    setInvestigationHandle(null);
+    setInvestigationEvaluation(null);
+    setInvestigationState('idle');
+    if (handle && tokenRef.current) await releaseEvidenceHandle(tokenRef.current, 'investigation', handle);
+  }
+
+  async function releaseInvestigationEvidence(keepRunHandle?: string): Promise<void> {
+    const activeToken = tokenRef.current;
+    investigationRequestSequence.current += 1;
+    const session = investigationHandleRef.current;
+    investigationHandleRef.current = null;
+    setInvestigationHandle(null); setInvestigationEvaluation(null); setInvestigationState('idle');
+    const current = currentEvidenceRef.current;
+    const baseline = baselineEvidenceRef.current;
+    const handles = new Set([current?.runHandle, baseline?.runHandle]
+      .filter((value): value is string => Boolean(value) && value !== keepRunHandle));
+    const nextCurrent = keepRunHandle && current?.runHandle === keepRunHandle ? current : null;
+    const nextBaseline = keepRunHandle && baseline?.runHandle === keepRunHandle ? baseline : null;
+    currentEvidenceRef.current = nextCurrent; baselineEvidenceRef.current = nextBaseline;
+    setCurrentEvidence(nextCurrent); setBaselineEvidence(nextBaseline);
+    if (activeToken && session) await releaseEvidenceHandle(activeToken, 'investigation', session);
+    if (activeToken) for (const handle of handles) await releaseEvidenceHandle(activeToken, 'run', handle);
+  }
+
+  function changeInvestigationMode(enabled: boolean) {
+    if (enabled === investigationMode) return;
+    setInvestigationMode(enabled);
+    setInvestigationMessage('');
+    if (!enabled) {
+      void releaseInvestigationEvidence();
+      setInvestigationMessage('조사 모드를 해제했습니다. 보유 중인 서버 증거의 해제를 요청했습니다. 현재 화면의 검사 결과는 유지됩니다.');
+    }
+  }
 
   async function runScan(event: React.FormEvent) {
     event.preventDefault();
@@ -180,16 +246,47 @@ export function App() {
     if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
       && !window.confirm('현재 검사에 작성한 분석가 검토 상태와 메모가 새 검사 시작 시 사라집니다. 계속하시겠습니까?')) return;
     const requestSequence = ++scanRequestSequence.current;
+    investigationRequestSequence.current += 1;
+    const runWithEvidence = investigationMode;
+    const priorSession = investigationHandleRef.current;
+    investigationHandleRef.current = null;
+    setInvestigationHandle(null); setInvestigationEvaluation(null); setInvestigationState('idle'); setInvestigationMessage('');
+    const priorCurrent = currentEvidenceRef.current;
+    const baselineHandle = baselineEvidenceRef.current?.runHandle;
+    setCurrentEvidence(null);
     const requestedContext = { targetId: target.id, targetLabel: target.label, ruleProfileId: profile.id, ruleProfileLabel: profile.label, experimental: profile.experimental };
     setState('scanning'); setMessage('검사 진행 중입니다. 실제 진행률 정보는 제공되지 않습니다.'); setScan(null); setScanContext(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setExportMessage(''); setSarifExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setBackupPreview(null); setBackupMessage(''); setIncludeBackupNotes(false); setBackupAppliedIds(new Set()); setBackupSkippedIds(new Set()); resetFilters();
     try {
-      const result = await api.scan(token, targetId, profileId);
+      if (priorSession) await releaseEvidenceHandle(token, 'investigation', priorSession);
+      if (priorCurrent && priorCurrent.runHandle !== baselineHandle) await releaseEvidenceHandle(token, 'run', priorCurrent.runHandle);
       if (requestSequence !== scanRequestSequence.current) return;
-      setScan(result); setScanContext({ ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() }); setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed'); setActiveView('results');
-      setMessage(result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`);
-    } catch (error) { if (requestSequence !== scanRequestSequence.current) return; const result = safeError(error); setState(result.state); setMessage(result.message); }
+      const evidenceResponse = runWithEvidence ? await investigationApi.scan(token, targetId, profileId) : null;
+      const result = evidenceResponse?.scan ?? await api.scan(token, targetId, profileId);
+      if (requestSequence !== scanRequestSequence.current) {
+        if (evidenceResponse) await releaseEvidenceHandle(token, 'run', evidenceResponse.run_handle);
+        return;
+      }
+      const nextContext = { ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() };
+      const snapshot: ScanSnapshot = { scan: result, context: nextContext };
+      setScan(result); setScanContext(nextContext);
+      if (evidenceResponse) setCurrentEvidence({ snapshot, runHandle: evidenceResponse.run_handle });
+      setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed'); setActiveView('results');
+      const scanMessage = result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`;
+      setMessage(scanMessage);
+      if (evidenceResponse) setInvestigationMessage('이 검사 응답과 서버 증거 Handle을 함께 보관했습니다. 서버 메모리의 절대 보존 시간은 최대 15분입니다.');
+    } catch (error) {
+      if (requestSequence !== scanRequestSequence.current) return;
+      if (runWithEvidence) {
+        const apiError = error instanceof ApiError ? error : new ApiError(500, 'invalid_api_response');
+        const mapped = investigationErrorMessage(apiError.status, apiError.code);
+        const standard = safeError(error);
+        setState(standard.state); setMessage(mapped); setInvestigationMessage(mapped); setInvestigationState('error');
+      } else {
+        const result = safeError(error); setState(result.state); setMessage(result.message);
+      }
+    }
   }
-  function clearToken() { setToken(''); setState('ready'); setMessage('화면에 입력한 토큰을 지웠습니다. 서버 설정의 토큰은 변경되지 않습니다.'); }
+  function clearToken() { void releaseInvestigationEvidence(); setToken(''); setState('ready'); setMessage('화면에 입력한 토큰을 지웠습니다. 서버 설정의 토큰은 변경되지 않습니다.'); setInvestigationMessage('토큰이 제거되어 조사 Handle을 사용할 수 없습니다. 해제를 요청했으며 보존 한계는 서버의 15분 TTL입니다.'); }
   function resetFilters() { setSeverityFilter('all'); setKindFilter('all'); setVerificationFilter('all'); setSearchQuery(''); }
   function updateAnalystStatus(findingId: string, nextStatus: AnalystReviewStatus) {
     setSelectedId(findingId);
@@ -207,19 +304,89 @@ export function App() {
     if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
       && !window.confirm('현재 검사 결과의 분석가 검토 상태와 메모, 비교 기준이 모두 삭제됩니다. 계속하시겠습니까?')) return;
     scanRequestSequence.current += 1;
+    void releaseInvestigationEvidence(); setBaselineEvidence(null); setCurrentEvidence(null); setInvestigationMessage('');
     setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setBackupPreview(null); setBackupMessage(''); setIncludeBackupNotes(false); setBackupAppliedIds(new Set()); setBackupSkippedIds(new Set()); resetFilters(); setExportMessage(''); setSarifExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
   }
   function setCurrentAsBaseline() {
     if (!scan || !scanContext || scan.scan_status !== 'completed' || !scan.completed) return;
-    setBaselineSnapshot({ scan, context: scanContext });
+    const nextEvidence = currentEvidence?.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext ? currentEvidence : null;
+    const previousHandle = baselineEvidenceRef.current?.runHandle;
+    void (async () => {
+      await dropInvestigationSession();
+      if (previousHandle && previousHandle !== nextEvidence?.runHandle && previousHandle !== currentEvidenceRef.current?.runHandle && tokenRef.current) await releaseEvidenceHandle(tokenRef.current, 'run', previousHandle);
+    })();
+    const nextSnapshot = nextEvidence?.snapshot ?? { scan, context: scanContext };
+    setBaselineSnapshot(nextSnapshot);
+    setBaselineEvidence(nextEvidence);
     setComparisonExportMessage('');
-    setMessage('현재 검사 결과를 비교 기준으로 저장했습니다. 같은 대상과 규칙으로 새 검사를 실행하면 결과 차이를 확인할 수 있습니다.');
+    setMessage(nextEvidence
+      ? '현재 검사 결과와 같은 실행에서 발급된 증거를 비교 기준으로 저장했습니다. 같은 프로젝트를 다시 조사 모드로 검사하세요.'
+      : '현재 검사 결과를 비교 기준으로 저장했습니다. 이 기준에는 서버 조사 증거가 없으므로 소멸 근거 조사에는 조사 모드에서 새 기준 검사가 필요합니다.');
   }
   function clearBaseline() {
+    const oldHandle = baselineEvidenceRef.current?.runHandle;
+    const activeHandle = currentEvidenceRef.current?.runHandle;
+    void (async () => {
+      await dropInvestigationSession();
+      if (oldHandle && oldHandle !== activeHandle && tokenRef.current) await releaseEvidenceHandle(tokenRef.current, 'run', oldHandle);
+    })();
+    setBaselineEvidence(null); setInvestigationMessage('');
     setBaselineSnapshot(null);
     setComparisonExportMessage('');
     setMessage('비교 기준을 해제했습니다. 현재 검사 결과와 분석가 검토 기록은 유지됩니다.');
+  }
+
+  async function investigateFindingChanges() {
+    if (!token || !baselineSnapshot || !baselineEvidence || !currentEvidence || !scan || currentEvidence.snapshot.scan !== scan
+      || baselineEvidence.snapshot !== baselineSnapshot || investigationState === 'running') return;
+    const localBinding = validateInvestigationRuns(baselineEvidence, currentEvidence);
+    if (!localBinding.valid) {
+      setInvestigationState('error'); setInvestigationEvaluation(null);
+      setInvestigationMessage(localBinding.reason === 'evidence_missing' ? '두 검사 모두 조사 모드에서 실행해야 서버 증거를 연결할 수 있습니다.' : '검사 실행 문맥이 일치하지 않아 조사를 시작하지 않았습니다.');
+      return;
+    }
+    const requestSequence = ++investigationRequestSequence.current;
+    setInvestigationState('running'); setInvestigationMessage('두 검사에서 보관한 서버 증거를 확인하고 있습니다.'); setInvestigationEvaluation(null);
+    let session = investigationHandleRef.current;
+    try {
+      if (!session) {
+        const created = await investigationApi.createSession(token, baselineEvidence.runHandle, currentEvidence.runHandle);
+        session = created.investigation_handle;
+        if (requestSequence !== investigationRequestSequence.current) {
+          await releaseEvidenceHandle(token, 'investigation', session);
+          return;
+        }
+        investigationHandleRef.current = session; setInvestigationHandle(session);
+      }
+      const result = await investigationApi.evaluate(token, session);
+      if (requestSequence !== investigationRequestSequence.current) return;
+      const resultBinding = validateInvestigationContext(
+        baselineEvidence, currentEvidence, result, comparison.comparable ? comparison : undefined,
+      );
+      if (!resultBinding.valid) {
+        void releaseInvestigationEvidence();
+        setInvestigationState('error'); setInvestigationEvaluation(null);
+        setInvestigationMessage('INVESTIGATION_RESULT_CONTEXT_MISMATCH: 현재 비교 화면과 서버 평가의 Finding 구성이 달라 결과를 표시하지 않았습니다. 새 조사 검사를 실행하세요.');
+        return;
+      }
+      setInvestigationEvaluation(result); setInvestigationState('ready');
+      setInvestigationMessage(result.overall_assessment === 'EXPLANATION_SUPPORTED'
+        ? '일부 검사 절차에 대한 설명을 뒷받침하는 근거가 있습니다. 코드 수정이나 취약점 해결 여부는 확인되지 않았습니다.'
+        : '서버 증거 평가가 완료됐습니다. Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
+    } catch (error) {
+      if (requestSequence !== investigationRequestSequence.current) return;
+      const apiError = error instanceof ApiError ? error : new ApiError(500, 'invalid_api_response');
+      const mapped = investigationErrorMessage(apiError.status, apiError.code);
+      if (apiError.code === 'evidence_unavailable' || apiError.status === 404) {
+        void releaseInvestigationEvidence();
+      }
+      setInvestigationState('error'); setInvestigationEvaluation(null); setInvestigationMessage(mapped);
+    }
+  }
+
+  function releaseInvestigation() {
+    void releaseInvestigationEvidence(); setInvestigationMessage('조사 세션과 Run 증거의 해제를 요청했습니다. 화면의 검사 결과는 유지되지만 다시 조사하려면 두 검사를 새로 실행해야 합니다. 전달 실패 시에도 서버의 최대 15분 TTL이 적용됩니다.');
   }
   function openCurrentFindingFromComparison(findingId: string) {
     if (!scan?.findings.some((finding) => finding.finding_id === findingId)) return;
@@ -384,7 +551,15 @@ export function App() {
       <div className="workspace-title"><div><h1>{pageTitle}</h1></div>{activeView === 'start' ? <p>등록된 프로젝트와 규칙을 선택해 검사합니다.</p> : activeView === 'results' ? <p>현재 브라우저 세션의 결과만 표시합니다.</p> : <p>검사 순서와 결과 해석 기준을 확인하세요.</p>}</div>
       {activeView === 'start' && <>
       <section className={`mission-deck ${scan ? 'mission-deck-compact' : ''}`} aria-labelledby="scan-config-title">
-        <div className="deck-heading"><h2 className="eyebrow" id="scan-config-title">검사 설정</h2></div>
+        <div className="deck-heading"><h2 className="eyebrow" id="scan-config-title">검사 설정</h2><details className="investigation-mode-disclosure">
+          <summary>소멸 근거 조사 선택</summary>
+          <fieldset className="investigation-mode-picker" aria-describedby="investigation-mode-help">
+            <legend>검사 방식</legend>
+            <label><input type="radio" name="scan-mode" value="standard" checked={!investigationMode} onChange={() => changeInvestigationMode(false)} disabled={state === 'scanning'}/> 일반 검사</label>
+            <label><input type="radio" name="scan-mode" value="investigation" checked={investigationMode} onChange={() => changeInvestigationMode(true)} disabled={state === 'scanning'}/> 소멸 근거 조사</label>
+            <p id="investigation-mode-help">두 검사에서 관찰된 Finding 차이를 추가 증거와 함께 확인합니다. 서버 메모리에 최대 15분 임시 보관되며, 코드 수정이나 취약점 해결을 확정하지 않습니다.</p>
+          </fieldset>
+        </details></div>
         <form onSubmit={runScan} className="mission-form">
           <label className="mission-control project-control"><span className="control-label"><Icon name="folder"/> 검사 대상</span><span className="select-control"><select aria-label="검사 대상" value={targetId} onChange={(e) => setTargetId(e.target.value)} disabled={!options || options.targets.length === 0 || state === 'scanning'} required aria-describedby="target-help"><option value="" disabled>{options ? '등록된 프로젝트가 없습니다' : '서버 연결 후 목록을 불러옵니다'}</option>{options?.targets.map((target) => <option key={target.id} value={target.id}>{target.label}</option>)}</select><span className="select-caret" aria-hidden="true"/></span><small id="target-help">등록된 프로젝트만 검사할 수 있습니다.</small></label>
           <label className="mission-control rules-control"><span className="control-label"><Icon name="layers"/> 규칙 모음</span><span className="select-control"><select aria-label="검사 규칙 모음" value={profileId} onChange={(e) => setProfileId(e.target.value)} disabled={!options || options.rule_profiles.length === 0 || state === 'scanning'} required aria-describedby={selectedProfile?.experimental ? 'profile-help' : undefined}><option value="" disabled>{options ? '사용 가능한 규칙이 없습니다' : '서버 연결 후 목록을 불러옵니다'}</option>{options?.rule_profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.experimental ? 'Experimental · ' : ''}{profile.label}</option>)}</select><span className="select-caret" aria-hidden="true"/>{selectedProfile?.experimental && <small id="profile-help">실험 규칙이며 정확도는 충분히 검증되지 않았습니다.</small>}</span></label>
@@ -407,12 +582,13 @@ export function App() {
       </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {activeView === 'results' && !scan && <>
-        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />}
+        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: false, currentReady: false, status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />}
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
         {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><h2 className="sr-only">검사 정보</h2><p className="eyebrow">검사 설정 요약</p><p className="context-primary"><strong>{scanContext.targetLabel}</strong><span className="context-divider" aria-hidden="true">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong></p><p className="context-received-at">결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</p><details className="context-identifiers-disclosure"><summary>검사 내부 ID</summary><div className="context-identifiers"><span>대상 ID <code>{scanContext.targetId}</code></span><span>규칙 ID <code>{scanContext.ruleProfileId}</code></span></div></details></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div>
         </section>}
+        {investigationMode && <section className="investigation-evidence-notice" role="status" aria-live="polite"><strong>{currentEvidence?.snapshot.scan === scan ? '현재 응답에 서버 조사 증거가 연결됐습니다.' : '다음 검사를 조사 모드로 실행해야 증거를 보관합니다.'}</strong><p>서버 메모리에 최대 15분 보관됩니다. 로컬 API 토큰은 사용자별 격리를 제공하지 않으며, 증거는 화면 새로고침 뒤 복원되지 않습니다.</p>{investigationMessage && <p>{investigationMessage}</p>}</section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         {scan.omitted_finding_count > 0 && <p className="alert warning scan-omission-note" role="alert">{scan.omitted_finding_count}개 Finding이 생략되어 목록과 검토 현황에 포함되지 않았습니다. 생략 항목의 개별 근거는 확인할 수 없습니다.</p>}
@@ -440,7 +616,7 @@ export function App() {
               {scan.omitted_finding_count > 0 && <p className="analyst-review-scope">생략된 {scan.omitted_finding_count}개는 포함하지 않습니다.</p>}
             </section></div>
         </details>
-        <ScanComparisonPanel baseline={baselineSnapshot} current={scanContext ? { scan, context: scanContext } : null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} />
+        <ScanComparisonPanel baseline={baselineSnapshot} current={currentSnapshot} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: Boolean(baselineEvidence && baselineEvidence.snapshot === baselineSnapshot), currentReady: Boolean(currentEvidence && currentEvidence.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext), status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />
         <section className="result-export-workspace" aria-label="보고서와 검토 기록 내보내기"><h2>보고서 및 검토 기록</h2><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="sarif-export-tool"><summary>SARIF 내보내기</summary><div className="sarif-export-options"><p>현재 검사 응답의 {scan.displayed_finding_count}개 Finding을 SARIF 2.1.0으로 다운로드합니다. 생략된 Finding은 {scan.omitted_finding_count}개입니다. 취약점 확정 결과가 아니며 GitHub 자동 업로드를 수행하지 않습니다.</p><p className="analyst-report-warning">파일 경로와 규칙 ID가 포함됩니다. 외부 공유 전에 내용을 확인하세요.</p>{codeScanningPreflight && <CodeScanningPreflightDetails preflight={codeScanningPreflight}/>}<button type="button" className="button secondary" aria-label="SARIF 다운로드" onClick={exportSarif} disabled={state === 'scanning'}><Icon name="download"/> SARIF 다운로드</button>{sarifExportMessage && <p className="export-feedback" role="status">{sarifExportMessage}</p>}</div></details><details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-review-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기 · Markdown 다운로드" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details><details className="analyst-backup-tool"><summary>검토 기록 백업 및 복원</summary><div className="analyst-backup-controls"><p>JSON은 검토 상태를 다시 참고하기 위한 백업입니다. 다운로드 파일은 디스크에 남으며 자동 저장되지 않습니다.</p><label><input type="checkbox" aria-label="JSON 백업에 메모 포함" checked={includeBackupNotes} onChange={(event) => { setIncludeBackupNotes(event.target.checked); setBackupMessage(''); }}/> JSON 백업에 메모 포함</label>{includeBackupNotes && <p className="analyst-report-warning">메모에 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="검토 기록 백업 JSON 다운로드" onClick={exportAnalystReviewBackup} disabled={state === 'scanning'}><Icon name="download"/> 검토 기록 백업 JSON 다운로드</button><label className="backup-file-label" htmlFor="analyst-review-backup-file">검토 기록 불러오기(JSON)</label><input id="analyst-review-backup-file" className="backup-file-input" type="file" accept=".json,application/json" aria-describedby="backup-file-help" onChange={importAnalystReviewBackup} disabled={state === 'scanning'}/><small id="backup-file-help">최대 256 KiB. 파일은 브라우저 메모리에서만 읽으며 서버로 전송하지 않습니다.</small>{backupMessage && <p className="export-feedback" role="status">{backupMessage}</p>}{backupPreview && <section className="backup-preview" aria-label="검토 기록 복원 미리보기"><h3>외부 백업 미리보기</h3><p>파일: {backupPreview.fileName}</p><p>{backupPreview.backup.findings.length}개 Finding · 대기 {backupPreview.backup.findings.filter((item) => item.review_status === 'pending').length} · 추가 확인 {backupPreview.backup.findings.filter((item) => item.review_status === 'needs_followup').length} · 검토 완료 {backupPreview.backup.findings.filter((item) => item.review_status === 'reviewed').length}건</p><p>{backupPreview.backup.findings.some((item) => item.note !== undefined) ? '메모 포함' : '메모 제외'}</p><p>적용 가능: {backupPreview.reasons.length ? 0 : backupPreview.backup.findings.length}건 · 현재 기록과 충돌: {scan ? backupPreview.backup.findings.filter((item) => { const existing = getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id); return analystReviews.has(item.finding_id) && (existing.status !== item.review_status || (item.note !== undefined && existing.note !== item.note)); }).length : 0}건</p><p className="analyst-report-warning">문맥이 일치해도 코드 내용이 같다는 뜻은 아닙니다. 가져온 검토 기록은 현재 코드의 보안 판정이나 수정 여부를 증명하지 않습니다.</p>{backupPreview.reasons.length > 0 ? <div role="alert"><strong>복원 차단</strong><ul>{backupPreview.reasons.map((reason) => <li key={reason}>{restoreReasonLabels[reason]}</li>)}</ul></div> : <details className="backup-finding-preview"><summary>Finding별 기록 확인 ({backupPreview.backup.findings.length})</summary><ul>{backupPreview.backup.findings.map((item) => { const currentEntry = scan ? getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id) : { status: 'pending' as const, note: '' }; const applied = backupAppliedIds.has(item.finding_id); const skipped = backupSkippedIds.has(item.finding_id); return <li key={item.finding_id}><strong>{item.rule_id}</strong><span>{item.file_path ?? '위치 확인 불가'}{item.line_number ? `:${item.line_number}` : ''}</span><span>백업: {analystReviewLabels[item.review_status]} · 현재: {analystReviewLabels[currentEntry.status]}</span>{item.note !== undefined && <p>백업 메모 미리보기: {item.note || '(빈 메모)'}</p>}<p>{currentEntry.note ? '현재 메모 있음' : '현재 메모 없음'}</p><button type="button" className="button secondary" onClick={() => applyBackupFinding(item.finding_id)} disabled={state === 'scanning' || applied || skipped}>{applied ? '적용됨' : skipped ? '건너뜀' : '이 기록 적용'}</button><button type="button" className="button tertiary" onClick={() => setBackupSkippedIds((previous) => new Set(previous).add(item.finding_id))} disabled={applied || skipped}>{skipped ? '건너뜀' : '건너뛰기'}</button></li>; })}</ul></details>}</section>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>
       </div>}
       </main>
@@ -562,7 +738,7 @@ function receivedAtLabel(value: string): string {
 }
 
 function ScanComparisonPanel({
-  baseline, current, comparison, followup, onSetBaseline, onClearBaseline, onExport, onOpenCurrentFinding, exportMessage, exporting,
+  baseline, current, comparison, followup, onSetBaseline, onClearBaseline, onExport, onOpenCurrentFinding, exportMessage, exporting, investigation,
 }: {
   baseline: ScanSnapshot | null;
   current: ScanSnapshot | null;
@@ -574,6 +750,7 @@ function ScanComparisonPanel({
   onOpenCurrentFinding: (findingId: string) => void;
   exportMessage: string;
   exporting: boolean;
+  investigation: InvestigationPanelState;
 }) {
   const [category, setCategory] = useState<ComparisonCategory>('currentOnly');
   const [selectedFindingId, setSelectedFindingId] = useState('');
@@ -585,6 +762,7 @@ function ScanComparisonPanel({
   if (!baseline && current?.scan.scan_status === 'completed' && current.scan.completed) return <section className="scan-comparison scan-comparison-compact" aria-labelledby="scan-comparison-title">
     <div className="comparison-compact-copy"><h2 id="scan-comparison-title">검사 결과 비교</h2><span className="comparison-baseline-state">비교 기준 없음</span><p>현재 결과를 기준으로 저장한 뒤, 같은 대상과 규칙으로 다시 검사하면 결과 차이를 확인할 수 있습니다.</p></div>
     <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>현재 결과를 비교 기준으로 저장</button>
+    {investigation.mode && <InvestigationPanel baseline={baseline} current={current} comparison={comparison} state={investigation}/>}
   </section>;
 
   return <section className="scan-comparison" aria-labelledby="scan-comparison-title">
@@ -663,6 +841,84 @@ function ScanComparisonPanel({
       <strong>비교 판단 불가</strong>
       <ul>{comparison.reasons.map((reason) => <li key={reason}>{comparisonReasonLabels[reason]}</li>)}</ul>
     </div> : null}
+    {investigation.mode && <InvestigationPanel baseline={baseline} current={current} comparison={comparison} state={investigation}/>}
+  </section>;
+}
+
+interface InvestigationPanelState {
+  mode: boolean;
+  baselineReady: boolean;
+  currentReady: boolean;
+  status: 'idle' | 'running' | 'ready' | 'error';
+  evaluation: InvestigationEvaluation | null;
+  message: string;
+  onEvaluate: () => void;
+  onRelease: () => void;
+}
+
+const investigationCategoryLabels: Record<InvestigationCategory, string> = {
+  currentOnly: '이번 검사에서만 관찰', shared: '양쪽 검사에서 관찰', baselineOnly: '기준 검사에서만 관찰',
+};
+
+function InvestigationPanel({ baseline, current, comparison, state }: {
+  baseline: ScanSnapshot | null;
+  current: ScanSnapshot | null;
+  comparison: ReturnType<typeof compareScanSnapshots>;
+  state: InvestigationPanelState;
+}) {
+  const [category, setCategory] = useState<InvestigationCategory>('baselineOnly');
+  const [selectedFindingId, setSelectedFindingId] = useState('');
+  const evaluation = state.evaluation;
+  const findings = evaluation?.findings.filter((item) => item.category === category) ?? [];
+  const selected = findings.find((item) => item.finding_id === selectedFindingId) ?? findings[0];
+  const sourceScan = category === 'baselineOnly' ? baseline?.scan : current?.scan;
+  const localFinding = selected ? sourceScan?.findings.find((finding) => finding.finding_id === selected.finding_id) : null;
+  const counts = evaluation ? Object.fromEntries((Object.keys(investigationCategoryLabels) as InvestigationCategory[])
+    .map((itemCategory) => [itemCategory, evaluation.findings.filter((item) => item.category === itemCategory).length])) as Record<InvestigationCategory, number> : null;
+  const canEvaluate = state.baselineReady && state.currentReady && state.status !== 'running';
+
+  return <section className="investigation-panel" aria-labelledby="investigation-title">
+    <div className="investigation-panel-heading"><div><h3 id="investigation-title">소멸 근거 조사</h3><p>두 검사에 연결된 서버 증거를 비교합니다. Finding ID의 차이는 코드 동일성이나 취약점 해결을 증명하지 않습니다.</p></div>
+      <div className="investigation-actions">
+        <button type="button" className="button secondary" onClick={state.onEvaluate} disabled={!canEvaluate} aria-busy={state.status === 'running'}>{state.status === 'running' ? '증거 평가 중' : evaluation ? '다시 평가' : '소멸 근거 조사 실행'}</button>
+        {(state.baselineReady || state.currentReady) && <button type="button" className="button tertiary" onClick={state.onRelease} disabled={state.status === 'running'}>조사 증거 해제</button>}
+      </div>
+    </div>
+    {!state.baselineReady && <p className="investigation-guidance" role="note">이 비교 기준에는 서버 조사 증거가 없습니다. 조사 모드에서 기준 검사를 다시 실행하고 그 결과를 기준으로 저장하세요.</p>}
+    {state.baselineReady && !state.currentReady && <p className="investigation-guidance" role="note">기준 증거는 보관 중입니다. 같은 프로젝트와 규칙을 조사 모드로 다시 검사하세요.</p>}
+    {comparison.reasons.length > 0 && state.baselineReady && state.currentReady && <p className="investigation-guidance" role="note">화면의 일반 비교가 차단되어도 서버 평가는 실행할 수 있으며, 서버가 비교 불가로 판단하면 그 결과와 한계를 표시합니다.</p>}
+    {state.message && <p className={`investigation-feedback ${state.status === 'error' ? 'error' : ''}`} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</p>}
+    {evaluation && counts && <div className="investigation-result" aria-live="polite">
+      <div className="investigation-assessment"><div><span>증거 비교</span><strong>{investigationAssessmentLabels[evaluation.comparability]}</strong></div><div><span>전체 평가</span><strong>{investigationAssessmentLabels[evaluation.overall_assessment]}</strong></div></div>
+      <p className="investigation-safety-note">Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다. 코드 스냅샷은 수집되지 않았습니다.</p>
+      <div className="comparison-counts investigation-counts" aria-label="증거 평가 Finding 범주">
+        {(Object.keys(investigationCategoryLabels) as InvestigationCategory[]).map((itemCategory) => <div className={`comparison-count ${itemCategory}`} key={itemCategory}><span>{investigationCategoryLabels[itemCategory]}</span><strong>{counts[itemCategory]}</strong></div>)}
+      </div>
+      <div className="comparison-category-switch" role="group" aria-label="증거 평가 Finding 범주">
+        {(Object.keys(investigationCategoryLabels) as InvestigationCategory[]).map((itemCategory) => <button type="button" key={itemCategory} aria-pressed={category === itemCategory} onClick={() => { setCategory(itemCategory); setSelectedFindingId(''); }}>{investigationCategoryLabels[itemCategory]} <span>{counts[itemCategory]}</span></button>)}
+      </div>
+      {findings.length > 1 && <ul className="investigation-finding-selector" aria-label={`${investigationCategoryLabels[category]} Finding 목록`}>
+        {findings.map((item) => {
+          const itemScan = category === 'baselineOnly' ? baseline?.scan : current?.scan;
+          const local = itemScan?.findings.find((finding) => finding.finding_id === item.finding_id);
+          return <li key={item.finding_id}><button type="button" aria-pressed={selected?.finding_id === item.finding_id} onClick={() => setSelectedFindingId(item.finding_id)}>
+            <strong>{local?.rule_id ?? item.finding_id}</strong><span>{local?.file_path ?? '파일 위치 확인 불가'}{local?.line_number ? `:${local.line_number}` : ''}</span>
+          </button></li>;
+        })}
+      </ul>}
+      {selected ? <div className="investigation-finding-result">
+        <h4>{investigationCategoryLabels[category]}</h4>
+        <dl>
+          <div><dt>Finding ID</dt><dd><code>{selected.finding_id}</code></dd></div>
+          {localFinding && <div><dt>규칙과 위치</dt><dd><code>{localFinding.rule_id}</code> · {localFinding.file_path ?? '파일 위치 확인 불가'}{localFinding.line_number ? `:${localFinding.line_number}` : ''}</dd></div>}
+          {selected.path_observation && <div><dt>현재 경로 관찰</dt><dd>{investigationPathLabels[selected.path_observation]}</dd></div>}
+          {selected.skip_hypothesis && <div><dt>경로 제외 가설</dt><dd>{investigationAssessmentLabels[selected.skip_hypothesis]}</dd></div>}
+          {selected.source_snapshot_hypothesis && <div><dt>코드 변경 가설</dt><dd>{investigationAssessmentLabels[selected.source_snapshot_hypothesis]}</dd></div>}
+          {selected.rule_identity_hypothesis && <div><dt>규칙 동일성 가설</dt><dd>{investigationAssessmentLabels[selected.rule_identity_hypothesis]}</dd></div>}
+        </dl>
+      </div> : <p className="investigation-guidance">이 범주에 해당하는 Finding이 없습니다.</p>}
+      {evaluation.limitation_codes.length > 0 && <details className="investigation-limitations"><summary>분석 한계 확인 ({evaluation.limitation_codes.length})</summary><ul>{evaluation.limitation_codes.map((code) => <li key={code}>{investigationLimitationLabels[code]}</li>)}</ul></details>}
+    </div>}
   </section>;
 }
 
