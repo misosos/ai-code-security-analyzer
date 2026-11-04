@@ -27,6 +27,13 @@ from ai_code_security_analyzer.evidence_summary import (
     build_evidence_summary,
 )
 from ai_code_security_analyzer.models import Finding, FindingStatus, Severity
+from ai_code_security_analyzer.scan_evidence_manifest import (
+    ScanEvidenceManifest,
+    ScopeEvidence,
+    create_scan_evidence_manifest,
+    new_scan_ref,
+    unavailable_scope_evidence,
+)
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
 from ai_code_security_analyzer.taint_evidence import TaintEvidence, _TRUSTED_RULES
 
@@ -217,6 +224,17 @@ class ScanService:
         )
 
     def scan(self, target_id: str, rule_profile_id: str) -> ScanResponse:
+        response, _manifest = self._scan_with_manifest(target_id, rule_profile_id)
+        return response
+
+    def _scan_with_manifest(
+        self, target_id: str, rule_profile_id: str
+    ) -> tuple[ScanResponse, ScanEvidenceManifest]:
+        """Run once and return the unchanged public response with run-bound internal evidence.
+
+        This private method is for server-side tests and future internal consumers.
+        The HTTP route continues to use ``scan`` and never serializes the manifest.
+        """
         registered = next((item for item in self.settings.registered_targets if item.target_id == target_id), None)
         if registered is None:
             raise ServiceError(404, "target_not_allowed")
@@ -226,6 +244,7 @@ class ScanService:
         if not self._scan_lock.acquire(blocking=False):
             raise ServiceError(409, "scan_already_running")
         try:
+            scan_ref = new_scan_ref()
             try:
                 # Recheck the allowlist paths immediately before handing them to
                 # the adapter; this narrows but cannot eliminate filesystem races.
@@ -240,7 +259,45 @@ class ScanService:
             response = self._response(output.result, output.taint_evidence, rules_file)
             if len(response.model_dump_json().encode("utf-8")) > self.settings.max_response_bytes:
                 raise ServiceError(413, "response_limit_exceeded")
-            return response
+            scope = getattr(output, "scope_evidence", None)
+            if not isinstance(scope, ScopeEvidence):
+                scope = unavailable_scope_evidence("adapter_scope_evidence_not_provided")
+            output_exit_code = getattr(output.result, "exit_code", None)
+            if type(output_exit_code) is not int:
+                output_exit_code = None
+            try:
+                manifest = create_scan_evidence_manifest(
+                    scan_ref=scan_ref,
+                    target_id=registered.target_id,
+                    rule_profile_id=profile.profile_id,
+                    semgrep_version=response.semgrep_version,
+                    exit_code=output_exit_code,
+                    scan_status=response.scan_status.value,
+                    finding_count=response.finding_count,
+                    displayed_finding_count=response.displayed_finding_count,
+                    omitted_finding_count=response.omitted_finding_count,
+                    finding_ids=tuple(item.finding_id for item in response.findings),
+                    selected_rule_file_id=profile.relative_path,
+                    scope_evidence=scope,
+                )
+            except Exception:
+                # Internal evidence is supplemental. A collection failure must
+                # not rewrite or discard an otherwise valid ScanResponse.
+                manifest = create_scan_evidence_manifest(
+                    scan_ref=scan_ref,
+                    target_id=registered.target_id,
+                    rule_profile_id=profile.profile_id,
+                    semgrep_version=response.semgrep_version,
+                    exit_code=output_exit_code,
+                    scan_status=response.scan_status.value,
+                    finding_count=response.finding_count,
+                    displayed_finding_count=response.displayed_finding_count,
+                    omitted_finding_count=response.omitted_finding_count,
+                    finding_ids=tuple(item.finding_id for item in response.findings),
+                    selected_rule_file_id=profile.relative_path,
+                    scope_evidence=unavailable_scope_evidence("manifest_capture_failed"),
+                )
+            return response, manifest
         except ServiceError:
             raise
         except Exception:

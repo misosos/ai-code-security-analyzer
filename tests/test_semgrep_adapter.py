@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from ai_code_security_analyzer import semgrep_adapter
+from ai_code_security_analyzer.scan_evidence_manifest import EvidenceStatus
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
 
 
@@ -74,6 +75,38 @@ def test_clean_scan_with_zero_findings(paths: tuple[SemgrepAdapter, Path, Path],
     assert scanned.findings == ()
 
 
+def test_internal_output_records_scanned_paths_without_changing_scan_result(
+    paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter, target, rules = paths
+    target_file = target / "sample.js"
+    target_file.write_text("eval('synthetic');\n")
+    document = json.loads(finding_json())
+    document["paths"] = {"scanned": ["sample.js"]}
+    fake_semgrep(monkeypatch, json.dumps(document).encode())
+    parse_calls = 0
+    original_parser = semgrep_adapter._parse_semgrep_json_internal
+
+    def count_parse(raw: bytes, root: Path):
+        nonlocal parse_calls
+        parse_calls += 1
+        return original_parser(raw, root)
+
+    monkeypatch.setattr(semgrep_adapter, "_parse_semgrep_json_internal", count_parse)
+
+    output = adapter._scan_with_evidence(target, rules)
+    assert parse_calls == 1
+    public_result = adapter.scan(target, rules)
+    assert parse_calls == 2
+
+    assert output.result.status is ScanStatus.COMPLETED
+    assert output.scope_evidence.scanned_status is EvidenceStatus.OBSERVED
+    assert output.scope_evidence.scanned_paths == ("sample.js",)
+    # `scan()` continues to expose the established ScanResult shape.
+    assert public_result.status is ScanStatus.COMPLETED
+    assert not hasattr(public_result, "scope_evidence")
+
+
 def test_reported_errors_make_scan_partial(paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     adapter, target, rules = paths
     payload = json.loads(finding_json())
@@ -93,6 +126,16 @@ def test_missing_semgrep_is_not_clean_scan(paths: tuple[SemgrepAdapter, Path, Pa
     assert scanned.findings == ()
 
 
+def test_no_cli_execution_marks_scope_not_collected(
+    paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter, target, rules = paths
+    monkeypatch.setattr(semgrep_adapter.shutil, "which", lambda _: None)
+    output = adapter._scan_with_evidence(target, rules)
+    assert output.scope_evidence.scanned_status is EvidenceStatus.NOT_COLLECTED
+    assert output.scope_evidence.paths_object_present is None
+
+
 def test_nonzero_exit_is_failure_even_with_findings(paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     adapter, target, rules = paths
     fake_semgrep(monkeypatch, finding_json(), exit_code=2)
@@ -108,6 +151,15 @@ def test_invalid_json_is_not_clean_scan(paths: tuple[SemgrepAdapter, Path, Path]
     scanned = adapter.scan(target, rules)
     assert scanned.status is ScanStatus.INVALID_JSON
     assert scanned.findings == ()
+
+
+def test_invalid_json_scope_is_unavailable_not_empty(paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    adapter, target, rules = paths
+    fake_semgrep(monkeypatch, b"{broken")
+    output = adapter._scan_with_evidence(target, rules)
+    assert output.scope_evidence.scanned_status is EvidenceStatus.UNAVAILABLE
+    assert output.scope_evidence.scanned_paths == ()
+    assert output.scope_evidence.reported_scanned_count is None
 
 
 def test_bad_json_with_nonzero_exit_is_execution_failure(paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
@@ -146,6 +198,21 @@ def test_timeout_is_not_clean_scan(paths: tuple[SemgrepAdapter, Path, Path], mon
     assert scanned.findings == ()
 
 
+def test_timeout_scope_is_unavailable_not_observed_empty(
+    paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter, target, rules = paths
+    monkeypatch.setattr(semgrep_adapter.shutil, "which", lambda _: "/trusted/semgrep")
+
+    def timeout(*args: object, **kwargs: object) -> None:
+        raise semgrep_adapter._ProcessTimeout
+
+    monkeypatch.setattr(semgrep_adapter, "_run_process", timeout)
+    output = adapter._scan_with_evidence(target, rules)
+    assert output.result.status is ScanStatus.TIMED_OUT
+    assert output.scope_evidence.scanned_status is EvidenceStatus.UNAVAILABLE
+
+
 def test_output_limit_is_not_clean_scan(paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     adapter, target, rules = paths
     monkeypatch.setattr(semgrep_adapter.shutil, "which", lambda _: "/trusted/semgrep")
@@ -156,6 +223,21 @@ def test_output_limit_is_not_clean_scan(paths: tuple[SemgrepAdapter, Path, Path]
     monkeypatch.setattr(semgrep_adapter, "_run_process", too_large)
     scanned = adapter.scan(target, rules)
     assert scanned.status is ScanStatus.OUTPUT_LIMIT_EXCEEDED
+
+
+def test_output_limit_scope_is_unavailable(
+    paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter, target, rules = paths
+    monkeypatch.setattr(semgrep_adapter.shutil, "which", lambda _: "/trusted/semgrep")
+
+    def too_large(*args: object, **kwargs: object) -> None:
+        raise semgrep_adapter._OutputLimitExceeded
+
+    monkeypatch.setattr(semgrep_adapter, "_run_process", too_large)
+    output = adapter._scan_with_evidence(target, rules)
+    assert output.result.status is ScanStatus.OUTPUT_LIMIT_EXCEEDED
+    assert output.scope_evidence.scanned_status is EvidenceStatus.UNAVAILABLE
 
 
 def test_untrusted_or_missing_paths_are_rejected(paths: tuple[SemgrepAdapter, Path, Path], tmp_path: Path) -> None:

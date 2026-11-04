@@ -8,7 +8,7 @@ import signal
 import subprocess
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dataclass_field
 from enum import StrEnum
 from pathlib import Path
 
@@ -20,6 +20,11 @@ from ai_code_security_analyzer.firestore_context import (
     scan_lexical_context,
 )
 from ai_code_security_analyzer.models import Finding
+from ai_code_security_analyzer.scan_evidence_manifest import (
+    ScopeEvidence,
+    not_collected_scope_evidence,
+    unavailable_scope_evidence,
+)
 from ai_code_security_analyzer.semgrep_parser import InvalidSemgrepJson, _parse_semgrep_json_internal
 from ai_code_security_analyzer.taint_evidence import TaintEvidence, build_taint_evidence
 
@@ -60,6 +65,9 @@ class ScanResult:
 class _ScanOutput:
     result: ScanResult
     taint_evidence: tuple[TaintEvidence, ...] = ()
+    scope_evidence: ScopeEvidence = dataclass_field(
+        default_factory=lambda: not_collected_scope_evidence("semgrep_json_not_collected")
+    )
 
 
 @dataclass(frozen=True)
@@ -353,9 +361,15 @@ class SemgrepAdapter:
                 # rules directory in check_id values exposed by public reports.
                 completed = _run_process(args, rules.parent, env, timeout)
             except _ProcessTimeout:
-                return _ScanOutput(ScanResult(ScanStatus.TIMED_OUT, issues=("semgrep_timeout",)))
+                return _ScanOutput(
+                    ScanResult(ScanStatus.TIMED_OUT, issues=("semgrep_timeout",)),
+                    scope_evidence=unavailable_scope_evidence("semgrep_timeout_without_json"),
+                )
             except _OutputLimitExceeded:
-                return _ScanOutput(ScanResult(ScanStatus.OUTPUT_LIMIT_EXCEEDED, issues=("semgrep_output_limit",)))
+                return _ScanOutput(
+                    ScanResult(ScanStatus.OUTPUT_LIMIT_EXCEEDED, issues=("semgrep_output_limit",)),
+                    scope_evidence=unavailable_scope_evidence("semgrep_output_limit"),
+                )
             except OSError:
                 return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("semgrep_launch_failed",)))
 
@@ -363,8 +377,14 @@ class SemgrepAdapter:
             semgrep_document = _parse_semgrep_json_internal(completed.stdout, project_root)
         except InvalidSemgrepJson:
             if completed.exit_code != 0:
-                return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version))
-            return _ScanOutput(ScanResult(ScanStatus.INVALID_JSON, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version))
+                return _ScanOutput(
+                    ScanResult(ScanStatus.EXECUTION_FAILED, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version),
+                    scope_evidence=unavailable_scope_evidence("invalid_json_after_failed_execution"),
+                )
+            return _ScanOutput(
+                ScanResult(ScanStatus.INVALID_JSON, issues=("invalid_json",), exit_code=completed.exit_code, semgrep_version=version),
+                scope_evidence=unavailable_scope_evidence("invalid_json"),
+            )
         parsed = semgrep_document.parsed
         taint_evidence = build_taint_evidence(
             semgrep_document.document,
@@ -378,6 +398,11 @@ class SemgrepAdapter:
             return _ScanOutput(
                 ScanResult(ScanStatus.EXECUTION_FAILED, findings, parsed.issues + ("nonzero_exit",), completed.exit_code, version),
                 taint_evidence,
+                semgrep_document.scope_evidence,
             )
         status = ScanStatus.PARTIAL if parsed.issues else ScanStatus.COMPLETED
-        return _ScanOutput(ScanResult(status, findings, parsed.issues, completed.exit_code, version), taint_evidence)
+        return _ScanOutput(
+            ScanResult(status, findings, parsed.issues, completed.exit_code, version),
+            taint_evidence,
+            semgrep_document.scope_evidence,
+        )

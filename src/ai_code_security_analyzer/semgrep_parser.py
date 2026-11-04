@@ -8,6 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from ai_code_security_analyzer.models import Finding, Severity
+from ai_code_security_analyzer.scan_evidence_manifest import (
+    ScopeEvidence,
+    parse_scope_evidence,
+    unavailable_scope_evidence,
+)
 
 
 _CWE_PATTERN = re.compile(r"\bCWE-([1-9][0-9]*)\b", re.IGNORECASE)
@@ -37,6 +42,7 @@ class _ParsedSemgrepDocument:
     parsed: ParsedFindings
     document: dict[str, Any]
     result_findings: tuple[Finding | None, ...]
+    scope_evidence: ScopeEvidence
 
 
 def _positive_int(value: Any) -> int | None:
@@ -155,7 +161,13 @@ def _parse_semgrep_json_internal(raw: bytes, project_root: Path) -> _ParsedSemgr
         if issue is not None:
             issues.append(f"result_{index}_{issue}")
     parsed = ParsedFindings(tuple(findings), tuple(issues))
-    return _ParsedSemgrepDocument(parsed, document, tuple(result_findings))
+    try:
+        scope_evidence = parse_scope_evidence(document, project_root)
+    except Exception:
+        # Scope capture is supplemental. Never discard parsed findings because
+        # an auxiliary path observation could not be represented safely.
+        scope_evidence = unavailable_scope_evidence("scope_capture_failed")
+    return _ParsedSemgrepDocument(parsed, document, tuple(result_findings), scope_evidence)
 
 
 def parse_semgrep_json(raw: bytes, project_root: Path) -> ParsedFindings:
