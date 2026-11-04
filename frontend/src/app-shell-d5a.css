@@ -153,6 +153,7 @@
 #main-content .analyst-report-export-options > label { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; color: var(--d2-ink, #e9f0fb); font-size: 17px; cursor: pointer; }
 @media (max-width: 600px) {
   #main-content .result-export-workspace .analyst-review-export-options > label { display: flex; flex: 1 1 100%; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
+  #main-content .result-export-workspace .sarif-export-tool { display: block; margin-inline-start: 0; }
 }
 #main-content .analyst-report-export-options input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--d2-cyan, #56e6f3); }
 #main-content .analyst-report-warning,
@@ -525,6 +526,7 @@
 }
 @media (max-width: 760px) {
   #main-content.d2-view-results .workspace-title { margin-bottom: 18px; }
+  #main-content .d2-results-workspace { grid-template-columns: minmax(0, 1fr); }
   #main-content .d2-results-workspace .scan-context { padding: 16px; }
   #main-content .d2-results-workspace .context-actions { flex-wrap: wrap; }
   #main-content .d2-results-workspace .context-actions .button { min-height: 48px; }

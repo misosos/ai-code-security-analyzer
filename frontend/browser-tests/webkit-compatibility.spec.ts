@@ -59,6 +59,12 @@ test('WebKit: 검사, Finding 검토, Markdown/SARIF/JSON 내보내기와 JSON �
   expect(sarifText).toContain(finding.finding_id);
   expect(sarifText).not.toContain('synthetic-webkit-token');
 
+  const preflight = page.locator('.code-scanning-preflight');
+  await preflight.locator(':scope > summary').click();
+  await expect(preflight.locator('ul[aria-label="GitHub Code Scanning 사전 확인 항목"]')).toBeVisible();
+  await preflight.locator('.preflight-location-list > summary').click();
+  await expect(preflight.locator('.preflight-location-list ul')).toBeVisible();
+
   await page.getByText('검토 기록 백업 및 복원', { exact: true }).click();
   const backupDownloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: '검토 기록 백업 JSON 다운로드' }).click();
@@ -77,8 +83,22 @@ test('WebKit: 검사, Finding 검토, Markdown/SARIF/JSON 내보내기와 JSON �
   const viewportSizes = [1920, 1440, 1280, 1024, 768, 600, 390, 320];
   for (const width of viewportSizes) {
     await page.setViewportSize({ width, height: 900 });
-    const { client, scroll } = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
-    expect(scroll, `WebKit horizontal overflow at ${width}px`).toBeLessThanOrEqual(client);
+    const dimensions = await page.evaluate(() => {
+      const client = document.documentElement.clientWidth;
+      const scroll = document.documentElement.scrollWidth;
+      const overflowRoots = [...document.querySelectorAll<HTMLElement>('*')].filter((element) => {
+        const bounds = element.getBoundingClientRect();
+        const parentBounds = element.parentElement?.getBoundingClientRect();
+        return bounds.right > client + 0.5 && parentBounds && parentBounds.right <= client + 0.5;
+      }).map((element) => {
+        const bounds = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        const classNames = typeof element.className === 'string' ? element.className.trim().split(/\s+/).filter(Boolean) : [];
+        return { selector: `${element.tagName.toLowerCase()}${classNames.map((name) => `.${name}`).join('')}`, left: bounds.left, right: bounds.right, width: bounds.width, minWidth: style.minWidth, padding: style.padding, boxSizing: style.boxSizing, whiteSpace: style.whiteSpace, overflowWrap: style.overflowWrap, flexBasis: style.flexBasis, gridTemplateColumns: style.gridTemplateColumns };
+      });
+      return { client, scroll, overflowRoots };
+    });
+    expect(dimensions.scroll, `WebKit horizontal overflow at ${width}px; overflowing elements: ${JSON.stringify(dimensions.overflowRoots)}`).toBeLessThanOrEqual(dimensions.client);
   }
 });
 
