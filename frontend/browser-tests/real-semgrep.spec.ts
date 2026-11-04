@@ -1,8 +1,16 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import Ajv from 'ajv-draft-04';
+import addFormats from 'ajv-formats';
+
+const sarifSchema = JSON.parse(readFileSync(`${process.cwd()}/tests/fixtures/sarif-schema-2.1.0.json`, 'utf8')) as object;
+const sarifAjv = new Ajv({ allErrors: true, strict: false });
+addFormats(sarifAjv);
+const validateSarif = sarifAjv.compile(sarifSchema);
 
 const canary = 'SYNTHETIC_BROWSER_CANARY_MUST_NOT_LEAK';
 
-test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown download', async ({ page }) => {
+test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown and SARIF downloads', async ({ page }) => {
   test.setTimeout(90_000);
   const token = process.env.BROWSER_E2E_API_TOKEN;
   if (!token) throw new Error('real_browser_e2e_token_missing');
@@ -106,6 +114,25 @@ test('real Chromium to FastAPI to Semgrep evidence to user-triggered Markdown do
   expect(markdown).not.toContain(token);
   expect(markdown).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
   expect(markdown).not.toContain(process.cwd());
+
+  await page.getByText('SARIF 내보내기', { exact: true }).click();
+  const sarifDownloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'SARIF 다운로드' }).click();
+  const sarifDownload = await sarifDownloadPromise;
+  expect(sarifDownload.suggestedFilename()).toBe('ai-code-security-results.sarif');
+  const sarifStream = await sarifDownload.createReadStream();
+  let sarifText = '';
+  for await (const chunk of sarifStream!) sarifText += chunk.toString('utf8');
+  const sarif = JSON.parse(sarifText) as Record<string, unknown>;
+  expect(validateSarif(sarif), JSON.stringify(validateSarif.errors)).toBe(true);
+  expect(sarifText).toContain(finding!.finding_id);
+  expect(sarifText).toContain('experimental.javascript-command-injection-taint');
+  expect(sarifText).not.toContain(canary);
+  expect(sarifText).not.toContain(token);
+  expect(sarifText).not.toContain(process.env.BROWSER_E2E_PRIVATE_PATH ?? '/private/');
+  expect(sarifText).not.toContain(process.cwd());
+  expect(sarifText).not.toContain('codeFlows');
+  expect(sarifText).not.toContain('partialFingerprints');
   expect(scanRequests).toEqual(['POST']);
   expect(scanTargets).toEqual(['synthetic-selected']);
   expect(scanAuthLocations).toEqual(['header-only']);

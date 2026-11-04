@@ -24,7 +24,7 @@ async function setup(page: import('@playwright/test').Page) {
   await page.route('**/api/v1/scans', (route) => route.fulfill({ json: response }));
 }
 
-test('WebKit: 검사, Finding 검토, Markdown/JSON 내보내기와 JSON 미리보기', async ({ page }) => {
+test('WebKit: 검사, Finding 검토, Markdown/SARIF/JSON 내보내기와 JSON 미리보기', async ({ page }) => {
   let scanRequests = 0;
   await setup(page);
   await page.route('**/api/v1/scans', (route) => { scanRequests += 1; return route.fulfill({ json: response }); });
@@ -48,6 +48,16 @@ test('WebKit: 검사, Finding 검토, Markdown/JSON 내보내기와 JSON 미리�
   const markdown = await readFile(await reviewDownload.path() ?? '', 'utf8');
   expect(markdown).toContain('추가 확인 필요');
   expect(markdown).not.toContain('WebKit 합성 메모');
+
+  await page.getByText('SARIF 내보내기', { exact: true }).click();
+  const sarifDownloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'SARIF 다운로드' }).click();
+  const sarifDownload = await sarifDownloadPromise;
+  expect(sarifDownload.suggestedFilename()).toBe('ai-code-security-results.sarif');
+  const sarifText = await readFile(await sarifDownload.path() ?? '', 'utf8');
+  expect(JSON.parse(sarifText)).toMatchObject({ version: '2.1.0' });
+  expect(sarifText).toContain(finding.finding_id);
+  expect(sarifText).not.toContain('synthetic-webkit-token');
 
   await page.getByText('검토 기록 백업 및 복원', { exact: true }).click();
   const backupDownloadPromise = page.waitForEvent('download');

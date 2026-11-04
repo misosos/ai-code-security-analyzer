@@ -90,6 +90,7 @@ test('axe: Finding 결과, 분석가 검토, 내보내기와 JSON 복원 미리�
   await page.getByLabel('분석가 메모').fill('합성 접근성 검사 메모');
   await mkdir(evidenceDir, { recursive: true });
   await page.screenshot({ path: resolve(evidenceDir, 'finding-review-1440.png'), fullPage: true });
+  await page.getByText('SARIF 내보내기', { exact: true }).click();
   await page.getByText('분석가 검토 기록 내보내기', { exact: true }).click();
   await page.getByText('검토 기록 백업 및 복원', { exact: true }).click();
   await expectAxeClean(page, '보고서 및 백업 컨트롤');
