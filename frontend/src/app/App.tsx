@@ -13,7 +13,7 @@ import { getFindingReviewGuidance } from '../features/scans/reviewGuidance';
 import { createRescanFollowup, type RescanFollowup } from '../features/scans/rescanFollowup';
 import { createSarifReport, downloadSarifReport, SARIF_FILENAME } from '../features/scans/sarifExport';
 import { createCodeScanningPreflight, type CodeScanningPreflight } from '../features/scans/codeScanningPreflight';
-import { validateInvestigationContext, validateInvestigationRuns, type EvidenceBackedScan } from '../features/scans/investigationWorkflow';
+import { canInvestigateBlockedPartialComparison, validateInvestigationContext, validateInvestigationRuns, type EvidenceBackedScan } from '../features/scans/investigationWorkflow';
 import { investigationAssessmentLabels, investigationErrorMessage, investigationLimitationLabels, investigationPathLabels } from '../features/scans/investigationMessages';
 import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings } from './BeginnerGuidance';
 
@@ -309,7 +309,11 @@ export function App() {
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
   }
   function setCurrentAsBaseline() {
-    if (!scan || !scanContext || scan.scan_status !== 'completed' || !scan.completed) return;
+    const exactInvestigationRun = Boolean(investigationMode && currentEvidence?.snapshot.scan === scan
+      && currentEvidence.snapshot.context === scanContext);
+    const completedRun = scan?.scan_status === 'completed' && scan.completed;
+    const investigationPartialRun = scan?.scan_status === 'partial' && !scan.completed && exactInvestigationRun;
+    if (!scan || !scanContext || (!completedRun && !investigationPartialRun)) return;
     const nextEvidence = currentEvidence?.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext ? currentEvidence : null;
     const previousHandle = baselineEvidenceRef.current?.runHandle;
     void (async () => {
@@ -321,7 +325,9 @@ export function App() {
     setBaselineEvidence(nextEvidence);
     setComparisonExportMessage('');
     setMessage(nextEvidence
-      ? '현재 검사 결과와 같은 실행에서 발급된 증거를 비교 기준으로 저장했습니다. 같은 프로젝트를 다시 조사 모드로 검사하세요.'
+      ? investigationPartialRun
+        ? '일부만 완료된 조사 결과와 같은 실행의 증거를 기준으로 저장했습니다. 이 기준은 일반 비교가 불가하며 서버 평가는 INCOMPARABLE로 유지됩니다.'
+        : '현재 검사 결과와 같은 실행에서 발급된 증거를 비교 기준으로 저장했습니다. 같은 프로젝트를 다시 조사 모드로 검사하세요.'
       : '현재 검사 결과를 비교 기준으로 저장했습니다. 이 기준에는 서버 조사 증거가 없으므로 소멸 근거 조사에는 조사 모드에서 새 기준 검사가 필요합니다.');
   }
   function clearBaseline() {
@@ -346,6 +352,11 @@ export function App() {
       setInvestigationMessage(localBinding.reason === 'evidence_missing' ? '두 검사 모두 조사 모드에서 실행해야 서버 증거를 연결할 수 있습니다.' : '검사 실행 문맥이 일치하지 않아 조사를 시작하지 않았습니다.');
       return;
     }
+    if (!canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison)) {
+      setInvestigationState('error'); setInvestigationEvaluation(null);
+      setInvestigationMessage('일반 비교가 부분 검사 외의 이유로 차단되어 서버 조사를 시작하지 않았습니다. 검사 문맥과 결과를 확인하세요.');
+      return;
+    }
     const requestSequence = ++investigationRequestSequence.current;
     setInvestigationState('running'); setInvestigationMessage('두 검사에서 보관한 서버 증거를 확인하고 있습니다.'); setInvestigationEvaluation(null);
     let session = investigationHandleRef.current;
@@ -362,7 +373,7 @@ export function App() {
       const result = await investigationApi.evaluate(token, session);
       if (requestSequence !== investigationRequestSequence.current) return;
       const resultBinding = validateInvestigationContext(
-        baselineEvidence, currentEvidence, result, comparison.comparable ? comparison : undefined,
+        baselineEvidence, currentEvidence, result, comparison,
       );
       if (!resultBinding.valid) {
         void releaseInvestigationEvidence();
@@ -582,7 +593,7 @@ export function App() {
       </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {activeView === 'results' && !scan && <>
-        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: false, currentReady: false, status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />}
+        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: false, currentReady: false, evaluationAllowed: false, partialComparisonEligible: false, status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />}
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
@@ -616,7 +627,7 @@ export function App() {
               {scan.omitted_finding_count > 0 && <p className="analyst-review-scope">생략된 {scan.omitted_finding_count}개는 포함하지 않습니다.</p>}
             </section></div>
         </details>
-        <ScanComparisonPanel baseline={baselineSnapshot} current={currentSnapshot} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: Boolean(baselineEvidence && baselineEvidence.snapshot === baselineSnapshot), currentReady: Boolean(currentEvidence && currentEvidence.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext), status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />
+        <ScanComparisonPanel baseline={baselineSnapshot} current={currentSnapshot} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: Boolean(baselineEvidence && baselineEvidence.snapshot === baselineSnapshot), currentReady: Boolean(currentEvidence && currentEvidence.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext), evaluationAllowed: Boolean(baselineEvidence && currentEvidence && validateInvestigationRuns(baselineEvidence, currentEvidence).valid && (comparison.comparable || canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison))), partialComparisonEligible: canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison), status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />
         <section className="result-export-workspace" aria-label="보고서와 검토 기록 내보내기"><h2>보고서 및 검토 기록</h2><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="sarif-export-tool"><summary>SARIF 내보내기</summary><div className="sarif-export-options"><p>현재 검사 응답의 {scan.displayed_finding_count}개 Finding을 SARIF 2.1.0으로 다운로드합니다. 생략된 Finding은 {scan.omitted_finding_count}개입니다. 취약점 확정 결과가 아니며 GitHub 자동 업로드를 수행하지 않습니다.</p><p className="analyst-report-warning">파일 경로와 규칙 ID가 포함됩니다. 외부 공유 전에 내용을 확인하세요.</p>{codeScanningPreflight && <CodeScanningPreflightDetails preflight={codeScanningPreflight}/>}<button type="button" className="button secondary" aria-label="SARIF 다운로드" onClick={exportSarif} disabled={state === 'scanning'}><Icon name="download"/> SARIF 다운로드</button>{sarifExportMessage && <p className="export-feedback" role="status">{sarifExportMessage}</p>}</div></details><details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-review-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기 · Markdown 다운로드" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details><details className="analyst-backup-tool"><summary>검토 기록 백업 및 복원</summary><div className="analyst-backup-controls"><p>JSON은 검토 상태를 다시 참고하기 위한 백업입니다. 다운로드 파일은 디스크에 남으며 자동 저장되지 않습니다.</p><label><input type="checkbox" aria-label="JSON 백업에 메모 포함" checked={includeBackupNotes} onChange={(event) => { setIncludeBackupNotes(event.target.checked); setBackupMessage(''); }}/> JSON 백업에 메모 포함</label>{includeBackupNotes && <p className="analyst-report-warning">메모에 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="검토 기록 백업 JSON 다운로드" onClick={exportAnalystReviewBackup} disabled={state === 'scanning'}><Icon name="download"/> 검토 기록 백업 JSON 다운로드</button><label className="backup-file-label" htmlFor="analyst-review-backup-file">검토 기록 불러오기(JSON)</label><input id="analyst-review-backup-file" className="backup-file-input" type="file" accept=".json,application/json" aria-describedby="backup-file-help" onChange={importAnalystReviewBackup} disabled={state === 'scanning'}/><small id="backup-file-help">최대 256 KiB. 파일은 브라우저 메모리에서만 읽으며 서버로 전송하지 않습니다.</small>{backupMessage && <p className="export-feedback" role="status">{backupMessage}</p>}{backupPreview && <section className="backup-preview" aria-label="검토 기록 복원 미리보기"><h3>외부 백업 미리보기</h3><p>파일: {backupPreview.fileName}</p><p>{backupPreview.backup.findings.length}개 Finding · 대기 {backupPreview.backup.findings.filter((item) => item.review_status === 'pending').length} · 추가 확인 {backupPreview.backup.findings.filter((item) => item.review_status === 'needs_followup').length} · 검토 완료 {backupPreview.backup.findings.filter((item) => item.review_status === 'reviewed').length}건</p><p>{backupPreview.backup.findings.some((item) => item.note !== undefined) ? '메모 포함' : '메모 제외'}</p><p>적용 가능: {backupPreview.reasons.length ? 0 : backupPreview.backup.findings.length}건 · 현재 기록과 충돌: {scan ? backupPreview.backup.findings.filter((item) => { const existing = getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id); return analystReviews.has(item.finding_id) && (existing.status !== item.review_status || (item.note !== undefined && existing.note !== item.note)); }).length : 0}건</p><p className="analyst-report-warning">문맥이 일치해도 코드 내용이 같다는 뜻은 아닙니다. 가져온 검토 기록은 현재 코드의 보안 판정이나 수정 여부를 증명하지 않습니다.</p>{backupPreview.reasons.length > 0 ? <div role="alert"><strong>복원 차단</strong><ul>{backupPreview.reasons.map((reason) => <li key={reason}>{restoreReasonLabels[reason]}</li>)}</ul></div> : <details className="backup-finding-preview"><summary>Finding별 기록 확인 ({backupPreview.backup.findings.length})</summary><ul>{backupPreview.backup.findings.map((item) => { const currentEntry = scan ? getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id) : { status: 'pending' as const, note: '' }; const applied = backupAppliedIds.has(item.finding_id); const skipped = backupSkippedIds.has(item.finding_id); return <li key={item.finding_id}><strong>{item.rule_id}</strong><span>{item.file_path ?? '위치 확인 불가'}{item.line_number ? `:${item.line_number}` : ''}</span><span>백업: {analystReviewLabels[item.review_status]} · 현재: {analystReviewLabels[currentEntry.status]}</span>{item.note !== undefined && <p>백업 메모 미리보기: {item.note || '(빈 메모)'}</p>}<p>{currentEntry.note ? '현재 메모 있음' : '현재 메모 없음'}</p><button type="button" className="button secondary" onClick={() => applyBackupFinding(item.finding_id)} disabled={state === 'scanning' || applied || skipped}>{applied ? '적용됨' : skipped ? '건너뜀' : '이 기록 적용'}</button><button type="button" className="button tertiary" onClick={() => setBackupSkippedIds((previous) => new Set(previous).add(item.finding_id))} disabled={applied || skipped}>{skipped ? '건너뜀' : '건너뛰기'}</button></li>; })}</ul></details>}</section>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>
       </div>}
       </main>
@@ -757,7 +768,12 @@ function ScanComparisonPanel({
   const groups = comparison.groups;
   const items = followup.groups[category];
   const selected = items.find((item) => item.findingId === selectedFindingId) ?? items[0];
-  const canSetBaseline = Boolean(current?.scan.scan_status === 'completed' && current.scan.completed);
+  const exactInvestigationEvidence = Boolean(investigation.mode && investigation.currentReady);
+  const canSetBaseline = Boolean(current?.scan.scan_status === 'completed' && current.scan.completed)
+    || Boolean(exactInvestigationEvidence && current?.scan.scan_status === 'partial' && !current.scan.completed);
+  const baselineActionLabel = current?.scan.scan_status === 'partial' && canSetBaseline
+    ? '부분 조사 결과를 증거 기준으로 저장'
+    : baseline ? '현재 결과로 비교 기준 다시 저장' : '현재 결과를 비교 기준으로 저장';
 
   if (!baseline && current?.scan.scan_status === 'completed' && current.scan.completed) return <section className="scan-comparison scan-comparison-compact" aria-labelledby="scan-comparison-title">
     <div className="comparison-compact-copy"><h2 id="scan-comparison-title">검사 결과 비교</h2><span className="comparison-baseline-state">비교 기준 없음</span><p>현재 결과를 기준으로 저장한 뒤, 같은 대상과 규칙으로 다시 검사하면 결과 차이를 확인할 수 있습니다.</p></div>
@@ -828,7 +844,7 @@ function ScanComparisonPanel({
         <h2 id="scan-comparison-title">검사 결과 비교</h2>
       </div>}
       <button type="button" className="button secondary comparison-baseline-action" onClick={onSetBaseline} disabled={!canSetBaseline}>
-        {baseline ? '현재 결과로 비교 기준 다시 저장' : '현재 결과를 비교 기준으로 저장'}
+        {baselineActionLabel}
       </button>
       {baseline && <button type="button" className="button tertiary comparison-baseline-clear" onClick={onClearBaseline} disabled={exporting}>비교 기준 해제</button>}
       <button type="button" className="button secondary comparison-export-action" onClick={onExport} disabled={!comparison.comparable || !groups || exporting}>
@@ -849,6 +865,8 @@ interface InvestigationPanelState {
   mode: boolean;
   baselineReady: boolean;
   currentReady: boolean;
+  evaluationAllowed: boolean;
+  partialComparisonEligible: boolean;
   status: 'idle' | 'running' | 'ready' | 'error';
   evaluation: InvestigationEvaluation | null;
   message: string;
@@ -875,7 +893,7 @@ function InvestigationPanel({ baseline, current, comparison, state }: {
   const localFinding = selected ? sourceScan?.findings.find((finding) => finding.finding_id === selected.finding_id) : null;
   const counts = evaluation ? Object.fromEntries((Object.keys(investigationCategoryLabels) as InvestigationCategory[])
     .map((itemCategory) => [itemCategory, evaluation.findings.filter((item) => item.category === itemCategory).length])) as Record<InvestigationCategory, number> : null;
-  const canEvaluate = state.baselineReady && state.currentReady && state.status !== 'running';
+  const canEvaluate = state.baselineReady && state.currentReady && state.evaluationAllowed && state.status !== 'running';
 
   return <section className="investigation-panel" aria-labelledby="investigation-title">
     <div className="investigation-panel-heading"><div><h3 id="investigation-title">소멸 근거 조사</h3><p>두 검사에 연결된 서버 증거를 비교합니다. Finding ID의 차이는 코드 동일성이나 취약점 해결을 증명하지 않습니다.</p></div>
@@ -886,7 +904,8 @@ function InvestigationPanel({ baseline, current, comparison, state }: {
     </div>
     {!state.baselineReady && <p className="investigation-guidance" role="note">이 비교 기준에는 서버 조사 증거가 없습니다. 조사 모드에서 기준 검사를 다시 실행하고 그 결과를 기준으로 저장하세요.</p>}
     {state.baselineReady && !state.currentReady && <p className="investigation-guidance" role="note">기준 증거는 보관 중입니다. 같은 프로젝트와 규칙을 조사 모드로 다시 검사하세요.</p>}
-    {comparison.reasons.length > 0 && state.baselineReady && state.currentReady && <p className="investigation-guidance" role="note">화면의 일반 비교가 차단되어도 서버 평가는 실행할 수 있으며, 서버가 비교 불가로 판단하면 그 결과와 한계를 표시합니다.</p>}
+    {(baseline?.scan.scan_status === 'partial' || current?.scan.scan_status === 'partial') && <p className="investigation-guidance" role="note">이 검사는 일부만 완료됐습니다. 조사 증거를 보관할 수 있지만 정상 완료 검사로 비교할 수는 없습니다. 서버 평가는 비교 불가 상태에서도 관찰 가능한 제한된 검사 절차 증거를 제공할 수 있습니다.</p>}
+    {comparison.reasons.length > 0 && state.baselineReady && state.currentReady && state.partialComparisonEligible && <p className="investigation-guidance" role="note">일반 비교는 부분 검사라 차단됐습니다. 조사 모드는 연결된 서버 증거만 별도로 평가하며 전체 결과는 비교 불가로 유지합니다.</p>}
     {state.message && <p className={`investigation-feedback ${state.status === 'error' ? 'error' : ''}`} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</p>}
     {evaluation && counts && <div className="investigation-result" aria-live="polite">
       <div className="investigation-assessment"><div><span>증거 비교</span><strong>{investigationAssessmentLabels[evaluation.comparability]}</strong></div><div><span>전체 평가</span><strong>{investigationAssessmentLabels[evaluation.overall_assessment]}</strong></div></div>

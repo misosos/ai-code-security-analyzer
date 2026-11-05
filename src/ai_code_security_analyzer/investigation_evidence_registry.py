@@ -27,6 +27,7 @@ from ai_code_security_analyzer.finding_disappearance_evaluator import (
     evaluate_finding_disappearance,
 )
 from ai_code_security_analyzer.scan_evidence_manifest import (
+    ALLOWED_INVOCATION_IDS,
     CONTRACT_VERSION as MANIFEST_VERSION,
     MAX_MANIFEST_BYTES,
     EvidenceStatus,
@@ -198,6 +199,8 @@ def _parse_manifest(raw: object) -> ScanEvidenceManifest:
         exit_code=_strict_optional_int(execution["exit_code"], minimum=-255, maximum=255),
         invocation_id=_strict_string(execution["invocation_id"], maximum=64),
     )
+    if execution_item.invocation_id not in ALLOWED_INVOCATION_IDS:
+        raise _InvalidWire("invocation_id_invalid")
     rule_item = RuleEvidence(
         requested_profile_id=_strict_string(rules["requested_profile_id"], maximum=64),
         selected_rule_file_id=_strict_string(rules["selected_rule_file_id"], maximum=128),

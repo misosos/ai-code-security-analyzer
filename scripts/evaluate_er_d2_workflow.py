@@ -227,7 +227,17 @@ def main() -> None:
             # only the bounded status, never its payload or identifiers, is emitted.
             current_bundle = app.state.investigation_registry.get_run(created_handles[1])
             skip_status = current_bundle.manifest.scope_evidence.skipped_status.value
-            assert skip_status == "NOT_COLLECTED"
+            # ER-D4's investigation-only --verbose invocation now exposes the
+            # bounded skip collection status. This historical code-path
+            # scenario scans retired.js, so the path is reported scanned and
+            # does not imply a skip or code-change cause.
+            assert skip_status == "OBSERVED"
+            retired = next(
+                item for item in evaluation_projection["findings"]
+                if item["category"] == "baselineOnly"
+            )
+            assert retired["path_observation"] == "PATH_REPORTED_SCANNED"
+            assert retired["skip_hypothesis"] == "CONTRADICTED"
 
             release_session = client.post(
                 "/api/v2/investigation-release",
@@ -248,6 +258,8 @@ def main() -> None:
                         "scenario_01_evaluation_projection": evaluation_projection,
                         "scenario_02_evidence_gap": {
                             "current_manifest_skip_status": skip_status,
+                            "retired_path_observation": retired["path_observation"],
+                            "skip_hypothesis": retired["skip_hypothesis"],
                             "source_snapshot_not_collected": "source_snapshot_not_collected"
                             in evaluation["limitation_codes"],
                             "rule_bytes_unverified": "rule_bytes_unverified"

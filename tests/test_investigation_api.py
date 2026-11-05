@@ -26,7 +26,8 @@ class SequenceScanService:
         self.runs = iter(runs)
         self.calls = 0
 
-    def _scan_with_manifest(self, target_id: str, rule_profile_id: str):
+    def _scan_with_manifest(self, target_id: str, rule_profile_id: str, *, investigation_verbose: bool = False):
+        assert investigation_verbose is True
         self.calls += 1
         run = next(self.runs)
         assert run.manifest.target_id == target_id
@@ -409,6 +410,84 @@ def test_real_http_semgrep_ab_to_ac_investigation_flow(tmp_path: Path):
         assert by_id[current_ids["baseline.react-dangerous-html"]] == "currentOnly"
         assert client.post("/api/v2/investigation-release", headers=HEADERS, json={
             "kind": "investigation", "handle": investigation_handle,
+        }).status_code == 204
+        assert client.post("/api/v2/investigations/evaluate", headers=HEADERS, json={
+            "investigation_handle": investigation_handle,
+        }).status_code == 404
+
+
+def test_real_http_semgrep_verbose_skip_evidence_preserves_partial_and_incomparable(tmp_path: Path):
+    if shutil.which("semgrep") is None:
+        if os.environ.get("SEMGREP_REQUIRED") == "1":
+            raise AssertionError("Semgrep is required for this integration job")
+        import pytest
+        pytest.skip("Semgrep CLI is not installed")
+    target = tmp_path / "project"
+    rules = Path(__file__).parents[1] / "rules"
+    target.mkdir()
+    (target / "stable.js").write_text("function stable(input) { return eval(input); }\n", encoding="utf-8")
+    (target / "retired.js").write_text("function retired(input) { return eval(input); }\n", encoding="utf-8")
+    settings = ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",))
+    service = ScanService(settings)
+    app = create_app(settings, scan_service=service, investigation_api_enabled=True)
+    with TestClient(app) as client:
+        first = client.post("/api/v2/investigation-scans", headers=HEADERS, json={
+            "target_id": "local-project", "rule_profile_id": "baseline",
+        })
+        assert first.status_code == 200, first.text
+        baseline = first.json()
+        assert baseline["scan"]["scan_status"] == "completed"
+        baseline_findings = {item["file_path"]: item["finding_id"] for item in baseline["scan"]["findings"]}
+        assert set(baseline_findings) == {"stable.js", "retired.js"}
+
+        (target / ".semgrepignore").write_text("retired.js\n", encoding="utf-8")
+        second = client.post("/api/v2/investigation-scans", headers=HEADERS, json={
+            "target_id": "local-project", "rule_profile_id": "baseline",
+        })
+        assert second.status_code == 200, second.text
+        current = second.json()
+        assert current["run_handle"] != baseline["run_handle"]
+        assert current["scan"]["scan_status"] == "partial"
+        assert current["scan"]["completed"] is False
+        assert {item["file_path"] for item in current["scan"]["findings"]} == {"stable.js"}
+        current_run = app.state.investigation_registry.get_run(current["run_handle"])
+        scope = current_run.manifest.scope_evidence
+        assert current_run.manifest.execution_evidence.invocation_id == "semgrep-json-investigation-verbose-v1"
+        assert scope.completeness_status.value == "UNVERIFIED"
+        assert scope.skipped_status.value == "OBSERVED"
+        assert [(item.path, item.reason_code) for item in scope.skipped_paths] == [
+            ("retired.js", "semgrepignore_patterns_match"),
+        ]
+
+        session = client.post("/api/v2/investigations", headers=HEADERS, json={
+            "baseline_handle": baseline["run_handle"], "current_handle": current["run_handle"],
+        })
+        assert session.status_code == 201, session.text
+        investigation_handle = session.json()["investigation_handle"]
+        evaluation_response = client.post("/api/v2/investigations/evaluate", headers=HEADERS, json={
+            "investigation_handle": investigation_handle,
+        })
+        assert evaluation_response.status_code == 200, evaluation_response.text
+        evaluation = evaluation_response.json()
+        assert evaluation["comparability"] == "INCOMPARABLE"
+        assert evaluation["overall_assessment"] == "INCOMPARABLE"
+        retired = next(item for item in evaluation["findings"] if item["finding_id"] == baseline_findings["retired.js"])
+        assert retired["category"] == "baselineOnly"
+        assert retired["path_observation"] == "PATH_EXPLICITLY_SKIPPED"
+        assert retired["skip_hypothesis"] == "SUPPORTED"
+        assert "source_snapshot_not_collected" in evaluation["limitation_codes"]
+        assert "scope_completeness_unverified" in evaluation["limitation_codes"]
+        assert "retired(input)" not in evaluation_response.text
+        assert "paths" not in evaluation_response.text
+
+        assert client.post("/api/v2/investigation-release", headers=HEADERS, json={
+            "kind": "investigation", "handle": investigation_handle,
+        }).status_code == 204
+        assert client.post("/api/v2/investigation-release", headers=HEADERS, json={
+            "kind": "run", "handle": baseline["run_handle"],
+        }).status_code == 204
+        assert client.post("/api/v2/investigation-release", headers=HEADERS, json={
+            "kind": "run", "handle": current["run_handle"],
         }).status_code == 204
         assert client.post("/api/v2/investigations/evaluate", headers=HEADERS, json={
             "investigation_handle": investigation_handle,

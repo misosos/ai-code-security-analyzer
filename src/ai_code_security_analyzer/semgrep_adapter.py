@@ -307,7 +307,8 @@ class SemgrepAdapter:
         return self._scan_with_evidence(target, rules_file, timeout=timeout).result
 
     def _scan_with_evidence(
-        self, target: Path, rules_file: Path, *, timeout: int = SCAN_TIMEOUT_SECONDS
+        self, target: Path, rules_file: Path, *, timeout: int = SCAN_TIMEOUT_SECONDS,
+        investigation_verbose: bool = False,
     ) -> _ScanOutput:
         """Internal scan path returning derived taint evidence from the same JSON parse."""
         if timeout <= 0:
@@ -348,10 +349,14 @@ class SemgrepAdapter:
                 help_text = help_result.stdout.decode("utf-8", errors="replace")
                 if help_result.exit_code != 0 or any(option not in help_text for option in _REQUIRED_OPTIONS):
                     return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("required_option_unsupported",), semgrep_version=version))
+                if investigation_verbose and "--verbose" not in help_text:
+                    return _ScanOutput(ScanResult(ScanStatus.EXECUTION_FAILED, issues=("verbose_option_unsupported",), semgrep_version=version))
                 args = [
                     executable, "scan", "--json", "--metrics=off", "--disable-version-check",
                     "--oss-only", "--no-autofix", "--config", rules.name, "--", str(project),
                 ]
+                if investigation_verbose:
+                    args.insert(2, "--verbose")
                 firestore_snapshot = (
                     _snapshot_firestore_sources(project, project_root)
                     if _rules_include_firestore_rule(rules)

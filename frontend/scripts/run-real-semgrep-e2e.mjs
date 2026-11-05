@@ -14,6 +14,7 @@ const temporaryDirectory = await mkdtemp(join(await realpath(tmpdir()), 'aicsa-r
 const targetDirectory = join(temporaryDirectory, 'synthetic-project');
 const secondTargetDirectory = join(temporaryDirectory, 'synthetic-project-selected');
 const workflowTargetDirectory = join(temporaryDirectory, 'synthetic-project-workflow');
+const investigationTargetDirectory = join(temporaryDirectory, 'synthetic-project-investigation');
 const rulesDirectory = join(temporaryDirectory, 'trusted-rules');
 const token = randomBytes(32).toString('base64url');
 const canary = 'SYNTHETIC_BROWSER_CANARY_MUST_NOT_LEAK';
@@ -71,6 +72,7 @@ try {
   await mkdir(targetDirectory);
   await mkdir(secondTargetDirectory);
   await mkdir(workflowTargetDirectory);
+  await mkdir(investigationTargetDirectory);
   await mkdir(join(rulesDirectory, 'experimental'), { recursive: true });
   for (const relativeRule of [
     'security-baseline.yml',
@@ -108,6 +110,19 @@ try {
     '}',
     '',
   ].join('\n'), { mode: 0o600 });
+  await writeFile(join(investigationTargetDirectory, 'stable.js'), [
+    'function stable(input) {',
+    '  return eval(input);',
+    '}',
+    `// ${canary}`,
+    '',
+  ].join('\n'), { mode: 0o600 });
+  await writeFile(join(investigationTargetDirectory, 'retired.js'), [
+    'function retired(input) {',
+    '  return eval(input);',
+    '}',
+    '',
+  ].join('\n'), { mode: 0o600 });
 
   const isolatedServerEntrypoint = [
     'import sys, uvicorn',
@@ -122,6 +137,7 @@ try {
         { id: 'synthetic-primary', label: 'Synthetic Primary', path: targetDirectory },
         { id: 'synthetic-selected', label: 'Synthetic Selected', path: secondTargetDirectory },
         { id: 'synthetic-workflow', label: 'Synthetic Workflow', path: workflowTargetDirectory },
+        { id: 'synthetic-investigation', label: 'Synthetic Investigation', path: investigationTargetDirectory },
       ]),
       AI_CODE_SECURITY_RULES_DIR: rulesDirectory,
       AI_CODE_SECURITY_API_TOKEN: token,
@@ -143,6 +159,7 @@ try {
       BROWSER_E2E_API_TOKEN: token,
       BROWSER_E2E_PRIVATE_PATH: temporaryDirectory,
       BROWSER_E2E_WORKFLOW_PATH: workflowTargetDirectory,
+      BROWSER_E2E_INVESTIGATION_PATH: investigationTargetDirectory,
       BROWSER_E2E_OUTPUT_DIR: join(temporaryDirectory, 'playwright-results'),
       SEMGREP_REQUIRED: '1',
     },

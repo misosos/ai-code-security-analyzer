@@ -30,7 +30,7 @@ function installApi(responses: Array<ScanResponse | Response>) {
     const url = String(input);
     if (url.endsWith('/health')) return json({ status: 'ok', service: 'ai-code-security-analyzer' });
     if (url.endsWith('/options')) return json(options);
-    if (url.endsWith('/scans')) {
+    if (url.endsWith('/api/v1/scans')) {
       const response = responses.shift();
       if (!response) throw new Error('unexpected scan request');
       return response instanceof Response ? response : json(response);
@@ -252,5 +252,56 @@ describe('검사 결과 비교 UI', () => {
     expect(screen.getByRole('button', { name: '비교 보고서 내보내기' })).toBeDisabled();
     resolveSecond?.(json(scan([finding('two')])));
     await screen.findByRole('heading', { name: '정상 완료' });
+  });
+
+  it('일반 v1 부분 검사는 비교 기준으로 저장할 수 없다', async () => {
+    const partial = scan([finding('partial')], { scan_status: 'partial', completed: false, issues: ['evidence_unavailable'], limitations: ['finding_count_not_confirmed_vulnerability_count', 'scan_result_is_not_safety_proof', 'scan_partial'] });
+    installApi([partial]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨');
+    await user.click(screen.getByRole('button', { name: '검사 시작' }));
+    await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
+    await user.click(screen.getByRole('button', { name: '검사 실행' }));
+    await screen.findByRole('heading', { name: '부분 검사' });
+    expect(screen.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' })).toBeDisabled();
+  });
+
+  it('조사 모드에서는 해당 v2 partial 응답과 Handle을 묶어 기준 저장을 허용한다', async () => {
+    const partial = scan([finding('partial')], { scan_status: 'partial', completed: false, issues: ['evidence_unavailable'], limitations: ['finding_count_not_confirmed_vulnerability_count', 'scan_result_is_not_safety_proof', 'scan_partial'] });
+    const partialFinding = partial.findings[0];
+    let scanIndex = 0;
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith('/health')) return json({ status: 'ok', service: 'ai-code-security-analyzer' });
+      if (url.endsWith('/options')) return json(options);
+      if (url.endsWith('/api/v2/investigation-scans')) return json({ contract_version: 'investigation-scan/v1', run_handle: scanIndex++ === 0 ? 'A'.repeat(43) : 'B'.repeat(43), scan: partial });
+      if (url.endsWith('/api/v2/investigations')) return json({ contract_version: 'investigation-session/v1', investigation_handle: 'C'.repeat(43) }, 201);
+      if (url.endsWith('/api/v2/investigations/evaluate')) return json({
+        contract_version: 'finding-disappearance-evaluation/v1', comparability: 'INCOMPARABLE', overall_assessment: 'INCOMPARABLE',
+        findings: [{ finding_id: partialFinding.finding_id, category: 'shared', path_observation: null, skip_hypothesis: null, source_snapshot_hypothesis: 'UNDETERMINED', rule_identity_hypothesis: 'UNDETERMINED' }],
+        limitation_codes: ['scan_incomplete', 'source_snapshot_not_collected'],
+      });
+      if (url.endsWith('/api/v2/investigation-release')) return new Response(null, { status: 204 });
+      throw new Error('unexpected request');
+    });
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨');
+    await user.click(screen.getByRole('button', { name: '검사 시작' }));
+    await user.type(screen.getByLabelText('로컬 API 토큰'), 'synthetic-comparison-token');
+    await user.click(screen.getByText('소멸 근거 조사 선택'));
+    await user.click(screen.getByLabelText('소멸 근거 조사'));
+    await user.click(screen.getByRole('button', { name: '검사 실행' }));
+    await screen.findByRole('heading', { name: '부분 검사' });
+    const save = screen.getByRole('button', { name: '부분 조사 결과를 증거 기준으로 저장' });
+    expect(save).toBeEnabled();
+    await user.click(save);
+    expect(await screen.findByText(/일부만 완료된 조사 결과와 같은 실행의 증거를 기준으로 저장했습니다/)).toBeInTheDocument();
+    await user.click(within(screen.getByRole('navigation', { name: '화면 이동' })).getByRole('button', { name: '검사 시작' }));
+    await user.click(screen.getByRole('button', { name: '검사 실행' }));
+    await screen.findByText(/현재 응답에 서버 조사 증거가 연결됐습니다/);
+    await user.click(within(screen.getByRole('navigation', { name: '화면 이동' })).getByRole('button', { name: /검사 결과/ }));
+    const panel = screen.getByRole('region', { name: '소멸 근거 조사' });
+    expect(screen.getByText(/일반 비교는 부분 검사라 차단됐습니다/)).toBeInTheDocument();
+    await user.click(within(panel).getByRole('button', { name: '소멸 근거 조사 실행' }));
+    expect(await within(panel).findAllByText('신뢰 가능한 비교 불가')).toHaveLength(2);
+    expect(screen.getByText('비교 판단 불가')).toBeInTheDocument();
   });
 });

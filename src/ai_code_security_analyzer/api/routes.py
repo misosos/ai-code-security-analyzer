@@ -114,6 +114,7 @@ async def create_investigation_scan(payload: InvestigationScanRequest, request: 
     try:
         scan, manifest = await run_in_threadpool(
             service._scan_with_manifest, payload.target_id, payload.rule_profile_id,
+            investigation_verbose=True,
         )
     except ServiceError as exc:
         return _error(exc.status_code, exc.code)

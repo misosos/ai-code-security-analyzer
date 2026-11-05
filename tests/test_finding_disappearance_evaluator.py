@@ -116,6 +116,16 @@ def test_normal_same_context_comparison_only_compares_finding_id_sets() -> None:
     assert "source_snapshot_not_collected" in result.limitation_codes
 
 
+def test_mixed_default_and_investigation_invocations_are_incomparable() -> None:
+    baseline = bundle(finding("b"), invocation="semgrep-json-local-v1")
+    current = bundle(finding("b"), invocation="semgrep-json-investigation-verbose-v1")
+    result = evaluate_finding_disappearance(baseline, current)
+    assert result.comparability is AssessmentStatus.INCOMPARABLE
+    assert result.overall_assessment is AssessmentStatus.INCOMPARABLE
+    assert result.findings == ()
+    assert "scan_context_mismatch" in result.limitation_codes
+
+
 def test_explicit_current_skip_supports_only_narrow_procedure_observation() -> None:
     baseline = bundle(finding("b", "src/b.js"), scanned=("src/a.js", "src/b.js"))
     current = bundle(
@@ -216,7 +226,7 @@ def test_scope_conflict_is_not_resolved_by_precedence() -> None:
         {"profile": "other-profile"},
         {"version": "1.183.0"},
         {"version": None},
-        {"invocation": "other-invocation"},
+            {"invocation": "semgrep-json-investigation-verbose-v1"},
         {"rule_file": "other-rules.yml"},
     ],
 )

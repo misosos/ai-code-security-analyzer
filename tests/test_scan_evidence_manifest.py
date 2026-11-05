@@ -287,14 +287,16 @@ def test_service_internal_manifest_is_run_scoped_without_changing_api_response(t
     (rules / "experimental" / "javascript-eval-taint.yml").write_text("rules: []\n")
     (rules / "experimental" / "javascript-command-injection-taint.yml").write_text("rules: []\n")
     calls = 0
+    verbose_modes: list[bool] = []
 
     class Adapter:
         def __init__(self, _root: Path) -> None: pass
 
-        def _scan_with_evidence(self, _target: Path, _rules: Path):
+        def _scan_with_evidence(self, _target: Path, _rules: Path, *, investigation_verbose: bool = False):
             from types import SimpleNamespace
             nonlocal calls
             calls += 1
+            verbose_modes.append(investigation_verbose)
             parsed = parse_scope_evidence(semgrep_document(scanned=["src/a.js"]), target)
             return SimpleNamespace(
                 result=SimpleNamespace(
@@ -308,11 +310,16 @@ def test_service_internal_manifest_is_run_scoped_without_changing_api_response(t
     service = ScanService(settings, adapter_factory=Adapter)
     first_response, first_manifest = service._scan_with_manifest("local-project", "baseline")
     second_response, second_manifest = service._scan_with_manifest("local-project", "baseline")
-    assert calls == 2
+    verbose_response, verbose_manifest = service._scan_with_manifest("local-project", "baseline", investigation_verbose=True)
+    assert calls == 3
+    assert verbose_modes == [False, False, True]
     assert first_response == second_response
     assert first_manifest.scan_ref != second_manifest.scan_ref
     assert first_manifest.scope_evidence.scanned_paths == ("src/a.js",)
     assert first_manifest.finding_ids == ()
+    assert verbose_response == first_response
+    assert verbose_manifest.execution_evidence.invocation_id == "semgrep-json-investigation-verbose-v1"
+    assert first_manifest.execution_evidence.invocation_id == "semgrep-json-local-v1"
     assert first_manifest.finding_count == first_manifest.displayed_finding_count == first_manifest.omitted_finding_count == 0
     assert str(tmp_path) not in first_response.model_dump_json()
     assert set(first_response.model_dump()) == {
@@ -320,3 +327,23 @@ def test_service_internal_manifest_is_run_scoped_without_changing_api_response(t
         "displayed_finding_count", "omitted_finding_count", "severity_counts",
         "issues", "findings", "limitations",
     }
+
+
+def test_manifest_invocation_identity_is_closed_and_defaults_remain_compatible(tmp_path: Path) -> None:
+    from ai_code_security_analyzer.scan_evidence_manifest import (
+        INVESTIGATION_VERBOSE_INVOCATION_ID,
+        ManifestBindingError,
+        create_scan_evidence_manifest,
+    )
+
+    arguments = {
+        "scan_ref": "A" * 32, "target_id": "target", "rule_profile_id": "baseline",
+        "semgrep_version": "1.182.1", "exit_code": 0, "scan_status": "completed",
+        "finding_count": 0, "displayed_finding_count": 0, "omitted_finding_count": 0,
+        "finding_ids": (), "selected_rule_file_id": "security-baseline.yml",
+        "scope_evidence": parse_scope_evidence(semgrep_document(scanned=[]), tmp_path),
+    }
+    assert create_scan_evidence_manifest(**arguments).execution_evidence.invocation_id == "semgrep-json-local-v1"
+    assert create_scan_evidence_manifest(**arguments, invocation_id=INVESTIGATION_VERBOSE_INVOCATION_ID).execution_evidence.invocation_id == INVESTIGATION_VERBOSE_INVOCATION_ID
+    with pytest.raises(ManifestBindingError):
+        create_scan_evidence_manifest(**arguments, invocation_id="semgrep-json-user-controlled")

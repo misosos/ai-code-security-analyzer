@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
-test('real investigation mode evaluates baseline A/B against current A/C and releases bounded evidence', async ({ page }) => {
+test('real investigation mode reports an ignored baseline finding while preserving partial status and bounded evidence', async ({ page }) => {
   test.setTimeout(120_000);
   const token = process.env.BROWSER_E2E_API_TOKEN;
-  const targetPath = process.env.BROWSER_E2E_WORKFLOW_PATH;
+  const targetPath = process.env.BROWSER_E2E_INVESTIGATION_PATH;
   if (!token || !targetPath) throw new Error('real_investigation_e2e_configuration_required');
   const requests: Array<{ path: string; url: string; body?: Record<string, unknown>; auth: boolean }> = [];
   const responses: Array<{ path: string; status: number; body?: Record<string, unknown> }> = [];
@@ -28,7 +28,7 @@ test('real investigation mode evaluates baseline A/B against current A/C and rel
   await page.goto('/');
   await expect(page.getByText(/API 연결됨/)).toBeVisible();
   await page.getByLabel('로컬 API 토큰').fill(token);
-  await page.getByLabel('검사 대상').selectOption('synthetic-workflow');
+  await page.getByLabel('검사 대상').selectOption('synthetic-investigation');
   await page.getByLabel('검사 규칙 모음').selectOption('baseline');
   await page.getByText('소멸 근거 조사 선택').click();
   await page.getByLabel('소멸 근거 조사').check();
@@ -37,44 +37,67 @@ test('real investigation mode evaluates baseline A/B against current A/C and rel
   await page.getByRole('button', { name: '검사 실행' }).click();
   const firstRun = await firstRunResponse;
   expect(firstRun.status()).toBe(200);
-  const firstEnvelope = await firstRun.json() as { contract_version: string; run_handle: string; scan: { findings: Array<{ rule_id: string }> } };
+  const firstEnvelope = await firstRun.json() as { contract_version: string; run_handle: string; scan: { findings: Array<{ rule_id: string; file_path: string | null; finding_id: string }> } };
   expect(firstEnvelope.contract_version).toBe('investigation-scan/v1');
   expect(firstEnvelope.run_handle).toMatch(/^[A-Za-z0-9_-]{43}$/);
   expect(firstEnvelope.scan.findings.map((item) => item.rule_id).sort()).toEqual(['baseline.javascript-dynamic-eval', 'baseline.javascript-dynamic-eval']);
+  expect(firstEnvelope.scan.findings.map((item) => item.file_path)).toContain('retired.js');
+  const retiredFindingId = firstEnvelope.scan.findings.find((item) => item.file_path?.endsWith('retired.js'))?.finding_id;
+  const stableFindingId = firstEnvelope.scan.findings.find((item) => item.file_path?.endsWith('stable.js'))?.finding_id;
+  expect(retiredFindingId).toBeTruthy();
+  expect(stableFindingId).toBeTruthy();
   expect(firstEnvelope.scan.findings).toHaveLength(2);
   expect(JSON.stringify(firstEnvelope)).not.toContain(token);
   await expect(page.getByText('현재 응답에 서버 조사 증거가 연결됐습니다.')).toBeVisible();
   await page.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' }).click();
 
-  await writeFile(`${targetPath}/retired.js`, 'function retired(input) { return input; }\n', { mode: 0o600 });
+  await writeFile(`${targetPath}/.semgrepignore`, 'retired.js\n', { mode: 0o600 });
   await writeFile(`${targetPath}/added.js`, 'function added(input) { return eval(input); }\n', { mode: 0o600 });
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 시작/ }).click();
   const secondRunResponse = page.waitForResponse((response) => response.url().endsWith('/api/v2/investigation-scans'));
   await page.getByRole('button', { name: '검사 실행' }).click();
   const secondRun = await secondRunResponse;
   expect(secondRun.status()).toBe(200);
-  const secondEnvelope = await secondRun.json() as { run_handle: string; scan: { findings: Array<{ rule_id: string }> } };
+  const secondEnvelope = await secondRun.json() as { run_handle: string; scan: { findings: Array<{ rule_id: string; file_path: string | null; finding_id: string }> } };
   expect(secondEnvelope.run_handle).not.toBe(firstEnvelope.run_handle);
+  expect(secondEnvelope.scan).toMatchObject({ scan_status: 'partial', completed: false });
   expect(secondEnvelope.scan.findings.map((item) => item.rule_id).sort()).toEqual(['baseline.javascript-dynamic-eval', 'baseline.javascript-dynamic-eval']);
+  expect(secondEnvelope.scan.findings.some((item) => item.finding_id === retiredFindingId)).toBe(false);
+  const currentFindingIds = new Map(secondEnvelope.scan.findings.map((item) => [item.file_path, item.finding_id]));
+  expect(currentFindingIds.get('stable.js')).toBe(stableFindingId);
+  expect(currentFindingIds.has('added.js')).toBe(true);
 
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 결과/ }).click();
   await page.getByText('검사 결과 비교').click();
   const panel = page.getByRole('region', { name: '소멸 근거 조사' });
+  await expect(page.locator('.comparison-blocked')).toContainText('부분 검사 또는 실패한 결과는 비교할 수 없습니다.');
+  await expect(page.getByText(/이 검사는 일부만 완료됐습니다/)).toBeVisible();
   await panel.getByRole('button', { name: '소멸 근거 조사 실행' }).click();
   await expect(panel).toContainText('평가가 완료됐습니다');
   await expect(panel).toContainText('양쪽 검사에서 관찰');
   await expect(panel).toContainText('기준 검사에서만 관찰');
   await expect(panel).toContainText('이번 검사에서만 관찰');
-  await expect(panel).toContainText('현재 증거로 판단 불가');
+  await expect(panel).toContainText('신뢰 가능한 비교 불가');
+  await panel.locator('.comparison-category-switch').getByRole('button', { name: /기준 검사에서만 관찰/ }).click();
+  await expect(panel.locator('.investigation-finding-result h4')).toHaveText('기준 검사에서만 관찰');
+  await expect(panel).toContainText('retired.js');
+  await expect(panel).toContainText('현재 검사에서 해당 경로가 제외된 것으로 보고됐습니다.');
+  await expect(panel).toContainText('해당 가설을 뒷받침하는 근거 관찰');
   await expect(panel).toContainText('Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
 
   const session = responses.find((item) => item.path === '/api/v2/investigations');
   const evaluation = responses.find((item) => item.path === '/api/v2/investigations/evaluate');
   expect(session?.status).toBe(201);
   expect(evaluation?.status).toBe(200);
-  const evalPayload = evaluation?.body as { findings: Array<{ category: string; finding_id: string }>; overall_assessment: string };
-  expect(evalPayload.overall_assessment).toBe('UNDETERMINED');
+  const evalPayload = evaluation?.body as { findings: Array<{ category: string; finding_id: string; path_observation: string | null; skip_hypothesis: string | null }>; overall_assessment: string };
+  expect(evalPayload.overall_assessment).toBe('INCOMPARABLE');
   expect(evalPayload.findings.map((item) => item.category).sort()).toEqual(['baselineOnly', 'currentOnly', 'shared']);
+  const baselineOnlyResult = evalPayload.findings.find((item) => item.category === 'baselineOnly');
+  expect(baselineOnlyResult?.finding_id).toBe(retiredFindingId);
+  expect(baselineOnlyResult?.path_observation).toBe('PATH_EXPLICITLY_SKIPPED');
+  expect(baselineOnlyResult?.skip_hypothesis).toBe('SUPPORTED');
+  expect(evalPayload.findings.find((item) => item.finding_id === stableFindingId)?.category).toBe('shared');
+  expect(evalPayload.findings.find((item) => item.finding_id === currentFindingIds.get('added.js'))?.category).toBe('currentOnly');
   expect(requests.every((item) => item.auth)).toBe(true);
   expect(requests.every((item) => !item.url.includes(firstEnvelope.run_handle) && !item.url.includes(secondEnvelope.run_handle))).toBe(true);
   expect(requests.find((item) => item.path === '/api/v2/investigations')?.body).toEqual({ baseline_handle: firstEnvelope.run_handle, current_handle: secondEnvelope.run_handle });

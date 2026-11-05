@@ -19,6 +19,8 @@ from typing import Any
 
 CONTRACT_VERSION = "scan-evidence-manifest/v1"
 INVOCATION_ID = "semgrep-json-local-v1"
+INVESTIGATION_VERBOSE_INVOCATION_ID = "semgrep-json-investigation-verbose-v1"
+ALLOWED_INVOCATION_IDS = frozenset({INVOCATION_ID, INVESTIGATION_VERBOSE_INVOCATION_ID})
 MAX_SCANNED_PATHS = 100_000
 MAX_SKIPPED_PATHS = 10_000
 MAX_SCOPE_PATH_BYTES = 1_024
@@ -368,11 +370,14 @@ def create_scan_evidence_manifest(
     finding_ids: tuple[str, ...],
     selected_rule_file_id: str,
     scope_evidence: ScopeEvidence,
+    invocation_id: str = INVOCATION_ID,
 ) -> ScanEvidenceManifest:
     if not _SCAN_REF.fullmatch(scan_ref):
         raise ManifestBindingError("scan_reference_invalid")
     if not _SAFE_ID.fullmatch(target_id) or not _SAFE_ID.fullmatch(rule_profile_id):
         raise ManifestBindingError("scan_context_invalid")
+    if not isinstance(invocation_id, str) or invocation_id not in ALLOWED_INVOCATION_IDS:
+        raise ManifestBindingError("invocation_id_invalid")
     if any(not _FINDING_ID.fullmatch(item) for item in finding_ids):
         raise ManifestBindingError("finding_reference_invalid")
     if (
@@ -413,7 +418,7 @@ def create_scan_evidence_manifest(
                 status=scan_status,
                 semgrep_version=semgrep_version,
                 exit_code=exit_code if type(exit_code) is int and -255 <= exit_code <= 255 else None,
-                invocation_id=INVOCATION_ID,
+                invocation_id=invocation_id,
             ),
             rule_evidence=RuleEvidence(
                 requested_profile_id=rule_profile_id,

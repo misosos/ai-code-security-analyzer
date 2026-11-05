@@ -41,7 +41,7 @@ def fake_semgrep(monkeypatch: pytest.MonkeyPatch, scan_output: bytes, *, exit_co
         if args[1:] == ["--version"]:
             return semgrep_adapter._ProcessResult(0, b"1.160.0\n")
         if args[1:] == ["scan", "--help"]:
-            return semgrep_adapter._ProcessResult(0, b"--json --metrics --disable-version-check --oss-only --no-autofix")
+            return semgrep_adapter._ProcessResult(0, b"--json --metrics --disable-version-check --oss-only --no-autofix --verbose")
         return semgrep_adapter._ProcessResult(exit_code, scan_output)
 
     monkeypatch.setattr(semgrep_adapter, "_run_process", run)
@@ -65,6 +65,50 @@ def test_scan_uses_local_rules_and_sanitized_environment(paths: tuple[SemgrepAda
     assert cwd == rules.parent
     assert "auto" not in args
     assert "--autofix" not in args
+
+
+def test_investigation_verbose_option_is_explicit_and_keeps_skip_as_partial(
+    paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter, target, rules = paths
+    (target / "ignored.js").write_text("synthetic only\n", encoding="utf-8")
+    (target / "stable.js").write_text("synthetic only\n", encoding="utf-8")
+    payload = {
+        "results": [], "errors": [], "skipped_rules": [],
+        "paths": {
+            "scanned": ["stable.js"],
+            "skipped": [{"path": "ignored.js", "reason": "semgrepignore_patterns_match"}],
+        },
+    }
+    calls = fake_semgrep(monkeypatch, json.dumps(payload).encode())
+    output = adapter._scan_with_evidence(target, rules, investigation_verbose=True)
+    args = calls[-1][0]
+    assert args[1:9] == ["scan", "--verbose", "--json", "--metrics=off", "--disable-version-check", "--oss-only", "--no-autofix", "--config"]
+    assert output.result.status is ScanStatus.PARTIAL
+    assert output.result.issues == ("semgrep_skipped_paths",)
+    assert output.scope_evidence.skipped_status is EvidenceStatus.OBSERVED
+    assert [(item.path, item.reason_code) for item in output.scope_evidence.skipped_paths] == [
+        ("ignored.js", "semgrepignore_patterns_match")
+    ]
+
+
+def test_investigation_verbose_requires_supported_cli_option(
+    paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter, target, rules = paths
+    monkeypatch.setattr(semgrep_adapter.shutil, "which", lambda _: "/trusted/semgrep")
+
+    def run(args: list[str], cwd: Path, env: dict[str, str], timeout: int) -> semgrep_adapter._ProcessResult:
+        if args[1:] == ["--version"]:
+            return semgrep_adapter._ProcessResult(0, b"1.182.1")
+        if args[1:] == ["scan", "--help"]:
+            return semgrep_adapter._ProcessResult(0, b"--json --metrics --disable-version-check --oss-only --no-autofix")
+        raise AssertionError("Semgrep scan must not execute when verbose is unsupported")
+
+    monkeypatch.setattr(semgrep_adapter, "_run_process", run)
+    output = adapter._scan_with_evidence(target, rules, investigation_verbose=True)
+    assert output.result.status is ScanStatus.EXECUTION_FAILED
+    assert output.result.issues == ("verbose_option_unsupported",)
 
 
 def test_clean_scan_with_zero_findings(paths: tuple[SemgrepAdapter, Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:

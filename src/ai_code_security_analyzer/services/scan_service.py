@@ -28,6 +28,8 @@ from ai_code_security_analyzer.evidence_summary import (
 )
 from ai_code_security_analyzer.models import Finding, FindingStatus, Severity
 from ai_code_security_analyzer.scan_evidence_manifest import (
+    INVESTIGATION_VERBOSE_INVOCATION_ID,
+    INVOCATION_ID,
     ScanEvidenceManifest,
     ScopeEvidence,
     create_scan_evidence_manifest,
@@ -228,7 +230,7 @@ class ScanService:
         return response
 
     def _scan_with_manifest(
-        self, target_id: str, rule_profile_id: str
+        self, target_id: str, rule_profile_id: str, *, investigation_verbose: bool = False
     ) -> tuple[ScanResponse, ScanEvidenceManifest]:
         """Run once and return the unchanged public response with run-bound internal evidence.
 
@@ -251,7 +253,10 @@ class ScanService:
                 target = self._revalidate_target(registered)
                 rules_file = self._rules_file(profile)
                 adapter = self.adapter_factory(self.settings.trusted_rules_directory)
-                output = adapter._scan_with_evidence(target, rules_file)
+                if investigation_verbose:
+                    output = adapter._scan_with_evidence(target, rules_file, investigation_verbose=True)
+                else:
+                    output = adapter._scan_with_evidence(target, rules_file)
             except (OSError, ValueError):
                 raise ServiceError(400, "target_not_allowed") from None
             except Exception:
@@ -279,6 +284,7 @@ class ScanService:
                     finding_ids=tuple(item.finding_id for item in response.findings),
                     selected_rule_file_id=profile.relative_path,
                     scope_evidence=scope,
+                    invocation_id=INVESTIGATION_VERBOSE_INVOCATION_ID if investigation_verbose else INVOCATION_ID,
                 )
             except Exception:
                 # Internal evidence is supplemental. A collection failure must
@@ -296,6 +302,7 @@ class ScanService:
                     finding_ids=tuple(item.finding_id for item in response.findings),
                     selected_rule_file_id=profile.relative_path,
                     scope_evidence=unavailable_scope_evidence("manifest_capture_failed"),
+                    invocation_id=INVESTIGATION_VERBOSE_INVOCATION_ID if investigation_verbose else INVOCATION_ID,
                 )
             return response, manifest
         except ServiceError:

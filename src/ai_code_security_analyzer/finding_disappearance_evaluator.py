@@ -20,6 +20,7 @@ from ai_code_security_analyzer.scan_evidence_manifest import (
     MAX_SKIPPED_PATHS,
     MAX_SCOPE_PATH_BYTES,
     MAX_SCOPE_BYTES,
+    ALLOWED_INVOCATION_IDS,
     EvidenceStatus,
     ExecutionEvidence,
     RuleEvidence,
@@ -39,7 +40,6 @@ _SAFE_ID = re.compile(r"\A[A-Za-z0-9_-]{1,64}\Z")
 _FINDING_ID = re.compile(r"\Asemgrep:[a-f0-9]{24}\Z")
 _SEMVER = re.compile(r"\A\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?\Z")
 _RULE_FILE_ID = re.compile(r"\A[A-Za-z0-9_./-]{1,128}\Z")
-_INVOCATION_ID = re.compile(r"\A[a-z0-9][a-z0-9_-]{0,63}\Z")
 
 
 class AssessmentStatus(StrEnum):
@@ -290,9 +290,7 @@ def _manifest_is_valid(manifest: object) -> bool:
         return False
     if manifest.execution_evidence.engine != "semgrep":
         return False
-    if not isinstance(manifest.execution_evidence.invocation_id, str) or not _INVOCATION_ID.fullmatch(
-        manifest.execution_evidence.invocation_id
-    ):
+    if not isinstance(manifest.execution_evidence.invocation_id, str) or manifest.execution_evidence.invocation_id not in ALLOWED_INVOCATION_IDS:
         return False
     if manifest.execution_evidence.exit_code is not None and (
         type(manifest.execution_evidence.exit_code) is not int
