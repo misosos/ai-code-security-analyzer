@@ -551,3 +551,48 @@
 #main-content .evidence-validation-label,
 #main-content .export-note { font-size: 18px; }
 #main-content .context-identifiers-disclosure > summary { font-size: 18px; }
+
+/* Keep expanded export tools in their own rows, including in Safari. */
+#main-content .result-export-workspace .sarif-export-tool,
+#main-content .result-export-workspace .analyst-report-export,
+#main-content .result-export-workspace .analyst-backup-tool {
+  display: block;
+  min-width: 0;
+  margin: 12px 0 0;
+}
+#main-content .result-export-workspace .sarif-export-tool > summary,
+#main-content .result-export-workspace .analyst-report-export > summary,
+#main-content .result-export-workspace .analyst-backup-tool > summary {
+  display: list-item;
+  width: fit-content;
+  max-width: 100%;
+  cursor: pointer;
+}
+#main-content .result-export-workspace .analyst-review-export-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--d2-cyan, #56e6f3);
+  background: rgb(8 19 33 / 82%);
+}
+#main-content .result-export-workspace .analyst-review-export-options > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  color: var(--d2-ink, #e9f0fb);
+  cursor: pointer;
+}
+#main-content .result-export-workspace .analyst-review-export-options input[type="checkbox"] {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--d2-cyan, #56e6f3);
+}
+#main-content .result-export-workspace .analyst-review-export-options > p {
+  flex-basis: 100%;
+}

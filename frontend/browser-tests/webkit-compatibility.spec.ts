@@ -83,6 +83,17 @@ test('WebKit: 검사, Finding 검토, Markdown/SARIF/JSON 내보내기와 JSON �
   const viewportSizes = [1920, 1440, 1280, 1024, 768, 600, 390, 320];
   for (const width of viewportSizes) {
     await page.setViewportSize({ width, height: 900 });
+    const exportLayout = await page.evaluate(() => {
+      const selectors = ['.sarif-export-tool', '.analyst-report-export', '.analyst-backup-tool'];
+      const bounds = selectors.map((selector) => document.querySelector(selector)!.getBoundingClientRect());
+      const checkbox = document.querySelector<HTMLInputElement>('.analyst-review-export-options input[type="checkbox"]')!.getBoundingClientRect();
+      const label = document.querySelector('.analyst-review-export-options > label')!.getBoundingClientRect();
+      return { bounds: bounds.map(({ top, bottom }) => ({ top, bottom })), checkbox: { top: checkbox.top, bottom: checkbox.bottom }, label: { top: label.top, bottom: label.bottom } };
+    });
+    expect(exportLayout.bounds[1].top, `export sections overlap at ${width}px`).toBeGreaterThanOrEqual(exportLayout.bounds[0].bottom - 1);
+    expect(exportLayout.bounds[2].top, `export sections overlap at ${width}px`).toBeGreaterThanOrEqual(exportLayout.bounds[1].bottom - 1);
+    expect(exportLayout.checkbox.top).toBeGreaterThanOrEqual(exportLayout.label.top);
+    expect(exportLayout.checkbox.bottom).toBeLessThanOrEqual(exportLayout.label.bottom);
     const dimensions = await page.evaluate(() => {
       const client = document.documentElement.clientWidth;
       const scroll = document.documentElement.scrollWidth;
