@@ -14,6 +14,8 @@
     "test:browser:real": "playwright test --config playwright.real.config.ts",
     "test:browser:webkit": "playwright test --config playwright.webkit.config.ts",
     "qa:safari": "node scripts/run-safari-manual-qa.mjs",
+    "qa:investigation:safari": "node scripts/run-safari-manual-qa.mjs --investigation",
+    "test:qa:investigation:safari": "node --test scripts/investigation-safari-qa.test.mjs",
     "test:qa:safari": "node --test scripts/safari-manual-qa.test.mjs",
     "test:e2e:real": "node scripts/run-real-semgrep-e2e.mjs",
     "build": "tsc -b && vite build",

@@ -25,19 +25,20 @@ EOF
 Python 3.12.7, Semgrep 1.182.1과 잠긴 의존성을 사용한다. 공식 launcher는 loopback, 단일 worker, reload 비활성 조건으로 조사 API를 활성화한다.
 
 ```bash
-export AI_CSA_API_TOKEN='<별도로 생성한 로컬 토큰>'
-export AI_CSA_ALLOWED_ORIGINS='http://127.0.0.1:4173'
+export AI_CODE_SECURITY_TARGET='/tmp/ai-csa-er-c3e-manual'
+export AI_CODE_SECURITY_API_TOKEN='<별도로 생성한 로컬 토큰>'
+export AI_CODE_SECURITY_ALLOWED_ORIGINS='http://127.0.0.1:4173'
 uv run --locked python -m ai_code_security_analyzer.api
 ```
 
-프로젝트의 실제 환경변수 이름과 대상 설정은 `python -m ai_code_security_analyzer.api --help` 및 기존 로컬 설정을 확인한다. 토큰을 셸 기록, 캡처, 문서에 남기지 않는다. 다른 Safari QA 서버를 종료하거나 재사용하지 않는다.
+복수 대상은 `AI_CODE_SECURITY_TARGET` 대신 `AI_CODE_SECURITY_TARGETS`를 사용한다. 규칙 경로는 필요할 때 `AI_CODE_SECURITY_RULES_DIR`로 설정한다. Vite 프록시의 `AI_CSA_API_PROXY_TARGET`은 서버 설정과 별개다. 토큰을 셸 기록, 캡처, 문서에 남기지 않는다. 다른 Safari QA 서버를 종료하거나 재사용하지 않는다.
 
 별도 터미널에서 대시보드를 고유 포트로 실행한다.
 
 ```bash
 cd frontend
 npm ci
-npm run dev -- --host 127.0.0.1 --port 4173 --strictPort
+AI_CSA_API_PROXY_TARGET=http://127.0.0.1:8765 npm run dev -- --host 127.0.0.1 --port 4173 --strictPort
 ```
 
 브라우저에서 `http://127.0.0.1:4173`에 접속한다.
