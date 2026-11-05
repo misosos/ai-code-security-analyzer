@@ -53,3 +53,7 @@ Vite가 표시하는 `http://127.0.0.1:5173` 주소로 접속한다. 토큰은 �
 검사 결과에는 실행 당시 target 및 규칙 프로필이 연결되어 표시된다. **현재 검사 결과 내보내기**는 화면에 이미 수신된 결과만 사용하는 UI 전용 Markdown 요약을 다운로드하며 Semgrep을 재실행하지 않는다. 브라우저 다운로드 파일의 저장 위치와 권한은 브라우저·운영체제가 관리한다. 범위와 한계는 [Phase 5C 안내](docs/phase5c-analyst-workflow-export.md)를 참고한다.
 
 실제 Chromium·FastAPI·Semgrep 통합 검증은 테스트용 임시 프로젝트에서 `frontend` 디렉터리에서 `SEMGREP_REQUIRED=1 npm run test:e2e:real`로 실행한다. 이 검증은 Semgrep OSS 1.182.1을 요구하며 실제 사용자 저장소를 사용하지 않는다. 보안 경계와 운영 한계는 [Phase 5D 검증 기록](docs/phase5d-browser-security-validation.md)을 참고한다.
+
+## Finding 소멸 근거 조사
+
+같은 대상과 Rule Profile에서 조사 모드로 두 검사를 실행하면 Finding ID의 관찰 차이와 서버가 수집한 경로 증거를 함께 확인할 수 있다. [재현 사례](docs/case-studies/finding-disappearance-investigation.md)에서는 A/B → A/C 재검사 후 소멸 원인을 `UNDETERMINED`로 보류한다. Finding 미관찰은 취약점 해결의 증거가 아니며 코드 변경과 실제 규칙 동일성은 별도로 확인해야 한다. [증거 부족·비교 차단](docs/case-studies/investigation-evidence-boundaries.md)과 [재현 명령](docs/er-d1-reproducibility-record.md)을 참고한다.
