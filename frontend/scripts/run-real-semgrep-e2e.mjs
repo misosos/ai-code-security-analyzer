@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
-import { copyFile, mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
+import { copyFile, lstat, mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -110,19 +110,29 @@ try {
     '}',
     '',
   ].join('\n'), { mode: 0o600 });
-  await writeFile(join(investigationTargetDirectory, 'stable.js'), [
-    'function stable(input) {',
-    '  return eval(input);',
-    '}',
-    `// ${canary}`,
-    '',
-  ].join('\n'), { mode: 0o600 });
-  await writeFile(join(investigationTargetDirectory, 'retired.js'), [
-    'function retired(input) {',
-    '  return eval(input);',
-    '}',
-    '',
-  ].join('\n'), { mode: 0o600 });
+  if (process.env.D9_CASE) {
+    if (process.env.D9_CASE !== 'upstream-ignore' || !process.env.D9_UPSTREAM_DIR) throw new Error('d9_source_configuration_invalid');
+    const source = await realpath(process.env.D9_UPSTREAM_DIR);
+    for (const filename of ['ejs.js', 'utils.js', 'parseargs.js', 'package.json']) {
+      const input = join(source, filename);
+      if (!(await lstat(input)).isFile()) throw new Error('d9_source_file_invalid');
+      await copyFile(input, join(investigationTargetDirectory, filename));
+    }
+  } else {
+    await writeFile(join(investigationTargetDirectory, 'stable.js'), [
+      'function stable(input) {',
+      '  return eval(input);',
+      '}',
+      `// ${canary}`,
+      '',
+    ].join('\n'), { mode: 0o600 });
+    await writeFile(join(investigationTargetDirectory, 'retired.js'), [
+      'function retired(input) {',
+      '  return eval(input);',
+      '}',
+      '',
+    ].join('\n'), { mode: 0o600 });
+  }
 
   const isolatedServerEntrypoint = [
     'import sys, uvicorn',
@@ -137,7 +147,7 @@ try {
         { id: 'synthetic-primary', label: 'Synthetic Primary', path: targetDirectory },
         { id: 'synthetic-selected', label: 'Synthetic Selected', path: secondTargetDirectory },
         { id: 'synthetic-workflow', label: 'Synthetic Workflow', path: workflowTargetDirectory },
-        { id: 'synthetic-investigation', label: 'Synthetic Investigation', path: investigationTargetDirectory },
+        { id: 'synthetic-investigation', label: process.env.D9_CASE ? 'Upstream EJS (격리 사본)' : 'Synthetic Investigation', path: investigationTargetDirectory },
       ]),
       AI_CODE_SECURITY_RULES_DIR: rulesDirectory,
       AI_CODE_SECURITY_API_TOKEN: token,
