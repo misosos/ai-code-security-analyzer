@@ -58,3 +58,12 @@
   #main-content .investigation-assessment { grid-template-columns: minmax(0, 1fr); }
   #main-content .investigation-finding-result dl > div { grid-template-columns: minmax(0, 1fr); gap: 3px; }
 }
+
+#main-content .evidence-gap-map { min-width: 0; border-left-color: #56e6f3; background: rgb(8 25 40 / 72%); }
+#main-content .evidence-gap-map h4 { margin: 0 0 8px; font-size: 20px; }
+#main-content .evidence-gap-map > p { margin: 0 0 12px; }
+#main-content .evidence-gap-map details { min-width: 0; padding: 10px 0; border-top: 1px solid #344b63; }
+#main-content .evidence-gap-map summary { min-height: 44px; color: #b8f7fb; font-weight: 700; cursor: pointer; }
+#main-content .evidence-gap-map ul, #main-content .evidence-gap-map ol { display: grid; gap: 12px; margin: 8px 0; padding-left: 24px; }
+#main-content .evidence-gap-map li { min-width: 0; overflow-wrap: anywhere; }
+#main-content .evidence-gap-map li p { margin: 4px 0; }

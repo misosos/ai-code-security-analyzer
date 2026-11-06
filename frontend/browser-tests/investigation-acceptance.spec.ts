@@ -104,3 +104,74 @@ test('a delayed evaluation cannot survive baseline release or overwrite the curr
   await expect(page.getByText('검사 절차 설명을 뒷받침하는 근거 있음')).toHaveCount(0);
   await expect.poll(() => releases.some((body) => body.kind === 'investigation' && body.handle === opaque('S'))).toBe(true);
 });
+
+test('rule bytes response must finish before the map and cannot revive it after baseline release', async ({ page }) => {
+  await bootstrap(page);
+  let scanIndex = 0;
+  let resumeRule: (() => void) | undefined;
+  const gate = new Promise<void>((resolve) => { resumeRule = resolve; });
+  await page.route('**/api/v2/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === '/api/v2/investigation-scans/rule-bytes') return route.fulfill({ json: { contract_version: 'investigation-scan/v1', run_handle: opaque(scanIndex++ ? 'B' : 'A'), scan: emptyScan } });
+    if (path === '/api/v2/investigations') return route.fulfill({ status: 201, json: { contract_version: 'investigation-session/v1', investigation_handle: opaque('S') } });
+    if (path === '/api/v2/investigations/evaluate') return route.fulfill({ json: { contract_version: 'finding-disappearance-evaluation/v1', comparability: 'COMPARABLE', overall_assessment: 'UNDETERMINED', findings: [], limitation_codes: ['source_snapshot_not_collected'] } });
+    if (path === '/api/v2/investigations/rule-bytes/evaluate') {
+      await gate;
+      return route.fulfill({ json: { contract_version: 'rule-bytes-comparison/v1', status: 'SAME_SELECTED_BYTES', limitation_codes: ['selected_rule_bytes_only', 'loaded_rule_identity_unverified'] } });
+    }
+    if (path === '/api/v2/investigation-release') return route.fulfill({ status: 204, body: '' });
+    return route.fulfill({ status: 404, json: { error: 'invalid_request' } });
+  });
+  await page.goto('/');
+  await page.getByLabel('로컬 API 토큰').fill('synthetic-token');
+  await page.getByText('소멸 근거 조사 선택').click();
+  await page.getByLabel('소멸 근거 조사').check();
+  await page.getByLabel('규칙 파일 동일성 증거 포함').check();
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await page.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 시작/ }).click();
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 결과/ }).click();
+  await page.getByText('검사 결과 비교').click();
+  const panel = page.getByRole('region', { name: '소멸 근거 조사' });
+  await panel.getByRole('button', { name: '소멸 근거 조사 실행' }).click();
+  await expect(panel).toContainText('규칙 바이트 비교 응답을 확인하고 있습니다.');
+  await expect(page.getByRole('region', { name: 'Security Evidence Gap Map' })).toHaveCount(0);
+  await page.getByRole('button', { name: '비교 기준 해제' }).click();
+  resumeRule?.();
+  await expect(page.getByText('비교 기준을 해제했습니다. 현재 검사 결과와 분석가 검토 기록은 유지됩니다.')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Security Evidence Gap Map' })).toHaveCount(0);
+});
+
+test('the conservative local display deadline removes the map and requires new scans', async ({ page }) => {
+  await bootstrap(page);
+  let scanIndex = 0;
+  await page.route('**/api/v2/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === '/api/v2/investigation-scans') return route.fulfill({ json: { contract_version: 'investigation-scan/v1', run_handle: opaque(scanIndex++ ? 'B' : 'A'), scan: emptyScan } });
+    if (path === '/api/v2/investigations') return route.fulfill({ status: 201, json: { contract_version: 'investigation-session/v1', investigation_handle: opaque('S') } });
+    if (path === '/api/v2/investigations/evaluate') return route.fulfill({ json: { contract_version: 'finding-disappearance-evaluation/v1', comparability: 'COMPARABLE', overall_assessment: 'UNDETERMINED', findings: [], limitation_codes: ['source_snapshot_not_collected'] } });
+    if (path === '/api/v2/investigation-release') return route.fulfill({ status: 204, body: '' });
+    return route.fulfill({ status: 404, json: { error: 'invalid_request' } });
+  });
+  await page.goto('/');
+  await page.getByLabel('로컬 API 토큰').fill('synthetic-token');
+  await page.getByText('소멸 근거 조사 선택').click();
+  await page.getByLabel('소멸 근거 조사').check();
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await page.getByRole('button', { name: '현재 결과를 비교 기준으로 저장' }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 시작/ }).click();
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 결과/ }).click();
+  await page.getByText('검사 결과 비교').click();
+  await page.getByRole('region', { name: '소멸 근거 조사' }).getByRole('button', { name: '소멸 근거 조사 실행' }).click();
+  const map = page.getByRole('region', { name: 'Security Evidence Gap Map' });
+  await expect(map).toBeVisible();
+  await page.evaluate(() => {
+    const advanced = performance.now() + 900_001;
+    Object.defineProperty(performance, 'now', { configurable: true, value: () => advanced });
+    window.dispatchEvent(new Event('focus'));
+  });
+  await expect(map).toHaveCount(0);
+  await expect(page.getByRole('region', { name: '소멸 근거 조사' }).getByRole('status')).toContainText('보수적인 표시 시간이 만료됐습니다');
+});

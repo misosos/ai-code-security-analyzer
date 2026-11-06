@@ -25,6 +25,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   reporter: 'dot',
+  grep: process.env.D8_GAP_CASE ? /D8 evidence gap scenario/ : undefined,
   outputDir,
   timeout: 90_000,
   use: { ...devices['Desktop Chrome'], baseURL, trace: 'off', screenshot: 'off', video: 'off' },

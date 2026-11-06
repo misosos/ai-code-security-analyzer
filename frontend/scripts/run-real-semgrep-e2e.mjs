@@ -160,6 +160,7 @@ try {
       BROWSER_E2E_PRIVATE_PATH: temporaryDirectory,
       BROWSER_E2E_WORKFLOW_PATH: workflowTargetDirectory,
       BROWSER_E2E_INVESTIGATION_PATH: investigationTargetDirectory,
+      BROWSER_E2E_RULES_PATH: rulesDirectory,
       BROWSER_E2E_OUTPUT_DIR: join(temporaryDirectory, 'playwright-results'),
       SEMGREP_REQUIRED: '1',
     },

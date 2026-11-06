@@ -88,6 +88,9 @@ test('explicit investigation mode connects two exact runs, displays conservative
   await expect(panel).toContainText('Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
   await expect(panel).toContainText('src/b.js:3');
   await expect(panel).toContainText('현재 수집된 검사 경로 목록에서 이 경로가 보고되지 않았습니다.');
+  const gapMap = page.getByRole('region', { name: 'Security Evidence Gap Map' });
+  await expect(gapMap).toContainText('규칙 바이트 비교를 요청하지 않았습니다.');
+  await expect(gapMap).toContainText('취약점 해결 여부는 이 조사만으로 판정할 수 없습니다.');
   const baselineList = panel.getByRole('list', { name: '기준 검사에서만 관찰 Finding 목록' });
   await expect(baselineList.getByRole('listitem')).toHaveCount(2);
   await baselineList.getByRole('button', { name: /src\/d\.js/ }).click();
@@ -118,6 +121,7 @@ test('explicit investigation mode connects two exact runs, displays conservative
   await page.screenshot({ path: '../docs/assets/er-c3d-investigation-results-390.png', fullPage: true });
 
   await page.getByRole('button', { name: '조사 증거 해제' }).click();
+  await expect(gapMap).toHaveCount(0);
   await expect(panel.getByRole('status')).toContainText('조사 세션과 Run 증거의 해제를 요청했습니다');
   await expect.poll(() => requests.filter((item) => item.path === '/api/v2/investigation-release').length).toBe(3);
   const releaseBodies = requests.filter((item) => item.path === '/api/v2/investigation-release').map((item) => item.body);

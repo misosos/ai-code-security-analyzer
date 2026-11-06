@@ -6,6 +6,14 @@ export interface EvidenceBackedScan {
   readonly snapshot: ScanSnapshot;
   readonly runHandle: string;
   readonly evidenceMode?: 'standard' | 'rule-bytes';
+  /** Conservative client display deadline from scan request start, in performance.now() units. */
+  readonly validUntilMs?: number;
+  readonly validUntilWallMs?: number;
+}
+
+export function evidenceDisplayExpired(run: EvidenceBackedScan, now: number, wallNow = Date.now()): boolean {
+  return (run.validUntilMs !== undefined && (!Number.isFinite(run.validUntilMs) || now >= run.validUntilMs))
+    || (run.validUntilWallMs !== undefined && (!Number.isFinite(run.validUntilWallMs) || wallNow >= run.validUntilWallMs));
 }
 
 export type InvestigationBindingFailure = 'evidence_missing' | 'same_run' | 'context_mismatch' | 'result_context_mismatch' | 'comparison_unavailable';

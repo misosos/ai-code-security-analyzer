@@ -88,6 +88,15 @@ test('real investigation mode reports an ignored baseline finding while preservi
   await expect(panel).toContainText('규칙 파일 바이트 비교');
   await expect(panel).toContainText('규칙 파일 바이트 비교 근거가 부족합니다.');
   await expect(panel).toContainText('Semgrep이 실제로 로딩한 모든 규칙이나 취약점 해결 여부는 확인되지 않았습니다.');
+  const gapMap = page.getByRole('region', { name: 'Security Evidence Gap Map' });
+  await expect(gapMap).toContainText('비교 불가');
+  await expect(gapMap).toContainText('소스 스냅샷을 수집하지 않았습니다.');
+  await expect(gapMap).toContainText('전체 로딩 규칙 동일성은 검증되지 않았습니다.');
+  await expect(gapMap).toContainText('전체 검사 범위의 완전성은 검증되지 않았습니다.');
+  await expect(gapMap).toContainText('취약점 해결 여부는 이 조사만으로 판정할 수 없습니다.');
+  await gapMap.getByText(/기준 검사에서만 관찰된 Finding별 근거/).click();
+  await expect(gapMap).toContainText('현재 검사에서 이 경로가 제외됐다고 보고됐습니다.');
+  await expect(gapMap).toContainText('Ignore 설정 및 파일 포함 여부');
 
   const session = responses.find((item) => item.path === '/api/v2/investigations');
   const evaluation = responses.find((item) => item.path === '/api/v2/investigations/evaluate');
@@ -119,6 +128,7 @@ test('real investigation mode reports an ignored baseline finding while preservi
 
   await panel.getByRole('button', { name: '조사 증거 해제' }).click();
   await expect(panel.getByRole('status')).toContainText('해제를 요청했습니다');
+  await expect(gapMap).toHaveCount(0);
   await expect.poll(() => responses.filter((item) => item.path === '/api/v2/investigation-release').length).toBe(3);
   expect(responses.filter((item) => item.path === '/api/v2/investigation-release').every((item) => item.status === 204)).toBe(true);
 
