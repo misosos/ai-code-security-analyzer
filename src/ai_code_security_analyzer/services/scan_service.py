@@ -30,11 +30,18 @@ from ai_code_security_analyzer.models import Finding, FindingStatus, Severity
 from ai_code_security_analyzer.scan_evidence_manifest import (
     INVESTIGATION_VERBOSE_INVOCATION_ID,
     INVOCATION_ID,
+    RULE_BYTES_INVOCATION_ID,
     ScanEvidenceManifest,
     ScopeEvidence,
     create_scan_evidence_manifest,
     new_scan_ref,
     unavailable_scope_evidence,
+)
+from ai_code_security_analyzer.rule_bytes_identity import (
+    RuleBytesIdentityError,
+    RuleBytesObservation,
+    _scan_with_rule_copy,
+    bind_rule_bytes_observation,
 )
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
 from ai_code_security_analyzer.taint_evidence import TaintEvidence, _TRUSTED_RULES
@@ -307,6 +314,65 @@ class ScanService:
             return response, manifest
         except ServiceError:
             raise
+        except Exception:
+            raise ServiceError(500, "internal_error") from None
+        finally:
+            self._scan_lock.release()
+
+    def _scan_with_rule_bytes_manifest(
+        self, target_id: str, rule_profile_id: str
+    ) -> tuple[ScanResponse, ScanEvidenceManifest, RuleBytesObservation]:
+        """Run one opt-in scan whose response and rule observation share an invocation."""
+        registered = next((item for item in self.settings.registered_targets if item.target_id == target_id), None)
+        profile = next((item for item in RULE_PROFILES if item.profile_id == rule_profile_id), None)
+        if registered is None:
+            raise ServiceError(404, "target_not_allowed")
+        if profile is None:
+            raise ServiceError(404, "rule_profile_not_allowed")
+        # D6 currently supports the self-contained trusted baseline file only.
+        if profile.profile_id != "baseline" or profile.relative_path != "security-baseline.yml":
+            raise ServiceError(404, "rule_profile_not_allowed")
+        if not self._scan_lock.acquire(blocking=False):
+            raise ServiceError(409, "scan_already_running")
+        try:
+            scan_ref = new_scan_ref()
+            target = self._revalidate_target(registered)
+            rules_file = self._rules_file(profile)
+            bound = _scan_with_rule_copy(target, self.settings.trusted_rules_directory)
+            output = bound.output
+            response = self._response(output.result, output.taint_evidence, rules_file)
+            if len(response.model_dump_json().encode("utf-8")) > self.settings.max_response_bytes:
+                raise ServiceError(413, "response_limit_exceeded")
+            scope = output.scope_evidence if isinstance(output.scope_evidence, ScopeEvidence) else unavailable_scope_evidence(
+                "adapter_scope_evidence_not_provided"
+            )
+            exit_code = output.result.exit_code if type(output.result.exit_code) is int else None
+            manifest = create_scan_evidence_manifest(
+                scan_ref=scan_ref,
+                target_id=registered.target_id,
+                rule_profile_id=profile.profile_id,
+                semgrep_version=response.semgrep_version,
+                exit_code=exit_code,
+                scan_status=response.scan_status.value,
+                finding_count=response.finding_count,
+                displayed_finding_count=response.displayed_finding_count,
+                omitted_finding_count=response.omitted_finding_count,
+                finding_ids=tuple(item.finding_id for item in response.findings),
+                selected_rule_file_id=profile.relative_path,
+                scope_evidence=scope,
+                invocation_id=RULE_BYTES_INVOCATION_ID,
+            )
+            observation = bind_rule_bytes_observation(
+                bound,
+                scan_ref=scan_ref,
+                target_id=registered.target_id,
+                rule_profile_id=profile.profile_id,
+            )
+            return response, manifest, observation
+        except ServiceError:
+            raise
+        except (OSError, ValueError, RuleBytesIdentityError):
+            raise ServiceError(503, "internal_unavailable") from None
         except Exception:
             raise ServiceError(500, "internal_error") from None
         finally:

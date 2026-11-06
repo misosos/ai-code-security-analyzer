@@ -118,6 +118,16 @@ class InvestigationEvaluationResponse(ClosedModel):
     ], ...] = Field(max_length=64)
 
 
+class RuleBytesComparisonResponse(ClosedModel):
+    contract_version: Literal["rule-bytes-comparison/v1"]
+    status: Literal[
+        "SAME_SELECTED_BYTES", "DIFFERENT_SELECTED_BYTES", "UNVERIFIED", "INCOMPARABLE",
+    ]
+    limitation_codes: tuple[Literal[
+        "selected_rule_bytes_only", "loaded_rule_identity_unverified",
+    ], ...] = Field(min_length=2, max_length=2)
+
+
 class RestrictedClaim(ClosedModel):
     claim_type: ClaimType
     decision: Literal[

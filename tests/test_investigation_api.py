@@ -8,12 +8,16 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from ai_code_security_analyzer.api.app import create_app
 from ai_code_security_analyzer.services.scan_service import ApiSettings
 from ai_code_security_analyzer.services.scan_service import ScanService
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus
+from ai_code_security_analyzer.rule_bytes_identity import (
+    RULE_BYTES_INVOCATION_ID, RULE_BYTES_OBSERVATION_VERSION, RuleBytesObservation,
+)
 from test_finding_disappearance_evaluator import bundle, finding
 
 
@@ -33,6 +37,17 @@ class SequenceScanService:
         assert run.manifest.target_id == target_id
         assert run.manifest.rule_profile_id == rule_profile_id
         return run.response, run.manifest
+
+    def _scan_with_rule_bytes_manifest(self, target_id: str, rule_profile_id: str):
+        self.calls += 1
+        run = next(self.runs)
+        assert run.manifest.target_id == target_id
+        assert run.manifest.rule_profile_id == rule_profile_id
+        observation = RuleBytesObservation(
+            RULE_BYTES_OBSERVATION_VERSION, run.manifest.scan_ref, target_id, rule_profile_id,
+            RULE_BYTES_INVOCATION_ID, run.manifest.semgrep_version, b"r" * 32,
+        )
+        return run.response, run.manifest, observation
 
 
 def app_for(tmp_path: Path, runs=(), *, enabled=True, origins=()):
@@ -101,6 +116,114 @@ def test_http_api_scans_registers_compares_and_releases_without_disclosing_inter
     assert service.calls == 2
     assert app.state.investigation_registry.active_run_count == 0
     assert app.state.investigation_registry.active_session_count == 0
+
+
+def test_rule_bytes_opt_in_api_returns_only_closed_equality_projection(tmp_path: Path):
+    baseline = bundle(finding("a"), target="local-project", invocation=RULE_BYTES_INVOCATION_ID)
+    current = bundle(finding("b"), target="local-project", invocation=RULE_BYTES_INVOCATION_ID)
+    app, service = app_for(tmp_path, (baseline, current))
+    with TestClient(app) as client:
+        runs = [client.post("/api/v2/investigation-scans/rule-bytes", headers=HEADERS, json={
+            "target_id": "local-project", "rule_profile_id": "baseline",
+        }) for _ in range(2)]
+        assert [item.status_code for item in runs] == [200, 200]
+        assert all("digest" not in item.text.lower() and "rule_bytes" not in item.text.lower() for item in runs)
+        session = client.post("/api/v2/investigations", headers=HEADERS, json={
+            "baseline_handle": runs[0].json()["run_handle"],
+            "current_handle": runs[1].json()["run_handle"],
+        })
+        result = client.post("/api/v2/investigations/rule-bytes/evaluate", headers=HEADERS, json={
+            "investigation_handle": session.json()["investigation_handle"],
+        })
+        assert result.status_code == 200
+        assert result.json() == {
+            "contract_version": "rule-bytes-comparison/v1",
+            "status": "SAME_SELECTED_BYTES",
+            "limitation_codes": ["selected_rule_bytes_only", "loaded_rule_identity_unverified"],
+        }
+        assert "sha" not in result.text.lower() and "digest" not in result.text.lower()
+    assert service.calls == 2
+
+
+@pytest.mark.parametrize("change_comment,expected", [
+    (False, "SAME_SELECTED_BYTES"),
+    (True, "DIFFERENT_SELECTED_BYTES"),
+])
+def test_real_semgrep_rule_bytes_api_binds_the_same_execution(
+    tmp_path: Path, change_comment: bool, expected: str,
+) -> None:
+    if shutil.which("semgrep") is None:
+        if os.environ.get("SEMGREP_REQUIRED") == "1":
+            pytest.fail("required_semgrep_unavailable")
+        pytest.skip("Semgrep is not installed")
+    target, rules = tmp_path / "target", tmp_path / "rules"
+    target.mkdir(); rules.mkdir()
+    (target / "app.js").write_text('eval("synthetic");\n', encoding="utf-8")
+    source_rule = Path(__file__).parents[1] / "rules" / "security-baseline.yml"
+    rule = rules / "security-baseline.yml"
+    shutil.copyfile(source_rule, rule)
+    settings = ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",))
+    app = create_app(settings, investigation_api_enabled=True)
+    app.state.investigation_rate_limiter._limits = {
+        **app.state.investigation_rate_limiter._limits, "scan": (4, 60.0),
+    }
+    with TestClient(app) as client:
+        def scan_once():
+            return client.post("/api/v2/investigation-scans/rule-bytes", headers=HEADERS, json={
+                "target_id": "local-project", "rule_profile_id": "baseline",
+            })
+        first = scan_once()
+        if change_comment:
+            rule.write_bytes(rule.read_bytes() + b"\n# ER-D7 synthetic comment-only change\n")
+        second = scan_once()
+        assert first.status_code == second.status_code == 200
+        assert first.json()["scan"]["completed"] is True
+        assert second.json()["scan"]["completed"] is True
+        session = client.post("/api/v2/investigations", headers=HEADERS, json={
+            "baseline_handle": first.json()["run_handle"],
+            "current_handle": second.json()["run_handle"],
+        })
+        result = client.post("/api/v2/investigations/rule-bytes/evaluate", headers=HEADERS, json={
+            "investigation_handle": session.json()["investigation_handle"],
+        })
+        assert result.status_code == 200
+        assert result.json()["status"] == expected
+        assert "digest" not in result.text.lower() and "sha256" not in result.text.lower()
+
+
+def test_real_semgrep_rule_bytes_partial_skip_is_unverified(tmp_path: Path) -> None:
+    if shutil.which("semgrep") is None:
+        pytest.skip("Semgrep is not installed")
+    target, rules = tmp_path / "target", tmp_path / "rules"
+    target.mkdir(); rules.mkdir()
+    (target / "stable.js").write_text('eval("stable");\n', encoding="utf-8")
+    (target / "retired.js").write_text('eval("retired");\n', encoding="utf-8")
+    shutil.copyfile(Path(__file__).parents[1] / "rules" / "security-baseline.yml", rules / "security-baseline.yml")
+    app = create_app(ApiSettings(target, rules, TOKEN, allowed_hosts=("testserver",)), investigation_api_enabled=True)
+    app.state.investigation_rate_limiter._limits = {**app.state.investigation_rate_limiter._limits, "scan": (4, 60.0)}
+    with TestClient(app) as client:
+        first = client.post("/api/v2/investigation-scans/rule-bytes", headers=HEADERS, json={
+            "target_id": "local-project", "rule_profile_id": "baseline",
+        })
+        (target / ".semgrepignore").write_text("retired.js\n", encoding="utf-8")
+        second = client.post("/api/v2/investigation-scans/rule-bytes", headers=HEADERS, json={
+            "target_id": "local-project", "rule_profile_id": "baseline",
+        })
+        assert first.status_code == second.status_code == 200
+        assert second.json()["scan"]["scan_status"] == "partial"
+        session = client.post("/api/v2/investigations", headers=HEADERS, json={
+            "baseline_handle": first.json()["run_handle"], "current_handle": second.json()["run_handle"],
+        })
+        equality = client.post("/api/v2/investigations/rule-bytes/evaluate", headers=HEADERS, json={
+            "investigation_handle": session.json()["investigation_handle"],
+        })
+        assert equality.status_code == 200
+        assert equality.json()["status"] == "UNVERIFIED"
+        finding_evaluation = client.post("/api/v2/investigations/evaluate", headers=HEADERS, json={
+            "investigation_handle": session.json()["investigation_handle"],
+        })
+        assert finding_evaluation.status_code == 200
+        assert finding_evaluation.json()["overall_assessment"] == "INCOMPARABLE"
 
 
 def test_investigation_http_auth_closed_inputs_and_security_headers(tmp_path: Path):

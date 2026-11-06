@@ -5,6 +5,7 @@ import type { ScanComparison, ScanSnapshot } from './compare';
 export interface EvidenceBackedScan {
   readonly snapshot: ScanSnapshot;
   readonly runHandle: string;
+  readonly evidenceMode?: 'standard' | 'rule-bytes';
 }
 
 export type InvestigationBindingFailure = 'evidence_missing' | 'same_run' | 'context_mismatch' | 'result_context_mismatch' | 'comparison_unavailable';
@@ -16,6 +17,7 @@ export function validateInvestigationRuns(
 ): InvestigationBindingResult {
   if (!baseline || !current) return { valid: false, reason: 'evidence_missing' };
   if (baseline.runHandle === current.runHandle) return { valid: false, reason: 'same_run' };
+  if ((baseline.evidenceMode ?? 'standard') !== (current.evidenceMode ?? 'standard')) return { valid: false, reason: 'context_mismatch' };
   const base = baseline.snapshot;
   const now = current.snapshot;
   if (base.context.targetId !== now.context.targetId || base.context.ruleProfileId !== now.context.ruleProfileId

@@ -21,7 +21,8 @@ from ai_code_security_analyzer.semgrep_adapter import ScanStatus, SemgrepAdapter
 
 _MAX_RULE_BYTES = 2_000_000
 _RULE_NAME = "security-baseline.yml"
-_PRIVATE_INVOCATION = "semgrep-json-private-rule-snapshot-v1"
+RULE_BYTES_INVOCATION_ID = "semgrep-json-investigation-rule-bytes-v1"
+RULE_BYTES_OBSERVATION_VERSION = "rule-bytes-observation/v1"
 
 
 class RuleBytesIdentityError(Exception):
@@ -36,6 +37,23 @@ class RuleBytesComparison(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class RuleBytesObservation:
+    """Internal sidecar bound to one response/manifest run.
+
+    The digest is deliberately private and excluded from repr.  This object is
+    accepted only from the trusted scan service, never from an HTTP request.
+    """
+
+    contract_version: str
+    scan_ref: str
+    target_id: str
+    rule_profile_id: str
+    invocation_id: str
+    semgrep_version: str | None
+    _digest: bytes | None = field(repr=False)
+
+
+@dataclass(frozen=True, slots=True)
 class _BoundRuleRun:
     """Ephemeral private result from the same invocation that used the copy."""
 
@@ -43,7 +61,7 @@ class _BoundRuleRun:
     _digest: bytes | None = field(repr=False)
     _run_id: bytes = field(repr=False)
     _target_identity: tuple[int, int] = field(repr=False)
-    _invocation: str = _PRIVATE_INVOCATION
+    _invocation: str = RULE_BYTES_INVOCATION_ID
     _profile: str = "baseline"
 
 
@@ -170,3 +188,28 @@ def _compare_selected_rule_bytes(
     return (RuleBytesComparison.SAME_SELECTED_BYTES
             if secrets.compare_digest(baseline._digest, current._digest)
             else RuleBytesComparison.DIFFERENT_SELECTED_BYTES)
+
+
+def bind_rule_bytes_observation(
+    run: _BoundRuleRun,
+    *,
+    scan_ref: str,
+    target_id: str,
+    rule_profile_id: str,
+) -> RuleBytesObservation:
+    """Project one trusted bound execution into a bounded Registry sidecar."""
+    if (not isinstance(run, _BoundRuleRun) or not scan_ref or not target_id
+            or not rule_profile_id):
+        raise RuleBytesIdentityError("rule_binding_invalid")
+    digest = run._digest
+    if digest is not None and len(digest) != 32:
+        raise RuleBytesIdentityError("rule_binding_invalid")
+    return RuleBytesObservation(
+        contract_version=RULE_BYTES_OBSERVATION_VERSION,
+        scan_ref=scan_ref,
+        target_id=target_id,
+        rule_profile_id=rule_profile_id,
+        invocation_id=run._invocation,
+        semgrep_version=run.output.result.semgrep_version,
+        _digest=digest,
+    )

@@ -34,6 +34,11 @@ describe('investigation workflow binding', () => {
     expect(validateInvestigationContext(evidence(), evidence(), evaluation)).toEqual({ valid: false, reason: 'same_run' });
     const other = evidence(emptyScan, 'B'.repeat(43)); other.snapshot.context = { ...other.snapshot.context, targetId: 'project-b' };
     expect(validateInvestigationContext(evidence(), other, evaluation)).toEqual({ valid: false, reason: 'context_mismatch' });
+    expect(validateInvestigationContext(
+      { ...evidence(), evidenceMode: 'rule-bytes' },
+      { ...evidence(emptyScan, 'B'.repeat(43)), evidenceMode: 'standard' },
+      evaluation,
+    )).toEqual({ valid: false, reason: 'context_mismatch' });
   });
 
   it('rejects server/client category or ID mismatch, duplicate IDs, and non-comparable local scans', () => {

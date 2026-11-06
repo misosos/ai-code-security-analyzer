@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../src/api/client';
-import { investigationApi, parseInvestigationEvaluation, parseInvestigationScan, parseInvestigationSession } from '../src/api/investigation';
+import { investigationApi, parseInvestigationEvaluation, parseInvestigationScan, parseInvestigationSession, parseRuleBytesComparison } from '../src/api/investigation';
 import { investigationErrorMessage } from '../src/features/scans/investigationMessages';
 
 const scan = {
@@ -35,6 +35,13 @@ describe('investigation response parsers', () => {
     expect(() => parseInvestigationEvaluation({ ...evaluation, extra: true })).toThrow('invalid_api_response');
     expect(() => parseInvestigationEvaluation({ ...evaluation, findings: [evaluation.findings[0], evaluation.findings[0]] })).toThrow('invalid_api_response');
   });
+
+  it('accepts only the closed rule-bytes equality projection and never a digest', () => {
+    const value = { contract_version: 'rule-bytes-comparison/v1', status: 'SAME_SELECTED_BYTES', limitation_codes: ['selected_rule_bytes_only', 'loaded_rule_identity_unverified'] };
+    expect(parseRuleBytesComparison(value).status).toBe('SAME_SELECTED_BYTES');
+    expect(() => parseRuleBytesComparison({ ...value, digest: 'secret' })).toThrow('invalid_api_response');
+    expect(() => parseRuleBytesComparison({ ...value, status: 'LOADED_RULES_SAME' })).toThrow('invalid_api_response');
+  });
 });
 
 describe('investigation API transport', () => {
@@ -59,6 +66,17 @@ describe('investigation API transport', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
     vi.stubGlobal('fetch', fetchMock);
     await expect(investigationApi.release('token', 'run', handle)).resolves.toBeUndefined();
+  });
+
+  it('uses opt-in POST paths for rule-byte scans and equality evaluation', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ contract_version: 'investigation-scan/v1', run_handle: handle, scan }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ contract_version: 'rule-bytes-comparison/v1', status: 'UNVERIFIED', limitation_codes: ['selected_rule_bytes_only', 'loaded_rule_identity_unverified'] }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    await investigationApi.scanWithRuleBytes('token', 'project-a', 'baseline');
+    await investigationApi.evaluateRuleBytes('token', handle);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v2/investigation-scans/rule-bytes');
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v2/investigations/rule-bytes/evaluate');
   });
 
   it('maps only fixed server error codes and does not surface arbitrary response text', async () => {

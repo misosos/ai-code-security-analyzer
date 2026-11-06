@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError } from '../api/client';
-import { investigationApi, type InvestigationEvaluation, type InvestigationCategory } from '../api/investigation';
+import { investigationApi, type InvestigationEvaluation, type InvestigationCategory, type RuleBytesComparison } from '../api/investigation';
 import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severity } from '../api/types';
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
@@ -93,10 +93,12 @@ export function App() {
   const [baselineSnapshot, setBaselineSnapshot] = useState<ScanSnapshot | null>(null);
   const scanRequestSequence = useRef(0);
   const [investigationMode, setInvestigationMode] = useState(false);
+  const [ruleBytesEvidenceEnabled, setRuleBytesEvidenceEnabled] = useState(false);
   const [currentEvidence, setCurrentEvidence] = useState<EvidenceBackedScan | null>(null);
   const [baselineEvidence, setBaselineEvidence] = useState<EvidenceBackedScan | null>(null);
   const [investigationHandle, setInvestigationHandle] = useState<string | null>(null);
   const [investigationEvaluation, setInvestigationEvaluation] = useState<InvestigationEvaluation | null>(null);
+  const [ruleBytesComparison, setRuleBytesComparison] = useState<RuleBytesComparison | null>(null);
   const [investigationState, setInvestigationState] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
   const [investigationMessage, setInvestigationMessage] = useState('');
   const investigationRequestSequence = useRef(0);
@@ -205,6 +207,7 @@ export function App() {
     investigationHandleRef.current = null;
     setInvestigationHandle(null);
     setInvestigationEvaluation(null);
+    setRuleBytesComparison(null);
     setInvestigationState('idle');
     if (handle && tokenRef.current) await releaseEvidenceHandle(tokenRef.current, 'investigation', handle);
   }
@@ -214,7 +217,7 @@ export function App() {
     investigationRequestSequence.current += 1;
     const session = investigationHandleRef.current;
     investigationHandleRef.current = null;
-    setInvestigationHandle(null); setInvestigationEvaluation(null); setInvestigationState('idle');
+    setInvestigationHandle(null); setInvestigationEvaluation(null); setRuleBytesComparison(null); setInvestigationState('idle');
     const current = currentEvidenceRef.current;
     const baseline = baselineEvidenceRef.current;
     const handles = new Set([current?.runHandle, baseline?.runHandle]
@@ -232,9 +235,19 @@ export function App() {
     setInvestigationMode(enabled);
     setInvestigationMessage('');
     if (!enabled) {
+      setRuleBytesEvidenceEnabled(false);
       void releaseInvestigationEvidence();
       setInvestigationMessage('조사 모드를 해제했습니다. 보유 중인 서버 증거의 해제를 요청했습니다. 현재 화면의 검사 결과는 유지됩니다.');
     }
+  }
+
+  function changeRuleBytesEvidence(enabled: boolean) {
+    if (enabled === ruleBytesEvidenceEnabled) return;
+    void releaseInvestigationEvidence();
+    setRuleBytesEvidenceEnabled(enabled);
+    setInvestigationMessage(enabled
+      ? '규칙 바이트 증거를 포함한 새 조사 검사가 필요합니다. 기존 조사 증거의 해제를 요청했습니다.'
+      : '규칙 바이트 증거를 해제했습니다. 기존 조사 증거의 해제를 요청했습니다.');
   }
 
   async function runScan(event: React.FormEvent) {
@@ -250,7 +263,7 @@ export function App() {
     const runWithEvidence = investigationMode;
     const priorSession = investigationHandleRef.current;
     investigationHandleRef.current = null;
-    setInvestigationHandle(null); setInvestigationEvaluation(null); setInvestigationState('idle'); setInvestigationMessage('');
+    setInvestigationHandle(null); setInvestigationEvaluation(null); setRuleBytesComparison(null); setInvestigationState('idle'); setInvestigationMessage('');
     const priorCurrent = currentEvidenceRef.current;
     const baselineHandle = baselineEvidenceRef.current?.runHandle;
     setCurrentEvidence(null);
@@ -260,7 +273,11 @@ export function App() {
       if (priorSession) await releaseEvidenceHandle(token, 'investigation', priorSession);
       if (priorCurrent && priorCurrent.runHandle !== baselineHandle) await releaseEvidenceHandle(token, 'run', priorCurrent.runHandle);
       if (requestSequence !== scanRequestSequence.current) return;
-      const evidenceResponse = runWithEvidence ? await investigationApi.scan(token, targetId, profileId) : null;
+      const evidenceResponse = runWithEvidence
+        ? await (ruleBytesEvidenceEnabled
+          ? investigationApi.scanWithRuleBytes(token, targetId, profileId)
+          : investigationApi.scan(token, targetId, profileId))
+        : null;
       const result = evidenceResponse?.scan ?? await api.scan(token, targetId, profileId);
       if (requestSequence !== scanRequestSequence.current) {
         if (evidenceResponse) await releaseEvidenceHandle(token, 'run', evidenceResponse.run_handle);
@@ -269,7 +286,11 @@ export function App() {
       const nextContext = { ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() };
       const snapshot: ScanSnapshot = { scan: result, context: nextContext };
       setScan(result); setScanContext(nextContext);
-      if (evidenceResponse) setCurrentEvidence({ snapshot, runHandle: evidenceResponse.run_handle });
+      if (evidenceResponse) setCurrentEvidence({
+        snapshot,
+        runHandle: evidenceResponse.run_handle,
+        evidenceMode: ruleBytesEvidenceEnabled ? 'rule-bytes' : 'standard',
+      });
       setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed'); setActiveView('results');
       const scanMessage = result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`;
       setMessage(scanMessage);
@@ -358,7 +379,7 @@ export function App() {
       return;
     }
     const requestSequence = ++investigationRequestSequence.current;
-    setInvestigationState('running'); setInvestigationMessage('두 검사에서 보관한 서버 증거를 확인하고 있습니다.'); setInvestigationEvaluation(null);
+    setInvestigationState('running'); setInvestigationMessage('두 검사에서 보관한 서버 증거를 확인하고 있습니다.'); setInvestigationEvaluation(null); setRuleBytesComparison(null);
     let session = investigationHandleRef.current;
     try {
       if (!session) {
@@ -382,6 +403,11 @@ export function App() {
         return;
       }
       setInvestigationEvaluation(result); setInvestigationState('ready');
+      if ((baselineEvidence.evidenceMode ?? 'standard') === 'rule-bytes') {
+        const ruleResult = await investigationApi.evaluateRuleBytes(token, session);
+        if (requestSequence !== investigationRequestSequence.current) return;
+        setRuleBytesComparison(ruleResult);
+      }
       setInvestigationMessage(result.overall_assessment === 'EXPLANATION_SUPPORTED'
         ? '일부 검사 절차에 대한 설명을 뒷받침하는 근거가 있습니다. 코드 수정이나 취약점 해결 여부는 확인되지 않았습니다.'
         : '서버 증거 평가가 완료됐습니다. Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
@@ -568,6 +594,7 @@ export function App() {
             <legend>검사 방식</legend>
             <label><input type="radio" name="scan-mode" value="standard" checked={!investigationMode} onChange={() => changeInvestigationMode(false)} disabled={state === 'scanning'}/> 일반 검사</label>
             <label><input type="radio" name="scan-mode" value="investigation" checked={investigationMode} onChange={() => changeInvestigationMode(true)} disabled={state === 'scanning'}/> 소멸 근거 조사</label>
+            {investigationMode && <label><input type="checkbox" checked={ruleBytesEvidenceEnabled} onChange={(event) => changeRuleBytesEvidence(event.target.checked)} disabled={state === 'scanning'}/> 규칙 파일 동일성 증거 포함</label>}
             <p id="investigation-mode-help">두 검사에서 관찰된 Finding 차이를 추가 증거와 함께 확인합니다. 서버 메모리에 최대 15분 임시 보관되며, 코드 수정이나 취약점 해결을 확정하지 않습니다.</p>
           </fieldset>
         </details></div>
@@ -593,7 +620,7 @@ export function App() {
       </div>}
       <div className="live-message sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>
       {activeView === 'results' && !scan && <>
-        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: false, currentReady: false, evaluationAllowed: false, partialComparisonEligible: false, status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />}
+        {baselineSnapshot && <ScanComparisonPanel baseline={baselineSnapshot} current={null} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: false, currentReady: false, evaluationAllowed: false, partialComparisonEligible: false, status: investigationState, evaluation: investigationEvaluation, ruleBytesComparison, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />}
         <section className="results-empty-state" aria-labelledby="empty-results-title"><span className="empty-icon" aria-hidden="true"><Icon name={state === 'scanning' ? 'pulse' : 'results'}/></span><div><h2 id="empty-results-title">{state === 'scanning' ? '검사가 진행 중입니다' : '아직 검사 결과가 없습니다.'}</h2><p>{state === 'scanning' ? '검사가 끝나면 결과가 여기에 표시됩니다.' : '검사를 실행하면 이곳에서 결과를 확인할 수 있습니다.'}</p>{state !== 'scanning' && <button type="button" className="button primary" onClick={() => navigate('start')}><Icon name="play"/> 검사 시작</button>}</div></section>
       </>}
       {activeView === 'results' && scan && <div className="d2-results-workspace">
@@ -627,7 +654,7 @@ export function App() {
               {scan.omitted_finding_count > 0 && <p className="analyst-review-scope">생략된 {scan.omitted_finding_count}개는 포함하지 않습니다.</p>}
             </section></div>
         </details>
-        <ScanComparisonPanel baseline={baselineSnapshot} current={currentSnapshot} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: Boolean(baselineEvidence && baselineEvidence.snapshot === baselineSnapshot), currentReady: Boolean(currentEvidence && currentEvidence.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext), evaluationAllowed: Boolean(baselineEvidence && currentEvidence && validateInvestigationRuns(baselineEvidence, currentEvidence).valid && (comparison.comparable || canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison))), partialComparisonEligible: canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison), status: investigationState, evaluation: investigationEvaluation, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />
+        <ScanComparisonPanel baseline={baselineSnapshot} current={currentSnapshot} comparison={comparison} followup={rescanFollowup} onSetBaseline={setCurrentAsBaseline} onClearBaseline={clearBaseline} onExport={exportComparisonReport} onOpenCurrentFinding={openCurrentFindingFromComparison} exportMessage={comparisonExportMessage} exporting={state === 'scanning'} investigation={{ mode: investigationMode, baselineReady: Boolean(baselineEvidence && baselineEvidence.snapshot === baselineSnapshot), currentReady: Boolean(currentEvidence && currentEvidence.snapshot.scan === scan && currentEvidence.snapshot.context === scanContext), evaluationAllowed: Boolean(baselineEvidence && currentEvidence && validateInvestigationRuns(baselineEvidence, currentEvidence).valid && (comparison.comparable || canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison))), partialComparisonEligible: canInvestigateBlockedPartialComparison(baselineEvidence, currentEvidence, comparison), status: investigationState, evaluation: investigationEvaluation, ruleBytesComparison, message: investigationMessage, onEvaluate: investigateFindingChanges, onRelease: releaseInvestigation }} />
         <section className="result-export-workspace" aria-label="보고서와 검토 기록 내보내기"><h2>보고서 및 검토 기록</h2><div className="export-note">현재 응답에 포함된 항목만 내보냅니다. 공유 전 파일을 확인하세요.{scan.omitted_finding_count > 0 ? ' 최대 50건까지 포함됩니다.' : ''}{' '}<details className="sarif-export-tool"><summary>SARIF 내보내기</summary><div className="sarif-export-options"><p>현재 검사 응답의 {scan.displayed_finding_count}개 Finding을 SARIF 2.1.0으로 다운로드합니다. 생략된 Finding은 {scan.omitted_finding_count}개입니다. 취약점 확정 결과가 아니며 GitHub 자동 업로드를 수행하지 않습니다.</p><p className="analyst-report-warning">파일 경로와 규칙 ID가 포함됩니다. 외부 공유 전에 내용을 확인하세요.</p>{codeScanningPreflight && <CodeScanningPreflightDetails preflight={codeScanningPreflight}/>}<button type="button" className="button secondary" aria-label="SARIF 다운로드" onClick={exportSarif} disabled={state === 'scanning'}><Icon name="download"/> SARIF 다운로드</button>{sarifExportMessage && <p className="export-feedback" role="status">{sarifExportMessage}</p>}</div></details><details className="analyst-report-export"><summary>분석가 검토 기록 내보내기</summary><div className="analyst-review-export-options"><label><input type="checkbox" aria-label="보고서 메모 포함" checked={includeAnalystNotes} onChange={(event) => { setIncludeAnalystNotes(event.target.checked); setAnalystReviewExportMessage(''); }}/> 메모 포함</label>{includeAnalystNotes && <p className="analyst-report-warning">분석가 메모에는 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="분석가 검토 기록 내보내기 · Markdown 다운로드" onClick={exportAnalystReviewReport} disabled={state === 'scanning'}><Icon name="download"/> Markdown 다운로드</button>{analystReviewExportMessage && <p className="export-feedback" role="status">{analystReviewExportMessage}</p>}</div></details><details className="analyst-backup-tool"><summary>검토 기록 백업 및 복원</summary><div className="analyst-backup-controls"><p>JSON은 검토 상태를 다시 참고하기 위한 백업입니다. 다운로드 파일은 디스크에 남으며 자동 저장되지 않습니다.</p><label><input type="checkbox" aria-label="JSON 백업에 메모 포함" checked={includeBackupNotes} onChange={(event) => { setIncludeBackupNotes(event.target.checked); setBackupMessage(''); }}/> JSON 백업에 메모 포함</label>{includeBackupNotes && <p className="analyst-report-warning">메모에 내부 코드 정보나 민감정보가 포함될 수 있습니다. 다운로드 파일은 디스크에 남으므로 외부 공유 전에 확인하세요.</p>}<button type="button" className="button secondary" aria-label="검토 기록 백업 JSON 다운로드" onClick={exportAnalystReviewBackup} disabled={state === 'scanning'}><Icon name="download"/> 검토 기록 백업 JSON 다운로드</button><label className="backup-file-label" htmlFor="analyst-review-backup-file">검토 기록 불러오기(JSON)</label><input id="analyst-review-backup-file" className="backup-file-input" type="file" accept=".json,application/json" aria-describedby="backup-file-help" onChange={importAnalystReviewBackup} disabled={state === 'scanning'}/><small id="backup-file-help">최대 256 KiB. 파일은 브라우저 메모리에서만 읽으며 서버로 전송하지 않습니다.</small>{backupMessage && <p className="export-feedback" role="status">{backupMessage}</p>}{backupPreview && <section className="backup-preview" aria-label="검토 기록 복원 미리보기"><h3>외부 백업 미리보기</h3><p>파일: {backupPreview.fileName}</p><p>{backupPreview.backup.findings.length}개 Finding · 대기 {backupPreview.backup.findings.filter((item) => item.review_status === 'pending').length} · 추가 확인 {backupPreview.backup.findings.filter((item) => item.review_status === 'needs_followup').length} · 검토 완료 {backupPreview.backup.findings.filter((item) => item.review_status === 'reviewed').length}건</p><p>{backupPreview.backup.findings.some((item) => item.note !== undefined) ? '메모 포함' : '메모 제외'}</p><p>적용 가능: {backupPreview.reasons.length ? 0 : backupPreview.backup.findings.length}건 · 현재 기록과 충돌: {scan ? backupPreview.backup.findings.filter((item) => { const existing = getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id); return analystReviews.has(item.finding_id) && (existing.status !== item.review_status || (item.note !== undefined && existing.note !== item.note)); }).length : 0}건</p><p className="analyst-report-warning">문맥이 일치해도 코드 내용이 같다는 뜻은 아닙니다. 가져온 검토 기록은 현재 코드의 보안 판정이나 수정 여부를 증명하지 않습니다.</p>{backupPreview.reasons.length > 0 ? <div role="alert"><strong>복원 차단</strong><ul>{backupPreview.reasons.map((reason) => <li key={reason}>{restoreReasonLabels[reason]}</li>)}</ul></div> : <details className="backup-finding-preview"><summary>Finding별 기록 확인 ({backupPreview.backup.findings.length})</summary><ul>{backupPreview.backup.findings.map((item) => { const currentEntry = scan ? getAnalystReviewEntry(analystReviews, scan.findings, item.finding_id) : { status: 'pending' as const, note: '' }; const applied = backupAppliedIds.has(item.finding_id); const skipped = backupSkippedIds.has(item.finding_id); return <li key={item.finding_id}><strong>{item.rule_id}</strong><span>{item.file_path ?? '위치 확인 불가'}{item.line_number ? `:${item.line_number}` : ''}</span><span>백업: {analystReviewLabels[item.review_status]} · 현재: {analystReviewLabels[currentEntry.status]}</span>{item.note !== undefined && <p>백업 메모 미리보기: {item.note || '(빈 메모)'}</p>}<p>{currentEntry.note ? '현재 메모 있음' : '현재 메모 없음'}</p><button type="button" className="button secondary" onClick={() => applyBackupFinding(item.finding_id)} disabled={state === 'scanning' || applied || skipped}>{applied ? '적용됨' : skipped ? '건너뜀' : '이 기록 적용'}</button><button type="button" className="button tertiary" onClick={() => setBackupSkippedIds((previous) => new Set(previous).add(item.finding_id))} disabled={applied || skipped}>{skipped ? '건너뜀' : '건너뛰기'}</button></li>; })}</ul></details>}</section>}</div></details></div>{exportMessage && <p className="export-feedback" role="status">{exportMessage}</p>}</section>
       </div>}
       </main>
@@ -869,6 +896,7 @@ interface InvestigationPanelState {
   partialComparisonEligible: boolean;
   status: 'idle' | 'running' | 'ready' | 'error';
   evaluation: InvestigationEvaluation | null;
+  ruleBytesComparison: RuleBytesComparison | null;
   message: string;
   onEvaluate: () => void;
   onRelease: () => void;
@@ -910,6 +938,13 @@ function InvestigationPanel({ baseline, current, comparison, state }: {
     {evaluation && counts && <div className="investigation-result" aria-live="polite">
       <div className="investigation-assessment"><div><span>증거 비교</span><strong>{investigationAssessmentLabels[evaluation.comparability]}</strong></div><div><span>전체 평가</span><strong>{investigationAssessmentLabels[evaluation.overall_assessment]}</strong></div></div>
       <p className="investigation-safety-note">Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다. 코드 스냅샷은 수집되지 않았습니다.</p>
+      {state.ruleBytesComparison && <section className="investigation-guidance" aria-label="규칙 파일 바이트 비교">
+        <strong>규칙 파일 바이트 비교</strong>
+        <p>{state.ruleBytesComparison.status === 'SAME_SELECTED_BYTES' ? '두 검사에서 선택된 규칙 파일 바이트가 동일하게 관찰됐습니다.'
+          : state.ruleBytesComparison.status === 'DIFFERENT_SELECTED_BYTES' ? '두 검사에서 선택된 규칙 파일 바이트가 다르게 관찰됐습니다.'
+            : state.ruleBytesComparison.status === 'UNVERIFIED' ? '규칙 파일 바이트 비교 근거가 부족합니다.' : '규칙 파일 바이트를 비교할 수 없습니다.'}</p>
+        <p>선택된 단일 규칙 파일 사본의 바이트를 비교한 결과입니다. Semgrep이 실제로 로딩한 모든 규칙이나 취약점 해결 여부는 확인되지 않았습니다.</p>
+      </section>}
       <div className="comparison-counts investigation-counts" aria-label="증거 평가 Finding 범주">
         {(Object.keys(investigationCategoryLabels) as InvestigationCategory[]).map((itemCategory) => <div className={`comparison-count ${itemCategory}`} key={itemCategory}><span>{investigationCategoryLabels[itemCategory]}</span><strong>{counts[itemCategory]}</strong></div>)}
       </div>

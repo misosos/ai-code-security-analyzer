@@ -32,8 +32,9 @@ test('real investigation mode reports an ignored baseline finding while preservi
   await page.getByLabel('검사 규칙 모음').selectOption('baseline');
   await page.getByText('소멸 근거 조사 선택').click();
   await page.getByLabel('소멸 근거 조사').check();
+  await page.getByLabel('규칙 파일 동일성 증거 포함').check();
 
-  const firstRunResponse = page.waitForResponse((response) => response.url().endsWith('/api/v2/investigation-scans'));
+  const firstRunResponse = page.waitForResponse((response) => response.url().endsWith('/api/v2/investigation-scans/rule-bytes'));
   await page.getByRole('button', { name: '검사 실행' }).click();
   const firstRun = await firstRunResponse;
   expect(firstRun.status()).toBe(200);
@@ -54,7 +55,7 @@ test('real investigation mode reports an ignored baseline finding while preservi
   await writeFile(`${targetPath}/.semgrepignore`, 'retired.js\n', { mode: 0o600 });
   await writeFile(`${targetPath}/added.js`, 'function added(input) { return eval(input); }\n', { mode: 0o600 });
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 시작/ }).click();
-  const secondRunResponse = page.waitForResponse((response) => response.url().endsWith('/api/v2/investigation-scans'));
+  const secondRunResponse = page.waitForResponse((response) => response.url().endsWith('/api/v2/investigation-scans/rule-bytes'));
   await page.getByRole('button', { name: '검사 실행' }).click();
   const secondRun = await secondRunResponse;
   expect(secondRun.status()).toBe(200);
@@ -84,11 +85,21 @@ test('real investigation mode reports an ignored baseline finding while preservi
   await expect(panel).toContainText('현재 검사에서 해당 경로가 제외된 것으로 보고됐습니다.');
   await expect(panel).toContainText('해당 가설을 뒷받침하는 근거 관찰');
   await expect(panel).toContainText('Finding 미관찰은 취약점 수정이나 해결 완료의 증거가 아닙니다.');
+  await expect(panel).toContainText('규칙 파일 바이트 비교');
+  await expect(panel).toContainText('규칙 파일 바이트 비교 근거가 부족합니다.');
+  await expect(panel).toContainText('Semgrep이 실제로 로딩한 모든 규칙이나 취약점 해결 여부는 확인되지 않았습니다.');
 
   const session = responses.find((item) => item.path === '/api/v2/investigations');
   const evaluation = responses.find((item) => item.path === '/api/v2/investigations/evaluate');
+  const ruleBytesEvaluation = responses.find((item) => item.path === '/api/v2/investigations/rule-bytes/evaluate');
   expect(session?.status).toBe(201);
   expect(evaluation?.status).toBe(200);
+  expect(ruleBytesEvaluation?.status).toBe(200);
+  expect(ruleBytesEvaluation?.body).toEqual({
+    contract_version: 'rule-bytes-comparison/v1',
+    status: 'UNVERIFIED',
+    limitation_codes: ['selected_rule_bytes_only', 'loaded_rule_identity_unverified'],
+  });
   const evalPayload = evaluation?.body as { findings: Array<{ category: string; finding_id: string; path_observation: string | null; skip_hypothesis: string | null }>; overall_assessment: string };
   expect(evalPayload.overall_assessment).toBe('INCOMPARABLE');
   expect(evalPayload.findings.map((item) => item.category).sort()).toEqual(['baselineOnly', 'currentOnly', 'shared']);

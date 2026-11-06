@@ -29,6 +29,12 @@ from ai_code_security_analyzer.services.scan_service import ApiSettings
 from ai_code_security_analyzer.services.scan_service import ScanService
 from ai_code_security_analyzer.semgrep_adapter import ScanStatus
 from ai_code_security_analyzer.semgrep_adapter import SemgrepAdapter
+from ai_code_security_analyzer.rule_bytes_identity import (
+    RULE_BYTES_INVOCATION_ID,
+    RULE_BYTES_OBSERVATION_VERSION,
+    RuleBytesComparison,
+    RuleBytesObservation,
+)
 from test_finding_disappearance_evaluator import bundle, finding
 
 
@@ -91,6 +97,88 @@ def test_session_evaluation_and_release_are_bound_to_two_runs() -> None:
     assert registry.release_session(session) is False
     with pytest.raises(EvidenceRegistryError):
         registry.evaluate(session)
+
+
+def test_rule_bytes_sidecar_is_atomic_bounded_and_removed_with_run() -> None:
+    registry = RunEvidenceRegistry()
+    first = bundle(finding("a"), invocation=RULE_BYTES_INVOCATION_ID)
+    second = bundle(finding("b"), invocation=RULE_BYTES_INVOCATION_ID)
+
+    def observation(run, digest: bytes) -> RuleBytesObservation:
+        return RuleBytesObservation(
+            RULE_BYTES_OBSERVATION_VERSION,
+            run.manifest.scan_ref,
+            run.manifest.target_id,
+            run.manifest.rule_profile_id,
+            RULE_BYTES_INVOCATION_ID,
+            run.manifest.semgrep_version,
+            digest,
+        )
+
+    a = registry.register_rule_bytes_run(first.response, first.manifest, observation(first, b"a" * 32))
+    b = registry.register_rule_bytes_run(second.response, second.manifest, observation(second, b"a" * 32))
+    session = registry.create_session(a, b)
+    projection = registry.evaluate_rule_bytes(session)
+    assert projection.status is RuleBytesComparison.SAME_SELECTED_BYTES
+    assert "a" * 32 not in repr(registry)
+    registry.release_session(session)
+    assert registry.release_run(a) is True
+    assert registry.release_run(b) is True
+    assert registry.stored_bytes == 0
+
+
+def test_rule_bytes_evaluation_pins_session_and_runs_during_release() -> None:
+    entered = threading.Event()
+    resume = threading.Event()
+    registry = RunEvidenceRegistry(evaluation_hook=lambda: (entered.set(), resume.wait(2)))
+    first = bundle(finding("a"), invocation=RULE_BYTES_INVOCATION_ID)
+    second = bundle(finding("b"), invocation=RULE_BYTES_INVOCATION_ID)
+
+    def observation(run) -> RuleBytesObservation:
+        return RuleBytesObservation(
+            RULE_BYTES_OBSERVATION_VERSION, run.manifest.scan_ref,
+            run.manifest.target_id, run.manifest.rule_profile_id,
+            RULE_BYTES_INVOCATION_ID, run.manifest.semgrep_version, b"a" * 32,
+        )
+
+    first_handle = registry.register_rule_bytes_run(first.response, first.manifest, observation(first))
+    second_handle = registry.register_rule_bytes_run(second.response, second.manifest, observation(second))
+    session = registry.create_session(first_handle, second_handle)
+    outcomes = []
+    worker = threading.Thread(target=lambda: outcomes.append(registry.evaluate_rule_bytes(session)))
+    worker.start()
+    assert entered.wait(2)
+    with pytest.raises(EvidenceRegistryError) as session_error:
+        registry.release_session(session)
+    assert session_error.value.code is RegistryErrorCode.EVALUATION_BUSY
+    with pytest.raises(EvidenceRegistryError) as run_error:
+        registry.release_run(first_handle)
+    assert run_error.value.code is RegistryErrorCode.EVALUATION_BUSY
+    resume.set()
+    worker.join(2)
+    assert [item.status for item in outcomes] == [RuleBytesComparison.SAME_SELECTED_BYTES]
+
+
+def test_rule_bytes_projection_is_different_unverified_or_incomparable_without_digest_disclosure() -> None:
+    registry = RunEvidenceRegistry()
+    runs = [bundle(finding(char), invocation=RULE_BYTES_INVOCATION_ID) for char in "abcd"]
+    observations = [RuleBytesObservation(
+        RULE_BYTES_OBSERVATION_VERSION, run.manifest.scan_ref, run.manifest.target_id,
+        run.manifest.rule_profile_id, RULE_BYTES_INVOCATION_ID, run.manifest.semgrep_version,
+        bytes([index]) * 32,
+    ) for index, run in enumerate(runs, 1)]
+    handles = [registry.register_rule_bytes_run(run.response, run.manifest, item) for run, item in zip(runs, observations)]
+    projection = registry.evaluate_rule_bytes(registry.create_session(handles[0], handles[1]))
+    assert projection.status is RuleBytesComparison.DIFFERENT_SELECTED_BYTES
+    assert set(projection.__dict__ if hasattr(projection, "__dict__") else ()) == set()
+
+    mixed_registry = RunEvidenceRegistry()
+    bound = runs[2]
+    bound_handle = mixed_registry.register_rule_bytes_run(bound.response, bound.manifest, observations[2])
+    plain = bundle(finding("e"))
+    plain_handle = mixed_registry.register_run(plain.response, plain.manifest)
+    mixed = mixed_registry.evaluate_rule_bytes(mixed_registry.create_session(bound_handle, plain_handle))
+    assert mixed.status is RuleBytesComparison.INCOMPARABLE
 
 
 def test_same_run_target_or_profile_cannot_be_linked() -> None:

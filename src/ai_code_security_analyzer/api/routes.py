@@ -15,6 +15,7 @@ from ai_code_security_analyzer.api.schemas import (
     ErrorResponse, HealthResponse, InvestigationCreateRequest, InvestigationEvaluationResponse,
     InvestigationEvaluateRequest, InvestigationReleaseRequest, InvestigationScanRequest,
     InvestigationScanResponse, InvestigationSessionResponse, OptionsResponse, ScanRequest,
+    RuleBytesComparisonResponse,
 )
 from ai_code_security_analyzer.finding_disappearance_evaluator import MAX_EVALUATION_BYTES
 from ai_code_security_analyzer.investigation_evidence_registry import (
@@ -160,6 +161,53 @@ async def create_investigation_scan(payload: InvestigationScanRequest, request: 
     return Response(content=serialized, status_code=200, media_type="application/json")
 
 
+@investigation_router.post("/investigation-scans/rule-bytes")
+async def create_rule_bytes_investigation_scan(payload: InvestigationScanRequest, request: Request) -> Response:
+    """Opt-in scan with an atomic rule-bytes sidecar; no digest is serialized."""
+    if not _investigation_enabled(request):
+        return _error(503, "unsupported_deployment")
+    if not _limited(request, "scan"):
+        return _error(429, "resource_limit")
+    service: ScanService = request.app.state.scan_service
+    registry: RunEvidenceRegistry = request.app.state.investigation_registry
+    registry.cleanup_expired()
+    if registry.active_run_count >= MAX_RUNS:
+        return _error(429, "resource_limit")
+    try:
+        scan, manifest, observation = await run_in_threadpool(
+            service._scan_with_rule_bytes_manifest, payload.target_id, payload.rule_profile_id,
+        )
+    except ServiceError as exc:
+        return _error(exc.status_code, exc.code)
+    except Exception:
+        return _error(503, "internal_unavailable")
+    try:
+        if await request.is_disconnected():
+            return _error(499, "request_cancelled")
+    except Exception:
+        return _error(503, "internal_unavailable")
+    try:
+        handle: str | None = None
+        handle = registry.register_rule_bytes_run(scan, manifest, observation)
+        envelope = InvestigationScanResponse(
+            contract_version="investigation-scan/v1", run_handle=handle, scan=scan,
+        )
+        serialized = envelope.model_dump_json().encode("utf-8", errors="strict")
+        if len(serialized) > MAX_INVESTIGATION_SCAN_RESPONSE_BYTES:
+            raise ValueError("response_limit")
+    except EvidenceRegistryError as exc:
+        return _registry_error(exc)
+    except Exception:
+        if handle is not None:
+            try:
+                registry.release_run(handle)
+            except EvidenceRegistryError:
+                pass
+        return _error(503, "internal_unavailable")
+    request.scope.setdefault("state", {})["investigation_run_handle"] = handle
+    return Response(content=serialized, status_code=200, media_type="application/json")
+
+
 @investigation_router.post("/investigations")
 def create_investigation(payload: InvestigationCreateRequest, request: Request) -> Response:
     if not _investigation_enabled(request):
@@ -199,6 +247,23 @@ def evaluate_investigation(payload: InvestigationEvaluateRequest, request: Reque
         body = validated.model_dump_json().encode("utf-8", errors="strict")
         if len(body) > MAX_EVALUATION_BYTES:
             return _error(503, "internal_unavailable")
+    except EvidenceRegistryError as exc:
+        return _registry_error(exc)
+    except Exception:
+        return _error(503, "internal_unavailable")
+    return Response(content=body, status_code=200, media_type="application/json")
+
+
+@investigation_router.post("/investigations/rule-bytes/evaluate")
+def evaluate_rule_bytes(payload: InvestigationEvaluateRequest, request: Request) -> Response:
+    if not _investigation_enabled(request):
+        return _error(503, "unsupported_deployment")
+    if not _limited(request, "evaluate"):
+        return _error(429, "resource_limit")
+    registry: RunEvidenceRegistry = request.app.state.investigation_registry
+    try:
+        result = registry.evaluate_rule_bytes(payload.investigation_handle)
+        body = RuleBytesComparisonResponse.model_validate(asdict(result)).model_dump_json().encode("utf-8")
     except EvidenceRegistryError as exc:
         return _registry_error(exc)
     except Exception:

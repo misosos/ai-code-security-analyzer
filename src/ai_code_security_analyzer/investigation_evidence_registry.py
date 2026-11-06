@@ -37,6 +37,12 @@ from ai_code_security_analyzer.scan_evidence_manifest import (
     ScopeEvidence,
     SkippedPathEvidence,
 )
+from ai_code_security_analyzer.rule_bytes_identity import (
+    RULE_BYTES_INVOCATION_ID,
+    RULE_BYTES_OBSERVATION_VERSION,
+    RuleBytesComparison,
+    RuleBytesObservation,
+)
 
 
 CONTRACT_VERSION = "investigation-evidence-registry/v1"
@@ -53,6 +59,8 @@ MAX_REGISTRY_BYTES = 5_505_024  # 5.25 MiB
 MAX_SESSION_RECORD_BYTES = 8 * 1024
 MAX_SESSION_BYTES = 16 * 1024
 MAX_EVALUATION_BYTES = 256 * 1024
+RULE_BYTES_COMPARISON_VERSION = "rule-bytes-comparison/v1"
+MAX_RULE_BYTES_SIDECAR_BYTES = 512
 _HANDLE_RE = re.compile(r"\A[A-Za-z0-9_-]{43}\Z")
 _MANIFEST_LIMITATIONS = frozenset({
     "scanned_paths_do_not_prove_complete_analysis", "scanned_paths_not_reported",
@@ -303,6 +311,7 @@ class _RunRecord:
     created_at: float
     expires_at: float
     metadata_bytes: int
+    rule_bytes_digest: bytes | None = None
 
     def __repr__(self) -> str:
         return f"_RunRecord(payload_bytes={len(self.payload)}, active=True)"
@@ -322,6 +331,13 @@ class _SessionRecord:
 
     def __repr__(self) -> str:
         return "_SessionRecord(active=True)"
+
+
+@dataclass(frozen=True, slots=True)
+class RuleBytesComparisonProjection:
+    contract_version: str
+    status: RuleBytesComparison
+    limitation_codes: tuple[str, ...]
 
 
 class RunEvidenceRegistry:
@@ -399,7 +415,9 @@ class RunEvidenceRegistry:
     def _remove_run(self, digest: bytes, record: _RunRecord) -> None:
         del self._runs[digest]
         self._scan_refs.pop(record.scan_ref, None)
-        self._stored_bytes -= len(record.payload) + record.metadata_bytes
+        self._stored_bytes -= len(record.payload) + record.metadata_bytes + (
+            len(record.rule_bytes_digest) if record.rule_bytes_digest is not None else 0
+        )
 
     def _remove_session(self, digest: bytes) -> None:
         record = self._sessions.pop(digest, None)
@@ -423,6 +441,30 @@ class RunEvidenceRegistry:
             return self._cleanup_locked(self._clock())
 
     def register_run(self, response: ScanResponse, manifest: ScanEvidenceManifest) -> str:
+        return self._register_run(response, manifest, None)
+
+    def register_rule_bytes_run(
+        self, response: ScanResponse, manifest: ScanEvidenceManifest, observation: RuleBytesObservation
+    ) -> str:
+        """Atomically admit a run and its trusted, execution-bound sidecar."""
+        if type(observation) is not RuleBytesObservation:
+            raise EvidenceRegistryError(RegistryErrorCode.BINDING_REJECTED)
+        if (
+            observation.contract_version != RULE_BYTES_OBSERVATION_VERSION
+            or observation.scan_ref != manifest.scan_ref
+            or observation.target_id != manifest.target_id
+            or observation.rule_profile_id != manifest.rule_profile_id
+            or observation.invocation_id != RULE_BYTES_INVOCATION_ID
+            or manifest.execution_evidence.invocation_id != RULE_BYTES_INVOCATION_ID
+            or observation.semgrep_version != manifest.semgrep_version
+            or (observation._digest is not None and len(observation._digest) != 32)
+        ):
+            raise EvidenceRegistryError(RegistryErrorCode.BINDING_REJECTED)
+        return self._register_run(response, manifest, observation._digest)
+
+    def _register_run(
+        self, response: ScanResponse, manifest: ScanEvidenceManifest, rule_bytes_digest: bytes | None
+    ) -> str:
         try:
             bundle = bind_run_evidence(response, manifest)
             payload = serialize_run_evidence(bundle)
@@ -443,19 +485,112 @@ class RunEvidenceRegistry:
                 "rule_profile_id": manifest.rule_profile_id,
                 "created_at": now,
                 "expires_at": now + self._run_ttl,
+                "rule_bytes_sidecar": rule_bytes_digest is not None,
             }))
-            record_bytes = len(payload) + metadata_bytes
+            sidecar_bytes = len(rule_bytes_digest) if rule_bytes_digest is not None else 0
+            if sidecar_bytes > MAX_RULE_BYTES_SIDECAR_BYTES:
+                raise EvidenceRegistryError(RegistryErrorCode.RESOURCE_LIMIT)
+            record_bytes = len(payload) + metadata_bytes + sidecar_bytes
             if record_bytes > self._max_record_bytes:
                 raise EvidenceRegistryError(RegistryErrorCode.RESOURCE_LIMIT)
             if len(self._runs) >= self._max_runs or self._stored_bytes + self._session_bytes + record_bytes > self._max_registry_bytes:
                 raise EvidenceRegistryError(RegistryErrorCode.RESOURCE_LIMIT)
             handle, digest = self._new_handle(self._runs)
             record = _RunRecord(manifest.scan_ref, digest, payload, manifest.target_id,
-                                manifest.rule_profile_id, now, now + self._run_ttl, metadata_bytes)
+                                manifest.rule_profile_id, now, now + self._run_ttl, metadata_bytes,
+                                rule_bytes_digest)
             self._runs[digest] = record
             self._scan_refs[record.scan_ref] = digest
             self._stored_bytes += record_bytes
             return handle
+
+    def evaluate_rule_bytes(self, session_handle: str) -> RuleBytesComparisonProjection:
+        """Return only equality and fixed limitations; never expose either digest."""
+        digest = self._digest(session_handle)
+        if not self._evaluation_slot.acquire(blocking=False):
+            raise EvidenceRegistryError(RegistryErrorCode.EVALUATION_BUSY)
+        pins: tuple[str, ...] = ()
+        try:
+            with self._lock:
+                now = self._clock()
+                self._cleanup_locked(now)
+                session = self._sessions.get(digest)
+                if session is None or now >= session.expires_at:
+                    raise EvidenceRegistryError(RegistryErrorCode.EVIDENCE_UNAVAILABLE)
+                baseline_digest = self._scan_refs.get(session.baseline_scan_ref)
+                current_digest = self._scan_refs.get(session.current_scan_ref)
+                baseline = self._runs.get(baseline_digest) if baseline_digest else None
+                current = self._runs.get(current_digest) if current_digest else None
+                if baseline is None or current is None or now >= baseline.expires_at or now >= current.expires_at:
+                    raise EvidenceRegistryError(RegistryErrorCode.EVIDENCE_UNAVAILABLE)
+                pins = (f"s:{digest.hex()}", f"r:{baseline.scan_ref}", f"r:{current.scan_ref}")
+                for key in pins:
+                    self._pins[key] = self._pins.get(key, 0) + 1
+                baseline_payload, current_payload = baseline.payload, current.payload
+                baseline_rule, current_rule = baseline.rule_bytes_digest, current.rule_bytes_digest
+                expected_baseline = (baseline.scan_ref, baseline.target_id, baseline.rule_profile_id)
+                expected_current = (current.scan_ref, current.target_id, current.rule_profile_id)
+            baseline_bundle = deserialize_run_evidence(baseline_payload)
+            current_bundle = deserialize_run_evidence(current_payload)
+            if (
+                (baseline_bundle.manifest.scan_ref, baseline_bundle.manifest.target_id,
+                 baseline_bundle.manifest.rule_profile_id) != expected_baseline
+                or (current_bundle.manifest.scan_ref, current_bundle.manifest.target_id,
+                    current_bundle.manifest.rule_profile_id) != expected_current
+            ):
+                raise EvidenceRegistryError(RegistryErrorCode.BINDING_REJECTED)
+            if self._evaluation_hook is not None:
+                self._evaluation_hook()
+            if (
+                baseline.scan_ref == current.scan_ref
+                or baseline.target_id != current.target_id
+                or baseline.rule_profile_id != current.rule_profile_id
+                or baseline_bundle.manifest.execution_evidence.invocation_id != RULE_BYTES_INVOCATION_ID
+                or current_bundle.manifest.execution_evidence.invocation_id != RULE_BYTES_INVOCATION_ID
+                or baseline_bundle.manifest.semgrep_version != current_bundle.manifest.semgrep_version
+            ):
+                status = RuleBytesComparison.INCOMPARABLE
+            elif (
+                not baseline_bundle.response.completed
+                or not current_bundle.response.completed
+                or baseline_rule is None
+                or current_rule is None
+            ):
+                status = RuleBytesComparison.UNVERIFIED
+            elif len(baseline_rule) != 32 or len(current_rule) != 32:
+                status = RuleBytesComparison.INCOMPARABLE
+            else:
+                status = (
+                    RuleBytesComparison.SAME_SELECTED_BYTES
+                    if secrets.compare_digest(baseline_rule, current_rule)
+                    else RuleBytesComparison.DIFFERENT_SELECTED_BYTES
+                )
+            with self._lock:
+                now = self._clock()
+                current_session = self._sessions.get(digest)
+                if current_session is not session or now >= session.expires_at:
+                    raise EvidenceRegistryError(RegistryErrorCode.EVIDENCE_UNAVAILABLE)
+                for scan_ref in (session.baseline_scan_ref, session.current_scan_ref):
+                    run_digest = self._scan_refs.get(scan_ref)
+                    record = self._runs.get(run_digest) if run_digest else None
+                    if record is None or now >= record.expires_at:
+                        raise EvidenceRegistryError(RegistryErrorCode.EVIDENCE_UNAVAILABLE)
+            limitations = ("selected_rule_bytes_only", "loaded_rule_identity_unverified")
+            return RuleBytesComparisonProjection(RULE_BYTES_COMPARISON_VERSION, status, limitations)
+        except EvidenceRegistryError:
+            raise
+        except Exception as exc:
+            raise EvidenceRegistryError(RegistryErrorCode.INTERNAL_UNAVAILABLE) from exc
+        finally:
+            if pins:
+                with self._lock:
+                    for key in pins:
+                        count = self._pins.get(key, 0)
+                        if count <= 1:
+                            self._pins.pop(key, None)
+                        else:
+                            self._pins[key] = count - 1
+            self._evaluation_slot.release()
 
     def get_run(self, handle: str) -> RunEvidenceBundle:
         digest = self._digest(handle)

@@ -36,6 +36,12 @@ export interface InvestigationEvaluation {
   findings: InvestigationFinding[];
   limitation_codes: InvestigationLimitationCode[];
 }
+export type RuleBytesComparisonStatus = 'SAME_SELECTED_BYTES' | 'DIFFERENT_SELECTED_BYTES' | 'UNVERIFIED' | 'INCOMPARABLE';
+export interface RuleBytesComparison {
+  contract_version: 'rule-bytes-comparison/v1';
+  status: RuleBytesComparisonStatus;
+  limitation_codes: ['selected_rule_bytes_only', 'loaded_rule_identity_unverified'];
+}
 
 const handlePattern = /^[A-Za-z0-9_-]{43}$/;
 const categories: readonly InvestigationCategory[] = ['currentOnly', 'shared', 'baselineOnly'];
@@ -125,6 +131,22 @@ export function parseInvestigationEvaluation(value: unknown): InvestigationEvalu
   };
 }
 
+export function parseRuleBytesComparison(value: unknown): RuleBytesComparison {
+  const envelope = requireRecord(value, ['contract_version', 'status', 'limitation_codes']);
+  const statuses: readonly RuleBytesComparisonStatus[] = ['SAME_SELECTED_BYTES', 'DIFFERENT_SELECTED_BYTES', 'UNVERIFIED', 'INCOMPARABLE'];
+  if (envelope.contract_version !== 'rule-bytes-comparison/v1'
+    || !statuses.includes(envelope.status as RuleBytesComparisonStatus)
+    || !Array.isArray(envelope.limitation_codes)
+    || envelope.limitation_codes.length !== 2
+    || envelope.limitation_codes[0] !== 'selected_rule_bytes_only'
+    || envelope.limitation_codes[1] !== 'loaded_rule_identity_unverified') throw new Error('invalid_api_response');
+  return {
+    contract_version: 'rule-bytes-comparison/v1',
+    status: envelope.status as RuleBytesComparisonStatus,
+    limitation_codes: ['selected_rule_bytes_only', 'loaded_rule_identity_unverified'],
+  };
+}
+
 async function post(path: string, token: string, body: object, signal?: AbortSignal): Promise<Response> {
   let response: Response;
   try {
@@ -158,6 +180,10 @@ export const investigationApi = {
     const response = await post('/api/v2/investigation-scans', token, { target_id: targetId, rule_profile_id: ruleProfileId }, signal);
     return parseInvestigationScan(await jsonResponse(response));
   },
+  async scanWithRuleBytes(token: string, targetId: string, ruleProfileId: string, signal?: AbortSignal): Promise<InvestigationScan> {
+    const response = await post('/api/v2/investigation-scans/rule-bytes', token, { target_id: targetId, rule_profile_id: ruleProfileId }, signal);
+    return parseInvestigationScan(await jsonResponse(response));
+  },
   async createSession(token: string, baselineHandle: string, currentHandle: string, signal?: AbortSignal): Promise<InvestigationSession> {
     parseHandle(baselineHandle); parseHandle(currentHandle);
     const response = await post('/api/v2/investigations', token, { baseline_handle: baselineHandle, current_handle: currentHandle }, signal);
@@ -167,6 +193,11 @@ export const investigationApi = {
     parseHandle(investigationHandle);
     const response = await post('/api/v2/investigations/evaluate', token, { investigation_handle: investigationHandle }, signal);
     return parseInvestigationEvaluation(await jsonResponse(response));
+  },
+  async evaluateRuleBytes(token: string, investigationHandle: string, signal?: AbortSignal): Promise<RuleBytesComparison> {
+    parseHandle(investigationHandle);
+    const response = await post('/api/v2/investigations/rule-bytes/evaluate', token, { investigation_handle: investigationHandle }, signal);
+    return parseRuleBytesComparison(await jsonResponse(response));
   },
   async release(token: string, kind: 'run' | 'investigation', handle: string, signal?: AbortSignal): Promise<void> {
     parseHandle(handle);
