@@ -132,7 +132,8 @@ class _Scope:
 _FUNCTIONS = {"function_declaration", "generator_function_declaration", "function_expression",
               "generator_function", "arrow_function", "method_definition"}
 _FUNCTION_DECLS = {"function_declaration", "generator_function_declaration"}
-_SCOPES = {"statement_block", "catch_clause", "for_statement", "for_in_statement", "switch_statement", "class_declaration", "class"}
+# switch 판별식은 바깥 환경에서 평가하고 CaseBlock만 별도 lexical scope를 갖는다.
+_SCOPES = {"statement_block", "catch_clause", "for_statement", "for_in_statement", "switch_body", "class_declaration", "class"}
 
 
 def _pattern_names(node: Node | None):
@@ -150,6 +151,31 @@ def _pattern_names(node: Node | None):
             if value: stack.append(value)
         elif item.type in {"array_pattern", "object_pattern", "rest_pattern", "formal_parameters"}:
             stack.extend(reversed(item.named_children))
+
+
+def _write_targets(node: Node):
+    """선언과 구분한 쓰기 target. 키·기본값은 순회하지 않고 member/미지원 target도 남긴다."""
+    stack = [node]
+    while stack:
+        item = stack.pop()
+        if item.type == "comment":
+            continue
+        if item.type == "parenthesized_expression":
+            children = [child for child in item.named_children if child.type != "comment"]
+            if len(children) == 1:
+                stack.append(children[0])
+            else:
+                yield item
+        elif item.type in {"assignment_pattern", "object_assignment_pattern", "pair_pattern"}:
+            target = item.child_by_field_name("value" if item.type == "pair_pattern" else "left")
+            if target is not None:
+                stack.append(target)
+            else:
+                yield item
+        elif item.type in {"array_pattern", "object_pattern", "rest_pattern"}:
+            stack.extend(reversed(item.named_children))
+        else:
+            yield item
 
 
 def _container(node: Node) -> int | None:
@@ -312,15 +338,20 @@ def analyze_javascript(source: bytes, file_label: str = "input.js", *,
             elif node.type == "for_in_statement" and not any(child.type in {"var", "let", "const"} for child in node.children): left = node.child_by_field_name("left")
             elif node.type == "unary_expression" and any(child.type == "delete" for child in node.children): left = node.child_by_field_name("argument")
             if left:
-                for identifier in _pattern_names(left):
-                    bindings = resolve(node_scope[node.id], name(identifier))
-                    for binding in bindings: binding.written = True
-                    if not bindings and name(identifier) == "eval":
+                for target in _write_targets(left):
+                    check()
+                    if target.type in {"identifier", "shorthand_property_identifier_pattern"}:
+                        bindings = resolve(node_scope[node.id], name(target))
+                        for binding in bindings: binding.written = True
+                        if not bindings and name(target) == "eval":
+                            barrier = True
+                            diagnose(DiagnosticCode.DYNAMIC_BINDING, node)
+                    elif target.type in {"member_expression", "subscript_expression"}:
                         barrier = True
                         diagnose(DiagnosticCode.DYNAMIC_BINDING, node)
-                if left.type in {"member_expression", "subscript_expression"}:
-                    barrier = True
-                    diagnose(DiagnosticCode.DYNAMIC_BINDING, node)
+                    else:
+                        barrier = True
+                        diagnose(DiagnosticCode.UNSUPPORTED_CONSTRUCT, target)
 
         for node in nodes:
             check()
