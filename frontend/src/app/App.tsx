@@ -70,8 +70,9 @@ const errorLabels: Record<string,string> = {
   response_limit_exceeded:'응답이 허용 크기를 초과했습니다.', invalid_request:'요청을 확인할 수 없습니다.', internal_error:'서버 내부 오류가 발생했습니다.',
   connection_error:'로컬 API에 연결할 수 없습니다.', invalid_api_response:'서버 응답 형식을 확인할 수 없습니다.', request_failed:'요청이 거부되었습니다.',
 };
-async function releaseEvidenceHandle(token: string, kind: 'run' | 'investigation', handle: string): Promise<void> {
-  try { await investigationApi.release(token, kind, handle); } catch { /* The server's absolute TTL remains the cleanup bound. */ }
+async function releaseEvidenceHandle(token: string, kind: 'run' | 'investigation', handle: string): Promise<boolean> {
+  try { await investigationApi.release(token, kind, handle, AbortSignal.timeout(5_000)); return true; }
+  catch { return false; }
 }
 function safeError(error: unknown): { state: RequestState; message: string } {
   if (!(error instanceof ApiError)) return { state:'failed', message:'요청을 완료하지 못했습니다.' };
@@ -218,7 +219,7 @@ export function App() {
     if (handle && tokenRef.current) await releaseEvidenceHandle(tokenRef.current, 'investigation', handle);
   }
 
-  async function releaseInvestigationEvidence(keepRunHandle?: string): Promise<void> {
+  async function releaseInvestigationEvidence(keepRunHandle?: string): Promise<boolean> {
     const activeToken = tokenRef.current;
     investigationRequestSequence.current += 1;
     const session = investigationHandleRef.current;
@@ -232,8 +233,10 @@ export function App() {
     const nextBaseline = keepRunHandle && baseline?.runHandle === keepRunHandle ? baseline : null;
     currentEvidenceRef.current = nextCurrent; baselineEvidenceRef.current = nextBaseline;
     setCurrentEvidence(nextCurrent); setBaselineEvidence(nextBaseline);
-    if (activeToken && session) await releaseEvidenceHandle(activeToken, 'investigation', session);
-    if (activeToken) for (const handle of handles) await releaseEvidenceHandle(activeToken, 'run', handle);
+    let confirmed = Boolean(activeToken) || (!session && handles.size === 0);
+    if (activeToken && session) confirmed = await releaseEvidenceHandle(activeToken, 'investigation', session) && confirmed;
+    if (activeToken) for (const handle of handles) confirmed = await releaseEvidenceHandle(activeToken, 'run', handle) && confirmed;
+    return confirmed;
   }
 
   useEffect(() => {
@@ -323,7 +326,7 @@ export function App() {
       setState(result.scan_status === 'completed' ? 'completed' : result.scan_status === 'partial' ? 'partial' : 'failed'); setActiveView('results');
       const scanMessage = result.scan_status === 'completed' ? 'Semgrep 검사가 정상 완료됐습니다. 결과는 취약점 확정이나 코드 안전성 증명이 아닙니다.' : result.scan_status === 'partial' ? '검사가 일부만 완료됐습니다. 누락된 영역이 있을 수 있습니다.' : `검사 응답은 수신했지만 Semgrep 상태는 ${statusLabels[result.scan_status] ?? '알 수 없음'}입니다.`;
       setMessage(scanMessage);
-      if (evidenceResponse) setInvestigationMessage('이 검사 응답과 서버 증거 Handle을 함께 보관했습니다. 서버 메모리의 절대 보존 시간은 최대 15분입니다.');
+      if (evidenceResponse) setInvestigationMessage('이 검사 응답에 연결된 서버 증거를 보관했습니다. 증거 접근은 생성 후 최대 15분에 만료됩니다.');
     } catch (error) {
       if (requestSequence !== scanRequestSequence.current) return;
       if (runWithEvidence) {
@@ -456,7 +459,15 @@ export function App() {
   }
 
   function releaseInvestigation() {
-    void releaseInvestigationEvidence(); setInvestigationMessage('조사 세션과 Run 증거의 해제를 요청했습니다. 화면의 검사 결과는 유지되지만 다시 조사하려면 두 검사를 새로 실행해야 합니다. 전달 실패 시에도 서버의 최대 15분 TTL이 적용됩니다.');
+    const pending = releaseInvestigationEvidence();
+    const sequence = investigationRequestSequence.current;
+    setInvestigationMessage('조사 세션과 Run 증거의 해제를 요청했습니다. 화면의 검사 결과는 유지되지만 다시 조사하려면 두 검사를 새로 실행해야 합니다. 서버 증거는 생성 후 최대 15분에 접근이 만료됩니다.');
+    void pending.then((confirmed) => {
+      if (!confirmed && sequence === investigationRequestSequence.current) {
+        setInvestigationState('error');
+        setInvestigationMessage('서버 증거 해제를 확인하지 못했습니다. 화면의 조사 근거는 지웠으며 현재 Finding은 유지됩니다. 서버 증거는 생성 후 최대 15분에 접근이 만료됩니다.');
+      }
+    });
   }
   function openCurrentFindingFromComparison(findingId: string) {
     if (!scan?.findings.some((finding) => finding.finding_id === findingId)) return;
@@ -628,7 +639,7 @@ export function App() {
             <label><input type="radio" name="scan-mode" value="standard" checked={!investigationMode} onChange={() => changeInvestigationMode(false)} disabled={state === 'scanning'}/> 일반 검사</label>
             <label><input type="radio" name="scan-mode" value="investigation" checked={investigationMode} onChange={() => changeInvestigationMode(true)} disabled={state === 'scanning'}/> 소멸 근거 조사</label>
             {investigationMode && <label><input type="checkbox" checked={ruleBytesEvidenceEnabled} onChange={(event) => changeRuleBytesEvidence(event.target.checked)} disabled={state === 'scanning'}/> 규칙 파일 동일성 증거 포함</label>}
-            <p id="investigation-mode-help">두 검사에서 관찰된 Finding 차이를 추가 증거와 함께 확인합니다. 서버 메모리에 최대 15분 임시 보관되며, 코드 수정이나 취약점 해결을 확정하지 않습니다.</p>
+            <p id="investigation-mode-help">두 검사에서 관찰된 Finding 차이를 추가 증거와 함께 확인합니다. 서버 증거 접근은 생성 후 최대 15분에 만료되며, 코드 수정이나 취약점 해결을 확정하지 않습니다.</p>
           </fieldset>
         </details></div>
         <form onSubmit={runScan} className="mission-form">
@@ -659,7 +670,7 @@ export function App() {
       {activeView === 'results' && scan && <div className="d2-results-workspace">
         {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><h2 className="sr-only">검사 정보</h2><p className="eyebrow">검사 설정 요약</p><p className="context-primary"><strong>{scanContext.targetLabel}</strong><span className="context-divider" aria-hidden="true">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong></p><p className="context-received-at">결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</p><details className="context-identifiers-disclosure"><summary>검사 내부 ID</summary><div className="context-identifiers"><span>대상 ID <code>{scanContext.targetId}</code></span><span>규칙 ID <code>{scanContext.ruleProfileId}</code></span></div></details></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div>
         </section>}
-        {investigationMode && <section className="investigation-evidence-notice" role="status" aria-live="polite"><strong>{currentEvidence?.snapshot.scan === scan ? '현재 응답에 서버 조사 증거가 연결됐습니다.' : '다음 검사를 조사 모드로 실행해야 증거를 보관합니다.'}</strong><p>서버 메모리에 최대 15분 보관됩니다. 로컬 API 토큰은 사용자별 격리를 제공하지 않으며, 증거는 화면 새로고침 뒤 복원되지 않습니다.</p>{investigationMessage && <p>{investigationMessage}</p>}</section>}
+        {investigationMode && <section className="investigation-evidence-notice" role="status" aria-live="polite"><strong>{currentEvidence?.snapshot.scan === scan ? '현재 응답에 서버 조사 증거가 연결됐습니다.' : '다음 검사를 조사 모드로 실행해야 증거를 보관합니다.'}</strong><p>서버 증거 접근은 생성 후 최대 15분에 만료됩니다. 로컬 API 토큰은 사용자별 격리를 제공하지 않으며, 증거는 화면 새로고침 뒤 복원되지 않습니다.</p>{investigationMessage && <p>{investigationMessage}</p>}</section>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         {scan.omitted_finding_count > 0 && <p className="alert warning scan-omission-note" role="alert">{scan.omitted_finding_count}개 Finding이 생략되어 목록과 검토 현황에 포함되지 않았습니다. 생략 항목의 개별 근거는 확인할 수 없습니다.</p>}
@@ -779,7 +790,7 @@ function FindingDetail({finding,triage,triageLabel='분석가 검토 가이드',
 }
 
 const comparisonReasonLabels: Record<ComparisonBlockReason, string> = {
-  baseline_missing: '비교 기준이 없습니다. 정상 완료된 검사를 기준으로 지정하세요.',
+  baseline_missing: '비교 기준이 없습니다. 정상 결과 비교에는 완료된 검사 기준이 필요합니다.',
   current_missing: '비교 기준이 저장되었습니다. 검사 시작에서 같은 대상과 규칙으로 새 검사를 실행하세요.',
   same_scan_snapshot: '비교 기준이 저장되었습니다. 같은 대상과 규칙으로 새 검사를 실행하면 결과 차이를 확인할 수 있습니다.',
   baseline_not_completed: '기준 검사가 정상 완료되지 않아 비교할 수 없습니다.',
@@ -915,7 +926,9 @@ function ScanComparisonPanel({
     {exportMessage && <p className="export-feedback comparison-export-feedback" role="status">{exportMessage}</p>}
     {!comparison.comparable || !groups ? <div className="comparison-blocked" role="status" aria-live="polite">
       <strong>비교 판단 불가</strong>
-      <ul>{comparison.reasons.map((reason) => <li key={reason}>{comparisonReasonLabels[reason]}</li>)}</ul>
+      <ul>{comparison.reasons.map((reason) => <li key={reason}>{baseline?.scan.scan_status === 'partial' && (reason === 'same_scan_snapshot' || reason === 'current_missing')
+        ? '부분 검사 기준을 저장했습니다. 정상 결과 비교는 불가하며, 서버 조사에는 두 검사의 유효한 증거가 필요합니다.'
+        : comparisonReasonLabels[reason]}</li>)}</ul>
     </div> : null}
     {investigation.mode && <InvestigationPanel baseline={baseline} current={current} comparison={comparison} state={investigation}/>}
   </section>;

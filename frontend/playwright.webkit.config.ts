@@ -4,7 +4,7 @@ const previewPort = process.env.BROWSER_TEST_PREVIEW_PORT ?? '4175';
 
 export default defineConfig({
   testDir: './browser-tests',
-  testMatch: '**/webkit-compatibility.spec.ts',
+  testMatch: ['**/webkit-compatibility.spec.ts', '**/evidence-revocation.spec.ts'],
   fullyParallel: false,
   workers: 1,
   reporter: 'list',

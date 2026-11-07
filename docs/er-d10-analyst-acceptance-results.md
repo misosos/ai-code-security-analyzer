@@ -2,18 +2,34 @@
 
 `SAFARI_MANUAL_ACCEPTANCE_PENDING` / `ANALYST_ACCEPTANCE_PENDING`
 
-이 파일은 사용자 응답을 받기 전의 미수행 기록이다. 자동화, 과거 ER-C3G 사용자 수용, 검수 환경 준비를 이번 수동 PASS로 사용하지 않는다. [계획](er-d10-safari-manual-acceptance-plan.md)에 따라 실제 사용자가 조작하고 결과를 제공한 뒤 갱신한다.
+핵심 이해 평가 A01~A07의 종합 수용은 아직 대기 중이다. 아래에 후속 사용자 진술로 확인된 UI 동작을 별도로 보존한다. 자동화, 과거 ER-C3G 사용자 수용, 검수 환경 준비를 이번 수동 PASS로 사용하지 않는다.
+
+## 2026-11-07 사용자 직접 보고
+
+출처는 `DIRECT_USER_ATTESTATION` / `USER_REPORTED_MANUAL_SAFARI_ACCEPTANCE`다. 사용자가 보고한 검수일은 2026-11-07이며 실제 macOS Safari 수동 조작에 대한 진술이다. 실행 SHA, Safari/macOS 상세 버전 및 원본 캡처는 별도 제출되지 않았다. Codex가 해당 Safari 조작을 직접 관찰한 것은 아니다. 아래 PASS는 진술한 UI 동작에만 적용한다.
+
+| 사용자 확인 동작 | 수동 결과 | 출처 |
+| --- | --- | --- |
+| 새로운 검사 실행 및 Finding 표시 | PASS | USER_ATTESTED |
+| 부분 완료 검사 결과의 증거 기준 저장 | PASS | USER_ATTESTED |
+| 부분 완료 검사 비교 제한 | PASS | USER_ATTESTED |
+| 비교 기준 해제 | PASS | USER_ATTESTED |
+| 조사 증거 해제 버튼과 안내 표시 | PASS | USER_ATTESTED |
+| 조사 증거 해제 직후 현재 화면의 Finding 유지 | PASS | USER_ATTESTED |
+| 새로고침 시 검사 시작 화면 복귀 | PASS | USER_ATTESTED |
+
+서버 무효화, 기존 Handle 재사용 거부, 해제 실패 처리, 최대 15분 TTL은 이 사용자 진술로 확인되지 않았다. [후속 자동 검증](er-d10-evidence-revocation-followup.md)과 구분한다. A01~A06의 설명 이해와 자유 응답, A07의 전체 Map 무효화 조건도 위 진술만으로 PASS로 확대하지 않는다. 후속 수정 코드에 대한 실제 Safari 재검수는 아직 수행되지 않았다.
 
 ## 검수 정보
 
 | 항목 | 값 |
 | --- | --- |
-| 검수 수행일·보고일 | NOT_RECORDED |
+| 검수 수행일·보고일 | 사용자 보고 수행일 2026-11-07; 별도 보고 시각 NOT_RECORDED |
 | 실제 실행 SHA | NOT_RECORDED — 실행기 터미널의 SHA와 추적 파일 변경 여부를 받아 기록 |
 | 기록 기준 SHA | `6fc6ce98b914d3727296b539b4e27a4f3f186cd0` |
 | Safari 상세 버전 | NOT_RECORDED |
 | macOS 상세 버전·기기 | NOT_RECORDED |
-| 실제 사용자 조작 | NOT_REPORTED |
+| 실제 사용자 조작 | 위 7개 UI 동작에 대한 직접 진술 |
 | 유도·도움 제공 여부 | NOT_RECORDED |
 | 민감정보가 제거된 캡처 | NOT_PROVIDED |
 
@@ -59,6 +75,6 @@ A07의 이전 Session 재평가 거부는 [자동 회귀 기록](er-d10-security
 
 ## 결함과 수용 결정
 
-사용자 보고 결함: `NOT_REPORTED`. 미보고는 결함 부재나 사용자 PASS가 아니다. 결함을 받으면 P0(잘못된 보안 판단·유출), P1(진행 불가·결합·상태), P2(설명·접근성), P3(시각·편의)로 분류하고 기대/실제, 안전한 재현 단계, 수정·재검수 상태를 기록한다.
+사용자 보고 결함은 **부분 검사 기준 저장 직후 정상 비교가 가능해 보이는 안내 충돌**이며 P2(설명 혼동)로 분류했다. 부분 기준 저장 후 새 검사 안내와 부분 비교 차단이 동시에 표시됐다. [후속 수정·검증](er-d10-evidence-revocation-followup.md)에서 부분 기준에 맞는 안내로 수정하고 자동 검증했다. 수정 후 실제 사용자 Safari 재검수는 `NOT_TESTED`다. 그 밖의 P0/P1 사용자 보고는 없으며, 미보고를 결함 부재나 사용자 PASS로 보지 않는다.
 
 `ER_D10_SAFARI_ANALYST_ACCEPTANCE_GO`는 아직 부여하지 않았다. 필수 수동 항목 PASS, 실제 실행 SHA·환경, 이해·후속 선택 확인 및 P0/P1 미해결 없음이 확인된 뒤 판정한다. 사용자 효과의 정량 개선과 운영 승인은 별도이며 현재 `NOT_ESTABLISHED`, `NOT_APPROVED`다.
