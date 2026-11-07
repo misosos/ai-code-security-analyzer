@@ -1,0 +1,259 @@
+{
+  "version": "ind1b-repair-observations/v1",
+  "parent_sha": "1e5a366c7fa3e084856b47a30d2918882fbc096e",
+  "after_source_state": "IND-1B repair patch recorded with this file; public contracts unchanged",
+  "oracle_sha256": "974d08fc3f8bd451405c365d49f919d0142886f289f4125f699179eba8344614",
+  "before_summary": {
+    "matches": 31,
+    "mismatches": 5
+  },
+  "after_summary": {
+    "matches": 36,
+    "mismatches": 0
+  },
+  "unchanged_control_ids": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A11",
+    "A12",
+    "A13",
+    "A14",
+    "A15",
+    "A21",
+    "A22",
+    "A23",
+    "A24",
+    "A25",
+    "A26",
+    "A27",
+    "A28",
+    "A29",
+    "A30",
+    "A31",
+    "A32",
+    "A33",
+    "A34",
+    "A35",
+    "A36"
+  ],
+  "changes": [
+    {
+      "id": "A16",
+      "before": {
+        "status": "ANALYZED",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "calls": [
+          [
+            41,
+            56
+          ]
+        ],
+        "bindings": [
+          [
+            4,
+            19,
+            15,
+            19
+          ]
+        ],
+        "diagnostics": [],
+        "verification": [
+          "UNVERIFIED"
+        ]
+      },
+      "after": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "calls": [],
+        "bindings": [],
+        "diagnostics": [
+          "BINDING_REASSIGNED"
+        ],
+        "verification": []
+      },
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "BINDING_REASSIGNED"
+        ]
+      },
+      "after_result": "MATCH"
+    },
+    {
+      "id": "A17",
+      "before": {
+        "status": "ANALYZED",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "calls": [
+          [
+            57,
+            72
+          ]
+        ],
+        "bindings": [
+          [
+            4,
+            19,
+            15,
+            19
+          ]
+        ],
+        "diagnostics": [],
+        "verification": [
+          "UNVERIFIED"
+        ]
+      },
+      "after": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "calls": [],
+        "bindings": [],
+        "diagnostics": [
+          "BINDING_REASSIGNED"
+        ],
+        "verification": []
+      },
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "BINDING_REASSIGNED"
+        ]
+      },
+      "after_result": "MATCH"
+    },
+    {
+      "id": "A18",
+      "before": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "calls": [
+          [
+            22,
+            33
+          ]
+        ],
+        "bindings": [
+          null
+        ],
+        "diagnostics": [],
+        "verification": [
+          "UNVERIFIED"
+        ]
+      },
+      "after": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "calls": [],
+        "bindings": [],
+        "diagnostics": [
+          "DYNAMIC_BINDING"
+        ],
+        "verification": []
+      },
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "DYNAMIC_BINDING"
+        ]
+      },
+      "after_result": "MATCH"
+    },
+    {
+      "id": "A19",
+      "before": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "calls": [
+          [
+            42,
+            53
+          ]
+        ],
+        "bindings": [
+          null
+        ],
+        "diagnostics": [],
+        "verification": [
+          "UNVERIFIED"
+        ]
+      },
+      "after": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "calls": [],
+        "bindings": [],
+        "diagnostics": [
+          "DYNAMIC_BINDING"
+        ],
+        "verification": []
+      },
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "DYNAMIC_BINDING"
+        ]
+      },
+      "after_result": "MATCH"
+    },
+    {
+      "id": "A20",
+      "before": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "calls": [],
+        "bindings": [],
+        "diagnostics": [
+          "LOCAL_EVAL_SHADOW"
+        ],
+        "verification": []
+      },
+      "after": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "calls": [
+          [
+            8,
+            19
+          ]
+        ],
+        "bindings": [
+          null
+        ],
+        "diagnostics": [],
+        "verification": [
+          "UNVERIFIED"
+        ]
+      },
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "after_result": "MATCH"
+    }
+  ]
+}

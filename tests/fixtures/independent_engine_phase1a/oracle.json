@@ -1,0 +1,588 @@
+{
+  "contract": "ind1a-preexecution-oracle/v1",
+  "provenance": "NEW_SYNTHETIC_AUDIT_CASES",
+  "independence": "동일 에이전트가 IND-1 구현에 참여했으므로 독립 인적 평가나 blind holdout이 아니다. 실행 전 ECMAScript scope 규칙·문서상 지원 계약으로 고정하며 결과를 보고 수정하지 않는다.",
+  "cases": [
+    {
+      "id": "A01",
+      "source": "async function inspect(data) { await eval(data); }",
+      "declaration_reference": "호출 eval은 로컬 선언이 없는 전역 이름 참조",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "await는 callee의 lexical binding을 바꾸지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A02",
+      "source": "function* inspect(data) { const dispatch = eval; dispatch(data); yield 0; }",
+      "declaration_reference": "generator 함수 내부의 단일 const 별칭",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "generator도 같은 함수·블록의 별칭 근거를 유지한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A03",
+      "source": "function inspect(data) { let dispatch = eval; dispatch(data); }",
+      "declaration_reference": "단일 let 별칭이며 쓰기 없음",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "const와 let의 최초 initializer 참조는 동일하게 확인할 수 있다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A04",
+      "source": "function inspect({eval: local}, data) { eval(data); }",
+      "declaration_reference": "구조 분해의 eval은 프로퍼티 키이고 로컬 이름은 local",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": [
+          "UNSUPPORTED_CONSTRUCT"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "복잡한 매개변수 범위는 제외되지만 함수 본문의 전역 eval은 가려지지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A05",
+      "source": "function inspect({entry: eval}, data) { eval(data); }",
+      "declaration_reference": "구조 분해의 로컬 binding 이름이 eval",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNSUPPORTED_CONSTRUCT",
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "프로퍼티 키와 binding 값을 구분해야 한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A06",
+      "source": "function inspect(...eval) { eval(input); }",
+      "declaration_reference": "rest 매개변수 eval은 지역 배열 binding",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNSUPPORTED_CONSTRUCT",
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "rest 매개변수도 전역 eval을 가린다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A07",
+      "source": "const {eval: local} = source; eval(input);",
+      "declaration_reference": "eval은 object pattern의 키이고 로컬은 local",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "프로퍼티 키를 전역 eval의 선언으로 등록하면 안 된다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A08",
+      "source": "let dispatch = eval; { let dispatch = other; dispatch(input); } dispatch(input);",
+      "declaration_reference": "안쪽 dispatch와 바깥 eval 별칭은 별개 binding",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "required_diagnostics": [
+          "UNRESOLVED_CALL"
+        ]
+      },
+      "support": "SUPPORTED",
+      "rationale": "안쪽 일반 함수는 보류하고 바깥 별칭의 근거만 유지한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A09",
+      "source": "function inspect() { var dispatch = eval; dispatch(input); var eval; }",
+      "declaration_reference": "hoisted var eval이 initializer의 eval을 가림",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "required_diagnostics": [
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "전역 eval 별칭으로 인정할 수 없다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A10",
+      "source": "import { eval as dispatch } from \"provider\"; dispatch(input);",
+      "declaration_reference": "import 이름은 모듈 export이며 전역 intrinsic 근거가 없음",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNRESOLVED_CALL"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "동일 철자의 export를 전역 eval로 간주하지 않는다",
+      "javascript_validity": "VALID_MODULE",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A11",
+      "source": "import * as policy from \"provider\"; policy.eval(input);",
+      "declaration_reference": "namespace member 호출",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNSUPPORTED_CALLEE"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "프로퍼티 이름 eval은 직접 식별자 호출이 아니다",
+      "javascript_validity": "VALID_MODULE",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A12",
+      "source": "function inspect(data) { return function(eval) { eval(data); }; }",
+      "declaration_reference": "중첩 함수의 매개변수가 eval을 가림",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "required_diagnostics": [
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "SUPPORTED",
+      "rationale": "closure의 바깥 이름을 사용하지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A13",
+      "source": "function inspect() { const dispatch = eval; function later() { dispatch(input); } }",
+      "declaration_reference": "별칭 참조가 선언과 다른 함수에 있음",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "CROSS_FUNCTION_ALIAS"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "문서화된 함수 간 별칭 미지원",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A14",
+      "source": "let dispatch = eval; if (flag) dispatch = other; dispatch(input);",
+      "declaration_reference": "조건부 assignment가 같은 binding을 변경할 수 있음",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "BINDING_REASSIGNED"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "CFG 없이 변경 가능성을 보수적으로 반영한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A15",
+      "source": "let dispatch = eval; ({value: dispatch} = replacement); dispatch(input);",
+      "declaration_reference": "object assignment pattern이 별칭 binding에 씀",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "BINDING_REASSIGNED"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "일반 대입 외의 구조 분해 쓰기도 반영한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A16",
+      "source": "let dispatch = eval; (dispatch) = other; dispatch(input);",
+      "declaration_reference": "괄호로 감싼 assignment target도 같은 별칭 binding",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "BINDING_REASSIGNED"
+        ]
+      },
+      "support": "SUPPORTED",
+      "rationale": "괄호는 대입 target binding을 바꾸지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A17",
+      "source": "let dispatch = eval; for ((dispatch) of replacements) {} dispatch(input);",
+      "declaration_reference": "괄호로 감싼 for-of target이 별칭에 반복 대입",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "BINDING_REASSIGNED"
+        ]
+      },
+      "support": "SUPPORTED",
+      "rationale": "for-of의 non-declaration write도 무시하면 안 된다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A18",
+      "source": "(eval) = replacement; eval(input);",
+      "declaration_reference": "괄호로 감싼 전역 eval assignment",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "DYNAMIC_BINDING"
+        ]
+      },
+      "support": "SUPPORTED",
+      "rationale": "문서의 전역 eval 쓰기 barrier는 괄호에도 적용돼야 한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A19",
+      "source": "({value: globalThis.eval} = replacement); eval(input);",
+      "declaration_reference": "구조 분해 pattern 내부 member target에 쓰기",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "DYNAMIC_BINDING"
+        ]
+      },
+      "support": "SUPPORTED",
+      "rationale": "member 쓰기 barrier를 pattern 내부에서도 보수적으로 적용해야 한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A20",
+      "source": "switch (eval(input)) { case 0: let eval = other; }",
+      "declaration_reference": "discriminant는 CaseBlock lexical environment 생성 전에 평가",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "switch 본문의 let은 discriminant의 전역 참조를 가리지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A21",
+      "source": "switch (input) { case eval(input): let eval = other; }",
+      "declaration_reference": "case expression은 CaseBlock의 eval TDZ binding 사용",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "required_diagnostics": [
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "discriminant와 case expression의 환경은 다르다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A22",
+      "source": "switch (eval(input)) { case 0: { let eval = other; } }",
+      "declaration_reference": "중첩 statement block의 eval은 discriminant와 별개",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "일반 중첩 블록의 scope 경계와 대조한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A23",
+      "source": "for (const eval of eval(input)) {}",
+      "declaration_reference": "for lexical binding의 TDZ가 RHS 참조에도 적용",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "required_diagnostics": [
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "for-of와 switch의 lexical environment 규칙을 혼동하지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A24",
+      "source": "function inspect() { try {} catch (eval) {} eval(input); }",
+      "declaration_reference": "catch parameter는 catch 밖의 eval을 가리지 않음",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "DIRECT_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "catch 범위 밖 전역 이름을 유지한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A25",
+      "source": "function inspect() { eval(input); const eval = other; }",
+      "declaration_reference": "본문 lexical eval TDZ",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "required_diagnostics": [
+          "LOCAL_EVAL_SHADOW"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "선언보다 이른 참조를 전역으로 승격하지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A26",
+      "source": "var dispatch = eval; var dispatch; dispatch(input);",
+      "declaration_reference": "var 재선언은 실제로 같은 binding이지만 중복 선언 보수적 제한",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "AMBIGUOUS_BINDING"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "문서상 재선언을 일괄 보류하는 의도적 누락을 기록한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A27",
+      "source": "const dispatch = eval; const forward = dispatch; forward(input);",
+      "declaration_reference": "별칭 체인",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNRESOLVED_CALL"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "전이 별칭은 현재 지원 범위 밖이다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A28",
+      "source": "const dispatch = eval; dispatch?.(input);",
+      "declaration_reference": "optional 별칭 호출은 간접 호출 형태",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNSUPPORTED_CALLEE"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "문서화된 optional call 제외",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A29",
+      "source": "globalThis[\"eval\"](input);",
+      "declaration_reference": "computed member 호출",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNSUPPORTED_CALLEE"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "문법 구조를 전역 identifier 호출로 취급하지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A30",
+      "source": "Function(input); new Function(input);",
+      "declaration_reference": "Function 일반 호출 및 constructor",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNRESOLVED_CALL",
+          "UNSUPPORTED_CONSTRUCT"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "기존 baseline 지원과 IND-1 최소 범위를 분리한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A31",
+      "source": "const dispatch = eval; dispatch`literal`;",
+      "declaration_reference": "tagged template 별칭",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "UNSUPPORTED_CALLEE"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "괄호 arguments 호출만 지원한다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A32",
+      "source": "const pattern = /eval\\(.*\\)/; const template = `eval(input)`;",
+      "declaration_reference": "regex 및 template 문자열 안의 이름",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "문자열 내용은 callee가 아니다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A33",
+      "source": "const dispatch = eval; /* only text */ dispatch(input);",
+      "declaration_reference": "주석이 있어도 initializer와 call의 binding 동일",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "SUPPORTED",
+      "rationale": "주석을 인접 토큰의 이름 해석으로 오인하지 않는다",
+      "javascript_validity": "VALID_SCRIPT",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A34",
+      "source": "function inspect( {",
+      "declaration_reference": "구문 오류와 복구 노드",
+      "expected": {
+        "status": "PARSE_ERROR",
+        "kinds": [],
+        "required_diagnostics": [
+          "PARSE_ERROR"
+        ]
+      },
+      "support": "CONSERVATIVE_REJECTION",
+      "rationale": "Tree-sitter가 명시적으로 복구한 AST는 관찰을 내지 않는다",
+      "javascript_validity": "INVALID_GRAMMAR",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A35",
+      "source": "const dispatch = eval; dispatch(input); break;",
+      "declaration_reference": "top-level break는 ECMAScript early error",
+      "expected": {
+        "status": "ANALYZED",
+        "kinds": [
+          "SIMPLE_ALIAS_CALL"
+        ],
+        "required_diagnostics": []
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "IND-1은 early error validator가 아니므로 구문 관찰을 실행 유효성으로 읽으면 안 된다",
+      "javascript_validity": "INVALID_EARLY_ERROR",
+      "vulnerability_verified": false
+    },
+    {
+      "id": "A36",
+      "source": "let dispatch = eval; let dispatch = eval; dispatch(input);",
+      "declaration_reference": "중복 lexical binding은 JavaScript early error",
+      "expected": {
+        "status": "PARTIAL",
+        "kinds": [],
+        "required_diagnostics": [
+          "AMBIGUOUS_BINDING"
+        ]
+      },
+      "support": "DOCUMENTED_UNSUPPORTED",
+      "rationale": "Tree-sitter has_error와 JavaScript early error를 별도 기록한다",
+      "javascript_validity": "INVALID_EARLY_ERROR",
+      "vulnerability_verified": false
+    }
+  ]
+}
