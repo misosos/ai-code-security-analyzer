@@ -35,12 +35,42 @@ test('수동 조사 QA는 터미널이 아닌 출력에 토큰을 내보내지 �
   assert.doesNotMatch(result.output, /로컬 API 토큰:|[A-Za-z0-9_-]{43,}/);
 });
 
+test('실제 Skip QA smoke는 부분 검사와 별도 바이트 평가, 해제 후 차단을 보존한다', { timeout: 240_000 }, async () => {
+  const result = await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [script, '--investigation', '--scenario=skip', '--smoke-test'], { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    let output = '';
+    child.stdout.on('data', (chunk) => { output += chunk; });
+    child.stderr.on('data', (chunk) => { output += chunk; });
+    child.once('error', reject);
+    child.once('close', (code) => resolve({ code, output }));
+  });
+  assert.equal(result.code, 0, result.output);
+  assert.match(result.output, /shared=1 baselineOnly=1 currentOnly=0; PARTIAL; PATH_EXPLICITLY_SKIPPED; SUPPORTED; INCOMPARABLE; rule-bytes=UNVERIFIED; released/);
+  assert.match(result.output, /qa_cleanup=complete/);
+  assert.doesNotMatch(result.output, /[A-Za-z0-9_-]{43,}|ai-csa-safari-manual-[^\s]+|SAFARI_QA_SYNTHETIC_SOURCE_CANARY|return eval\(input\);/);
+});
+
+test('Skip 시나리오는 조사용 실행에서만 선택할 수 있다', async () => {
+  const result = await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [script, '--scenario=skip', '--smoke-test'], { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    let output = '';
+    child.stdout.on('data', (chunk) => { output += chunk; });
+    child.stderr.on('data', (chunk) => { output += chunk; });
+    child.once('error', reject);
+    child.once('close', (code) => resolve({ code, output }));
+  });
+  assert.equal(result.code, 2);
+  assert.match(result.output, /usage:/);
+  assert.doesNotMatch(result.output, /로컬 API 토큰:|qa_cleanup=complete/);
+});
+
 test('조사 QA 터미널은 신호와 서버 비정상 종료에서 소유 자료를 정리한다', { timeout: 180_000 }, async () => {
   const source = `
 import os, pty, select, signal, subprocess, sys, time, re
-for sig in (signal.SIGINT, signal.SIGTERM, None):
+for sig, skip in ((signal.SIGINT, False), (signal.SIGTERM, False), (None, False), (signal.SIGINT, True)):
     master, slave = pty.openpty()
-    child = subprocess.Popen([sys.argv[1], sys.argv[2], '--investigation'], stdin=slave, stdout=slave, stderr=slave, cwd=sys.argv[3], close_fds=True)
+    args = [sys.argv[1], sys.argv[2], '--investigation'] + (['--scenario=skip'] if skip else [])
+    child = subprocess.Popen(args, stdin=slave, stdout=slave, stderr=slave, cwd=sys.argv[3], close_fds=True)
     os.close(slave)
     data = b''
     deadline = time.monotonic() + 60
@@ -51,6 +81,18 @@ for sig in (signal.SIGINT, signal.SIGTERM, None):
             except OSError: break
     if '기준 검사를 저장한 뒤'.encode() not in data:
         child.terminate(); child.wait(timeout=15); raise SystemExit('qa_terminal_not_ready')
+    if not re.search(rb'[a-f0-9]{40}', data):
+        child.terminate(); child.wait(timeout=15); raise SystemExit('qa_revision_missing')
+    if skip:
+        os.write(master, b'\\n')
+        deadline = time.monotonic() + 10
+        while '제외 시나리오가 적용됐습니다'.encode() not in data and child.poll() is None and time.monotonic() < deadline:
+            readable, _, _ = select.select([master], [], [], 0.2)
+            if readable:
+                try: data += os.read(master, 65536)
+                except OSError: break
+        if '제외 시나리오가 적용됐습니다'.encode() not in data:
+            child.terminate(); child.wait(timeout=15); raise SystemExit('qa_terminal_skip_update_failed')
     if sig is None:
         processes = subprocess.check_output(['ps', '-axo', 'pid=,ppid=,command='], text=True)
         vite_pid = next((int(parts[0]) for line in processes.splitlines() if (parts := line.strip().split(None, 2)) and len(parts) == 3 and int(parts[1]) == child.pid and 'npm run dev' in parts[2]), None)

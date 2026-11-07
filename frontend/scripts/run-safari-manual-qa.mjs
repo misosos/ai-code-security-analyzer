@@ -15,9 +15,10 @@ const frontendDirectory = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const repositoryDirectory = resolve(frontendDirectory, '..');
 const smokeTest = process.argv.includes('--smoke-test');
 const investigationTest = process.argv.includes('--investigation');
-const unknownArguments = process.argv.slice(2).filter((argument) => argument !== '--smoke-test' && argument !== '--investigation');
-if (unknownArguments.length) {
-  process.stderr.write('usage: npm run qa:safari [-- --smoke-test]\n');
+const skipScenario = process.argv.includes('--scenario=skip');
+const unknownArguments = process.argv.slice(2).filter((argument) => !['--smoke-test', '--investigation', '--scenario=skip'].includes(argument));
+if (unknownArguments.length || (skipScenario && !investigationTest)) {
+  process.stderr.write('usage: npm run qa:safari [-- --smoke-test] | npm run qa:investigation:safari [-- --scenario=skip] [--smoke-test]\n');
   process.exit(2);
 }
 
@@ -117,7 +118,11 @@ async function runSmoke(apiOrigin, webOrigin, token, projectRoot) {
   process.stdout.write(`QA smoke passed: Project A=${projectA.finding_count} findings, Project B=0 findings; auth/allowlist passed.\n`);
 }
 
-async function updateSyntheticProject(projectPath) {
+async function updateSyntheticProject(projectPath, skip = false) {
+  if (skip) {
+    await writeFile(join(projectPath, '.semgrepignore'), 'retired.js\n', { mode: 0o600 });
+    return;
+  }
   await writeFile(join(projectPath, 'retired.js'), 'function review(input) { return String(input); }\n', { mode: 0o600 });
   await writeFile(join(projectPath, 'added.js'), 'function added(input) { return eval(input); }\n', { mode: 0o600 });
 }
@@ -130,19 +135,22 @@ async function runInvestigationSmoke(apiOrigin, webOrigin, token, projectPath, p
   const denied = await post('/api/v2/investigation-scans', { target_id: 'safari-synthetic-a', rule_profile_id: 'baseline' }, { ...headers, 'X-Local-API-Token': 'incorrect' });
   if (denied.status !== 401) throw new Error('qa_token_boundary_failed');
   const scan = async () => {
-    const response = await post('/api/v2/investigation-scans', { target_id: 'safari-synthetic-a', rule_profile_id: 'baseline' });
+    const response = await post(skipScenario ? '/api/v2/investigation-scans/rule-bytes' : '/api/v2/investigation-scans', { target_id: 'safari-synthetic-a', rule_profile_id: 'baseline' });
     if (response.status !== 200) throw new Error('qa_investigation_scan_failed');
     const text = await response.text();
     assertSafeResponse(text, { token, temporaryDirectory: privateRoot });
     const payload = JSON.parse(text);
-    if (payload.contract_version !== 'investigation-scan/v1' || payload.scan.scan_status !== 'completed' || payload.scan.finding_count !== 2) throw new Error('qa_synthetic_findings_unexpected');
+    if (payload.contract_version !== 'investigation-scan/v1') throw new Error('qa_synthetic_findings_unexpected');
     return payload;
   };
   const baseline = await scan();
+  if (baseline.scan.scan_status !== 'completed' || !baseline.scan.completed || baseline.scan.finding_count !== 2) throw new Error('qa_synthetic_findings_unexpected');
   if (!baseline.scan.findings.some((f) => f.file_path === 'stable.js') || !baseline.scan.findings.some((f) => f.file_path === 'retired.js')) throw new Error('qa_synthetic_findings_unexpected');
-  await updateSyntheticProject(projectPath);
+  await updateSyntheticProject(projectPath, skipScenario);
   const current = await scan();
-  if (!current.scan.findings.some((f) => f.file_path === 'stable.js') || !current.scan.findings.some((f) => f.file_path === 'added.js')) throw new Error('qa_synthetic_findings_unexpected');
+  if (skipScenario) {
+    if (current.scan.scan_status !== 'partial' || current.scan.completed !== false || current.scan.finding_count !== 1 || current.scan.findings[0]?.file_path !== 'stable.js') throw new Error('qa_synthetic_findings_unexpected');
+  } else if (current.scan.scan_status !== 'completed' || !current.scan.completed || current.scan.finding_count !== 2 || !current.scan.findings.some((f) => f.file_path === 'stable.js') || !current.scan.findings.some((f) => f.file_path === 'added.js')) throw new Error('qa_synthetic_findings_unexpected');
   const sessionResponse = await post('/api/v2/investigations', { baseline_handle: baseline.run_handle, current_handle: current.run_handle });
   if (sessionResponse.status !== 201) throw new Error('qa_investigation_session_failed');
   const session = await sessionResponse.json();
@@ -151,12 +159,26 @@ async function runInvestigationSmoke(apiOrigin, webOrigin, token, projectPath, p
   const text = await evaluationResponse.text();
   assertSafeResponse(text, { token, temporaryDirectory: privateRoot });
   const evaluation = JSON.parse(text);
-  for (const category of ['shared', 'baselineOnly', 'currentOnly']) if (evaluation.findings.filter((f) => f.category === category).length !== 1) throw new Error('qa_investigation_categories_invalid');
-  if (evaluation.overall_assessment !== 'UNDETERMINED' || !evaluation.limitation_codes.includes('source_snapshot_not_collected')) throw new Error('qa_investigation_assessment_invalid');
+  const expectedCounts = { shared: 1, baselineOnly: 1, currentOnly: skipScenario ? 0 : 1 };
+  for (const [category, count] of Object.entries(expectedCounts)) if (evaluation.findings.filter((f) => f.category === category).length !== count) throw new Error('qa_investigation_categories_invalid');
+  if (evaluation.overall_assessment !== (skipScenario ? 'INCOMPARABLE' : 'UNDETERMINED') || !evaluation.limitation_codes.includes('source_snapshot_not_collected')) throw new Error('qa_investigation_assessment_invalid');
+  if (skipScenario) {
+    const finding = evaluation.findings.find((f) => f.category === 'baselineOnly');
+    const retired = baseline.scan.findings.find((f) => f.file_path === 'retired.js');
+    if (evaluation.comparability !== 'INCOMPARABLE' || finding?.finding_id !== retired?.finding_id || finding?.path_observation !== 'PATH_EXPLICITLY_SKIPPED' || finding?.skip_hypothesis !== 'SUPPORTED') throw new Error('qa_skip_observation_invalid');
+    const comparisonResponse = await post('/api/v2/investigations/rule-bytes/evaluate', { investigation_handle: session.investigation_handle });
+    const comparisonText = await comparisonResponse.text();
+    assertSafeResponse(comparisonText, { token, temporaryDirectory: privateRoot });
+    const comparison = JSON.parse(comparisonText);
+    if (comparisonResponse.status !== 200 || comparison.contract_version !== 'rule-bytes-comparison/v1' || comparison.status !== 'UNVERIFIED') throw new Error('qa_rule_bytes_assessment_invalid');
+  }
   if ((await post('/api/v2/investigation-release', { kind: 'investigation', handle: session.investigation_handle })).status !== 204) throw new Error('qa_release_failed');
   if ((await post('/api/v2/investigations/evaluate', { investigation_handle: session.investigation_handle })).status !== 404) throw new Error('qa_release_reuse_failed');
+  if (skipScenario && (await post('/api/v2/investigations/rule-bytes/evaluate', { investigation_handle: session.investigation_handle })).status !== 404) throw new Error('qa_release_reuse_failed');
   for (const handle of [baseline.run_handle, current.run_handle]) if ((await post('/api/v2/investigation-release', { kind: 'run', handle })).status !== 204) throw new Error('qa_release_failed');
-  process.stdout.write('Investigation QA smoke passed: A/B -> A/C; shared=1 baselineOnly=1 currentOnly=1; released.\n');
+  process.stdout.write(skipScenario
+    ? 'Investigation skip QA smoke passed: shared=1 baselineOnly=1 currentOnly=0; PARTIAL; PATH_EXPLICITLY_SKIPPED; SUPPORTED; INCOMPARABLE; rule-bytes=UNVERIFIED; released.\n'
+    : 'Investigation QA smoke passed: A/B -> A/C; shared=1 baselineOnly=1 currentOnly=1; released.\n');
 }
 
 try {
@@ -199,8 +221,8 @@ try {
     '',
   ].join('\n'), { mode: 0o600 });
 
-  const apiPort = await allocateLoopbackPort();
-  const frontendPort = await allocateLoopbackPort([apiPort]);
+  const apiPort = await allocateLoopbackPort([4173]);
+  const frontendPort = await allocateLoopbackPort([apiPort, 4173]);
   const apiOrigin = `http://127.0.0.1:${apiPort}`;
   const webOrigin = `http://127.0.0.1:${frontendPort}`;
   const token = randomBytes(32).toString('base64url');
@@ -265,10 +287,19 @@ try {
     process.stdout.write('로컬 API 토큰: ' + token + '\n');
     process.stdout.write('토큰을 채팅, 문서, 스크린샷에 복사하지 마세요. 검수 후 Ctrl+C로 종료하세요.\n');
     if (investigationTest) {
-      process.stdout.write('기준 검사를 저장한 뒤 이 터미널에서 Enter를 눌러 합성 A/B를 A/C로 변경하세요.\n');
+      const revision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryDirectory, encoding: 'utf8' });
+      const tracked = spawnSync('git', ['diff', '--quiet', 'HEAD', '--'], { cwd: repositoryDirectory });
+      if (revision.status !== 0 || !/^[a-f0-9]{40}$/.test(revision.stdout.trim()) || ![0, 1].includes(tracked.status)) throw new Error('qa_revision_unavailable');
+      process.stdout.write(`검수 코드 SHA: ${revision.stdout.trim()} (추적 파일 변경 ${tracked.status === 0 ? '없음' : '있음'})\n`);
+      process.stdout.write(skipScenario
+        ? '기준 검사를 저장한 뒤 이 터미널에서 Enter를 눌러 retired.js 제외 시나리오를 적용하세요.\n'
+        : '기준 검사를 저장한 뒤 이 터미널에서 Enter를 눌러 합성 A/B를 A/C로 변경하세요.\n');
       process.stdin.resume();
       process.stdin.once('data', async () => {
-        try { await updateSyntheticProject(projectAPath); process.stdout.write('합성 프로젝트가 A/C로 변경됐습니다. 재검사를 실행하세요.\n'); }
+        try {
+          await updateSyntheticProject(projectAPath, skipScenario);
+          process.stdout.write(skipScenario ? '제외 시나리오가 적용됐습니다. 재검사를 실행하세요.\n' : '합성 프로젝트가 A/C로 변경됐습니다. 재검사를 실행하세요.\n');
+        }
         catch { process.stderr.write('qa_fixture_update_failed\n'); requestStop(); }
       });
     }
