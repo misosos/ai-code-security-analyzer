@@ -1,0 +1,104 @@
+[
+  {
+    "file": "direct.js",
+    "expected_status": "ANALYZED",
+    "expected_kinds": [
+      "DIRECT_CALL"
+    ],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "alias.js",
+    "expected_status": "ANALYZED",
+    "expected_kinds": [
+      "SIMPLE_ALIAS_CALL"
+    ],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "text.js",
+    "expected_status": "ANALYZED",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "parameter_shadow.js",
+    "expected_status": "ANALYZED",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "function_shadow.js",
+    "expected_status": "ANALYZED",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "reassigned.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "cross_function.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "block_shadow.js",
+    "expected_status": "ANALYZED",
+    "expected_kinds": [
+      "DIRECT_CALL"
+    ],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "optional.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "indirect.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "constructor.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "alias_chain.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "branch_alias.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "captured_write.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "escaped_identifier.js",
+    "expected_status": "PARTIAL",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  },
+  {
+    "file": "syntax_error.js",
+    "expected_status": "PARSE_ERROR",
+    "expected_kinds": [],
+    "provenance": "SYNTHETIC_DEVELOPMENT_FIXTURE"
+  }
+]
