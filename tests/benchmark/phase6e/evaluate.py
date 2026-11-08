@@ -36,20 +36,20 @@ RULE_PROFILES = {
     "experimental.javascript-eval-taint-with-synthetic-sanitizer": ("eval_taint", "eval_taint"),
     "experimental.javascript-command-injection-taint": ("command_injection", "command_injection"),
 }
+# Preserve the exact Phase 6E rule bytes after an active rule evolves. The
+# immutable historical corpus must not silently score a newer rule.
+PINNED_RULES = {
+    "rules/security-baseline.yml": "security-baseline.yml",
+    "rules/experimental/javascript-command-injection-taint.yml": "javascript-command-injection-taint.yml",
+}
 PROFILES = {
-    "baseline": "rules/security-baseline.yml",
+    "baseline": "tests/benchmark/phase6e/pinned_rules/security-baseline.yml",
     "eval_taint": "rules/experimental/javascript-eval-taint.yml",
-    # Preserve the exact Phase 6E rule bytes after the active experimental rule
-    # evolves. The immutable historical corpus must not silently score a newer rule.
     "command_injection": "tests/benchmark/phase6e/pinned_rules/javascript-command-injection-taint.yml",
 }
 RULE_HASH_PATHS = {
-    **{
-        relative: ROOT / relative
-        for relative in RULE_SHA256
-        if relative != "rules/experimental/javascript-command-injection-taint.yml"
-    },
-    "rules/experimental/javascript-command-injection-taint.yml": DATA_ROOT / "pinned_rules" / "javascript-command-injection-taint.yml",
+    relative: DATA_ROOT / "pinned_rules" / PINNED_RULES[relative] if relative in PINNED_RULES else ROOT / relative
+    for relative in RULE_SHA256
 }
 SIGNALS = {"positive", "negative", "out_of_scope"}
 RELEVANCE = {"review_worthy", "lower_priority", "undetermined"}
@@ -451,7 +451,7 @@ def run_evaluation() -> dict[str, Any]:
             rule_file = ROOT / rule_path
             trusted_root = (
                 DATA_ROOT / "pinned_rules"
-                if profile == "command_injection"
+                if rule_file.parent == DATA_ROOT / "pinned_rules"
                 else ROOT / "rules"
             )
             results[profile] = SemgrepAdapter(trusted_root).scan(target, rule_file)

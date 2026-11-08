@@ -25,15 +25,14 @@ RULE_SHA256 = {
     "rules/experimental/javascript-eval-taint.yml": "6c0274e4c1829b55ef26361953be3d0ed9af56384fcd63968317a5e7c7ad8e8e",
     "rules/experimental/javascript-command-injection-taint.yml": "abcbe9cb181986861c1c8597b0828e14caf839d5283ad27d9e4646ce69893783",
 }
+# Active rules evolve after pre-registration; the historical bytes are pinned.
+PINNED_RULES = {
+    "rules/security-baseline.yml": "security-baseline.yml",
+    "rules/experimental/javascript-command-injection-taint.yml": "javascript-command-injection-taint.yml",
+}
 RULE_HASH_PATHS = {
-    **{
-        relative: ROOT / relative
-        for relative in RULE_SHA256
-        if relative != "rules/experimental/javascript-command-injection-taint.yml"
-    },
-    "rules/experimental/javascript-command-injection-taint.yml": DATA
-    / "pinned_rules"
-    / "javascript-command-injection-taint.yml",
+    relative: DATA / "pinned_rules" / PINNED_RULES[relative] if relative in PINNED_RULES else ROOT / relative
+    for relative in RULE_SHA256
 }
 
 
