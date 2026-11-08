@@ -1,6 +1,7 @@
 """Actual CLI evaluation of the local baseline on labeled synthetic samples."""
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,7 @@ import pytest
 
 
 FIXTURES = Path(__file__).parent / "fixtures" / "security_baseline"
+RULE_TEST_FIXTURE = Path(__file__).parent / "fixtures" / "dynamic_eval_rule_test" / "dynamic-eval.js"
 RULES = Path(__file__).resolve().parents[1] / "rules" / "security-baseline.yml"
 
 # Expected rule IDs and locations for each labeled synthetic file.
@@ -105,3 +107,25 @@ def test_baseline_positive_and_negative_cli_evaluation(tmp_path: Path) -> None:
         (finding["file_path"], finding["line_number"]): finding["finding_id"]
         for finding in repeat["findings"]
     }
+
+
+@pytest.mark.skipif(shutil.which("semgrep") is None, reason="Semgrep CLI is not installed")
+def test_dynamic_eval_native_rule_annotations(tmp_path: Path) -> None:
+    """Semgrep's own ruleid/ok/todo annotations pin the dynamic-eval semantics."""
+    target = tmp_path / RULE_TEST_FIXTURE.name
+    shutil.copy2(RULE_TEST_FIXTURE, target)
+    home = tmp_path / "home"
+    home.mkdir()
+    completed = subprocess.run(
+        [
+            "semgrep", "--test", "--metrics=off", "--disable-version-check",
+            "--config", str(RULES), str(target),
+        ],
+        capture_output=True, text=True, check=False, timeout=120, cwd=tmp_path,
+        env={
+            "PATH": os.environ.get("PATH", os.defpath), "HOME": str(home), "XDG_CACHE_HOME": str(home),
+            "SEMGREP_SEND_METRICS": "off", "SEMGREP_ENABLE_VERSION_CHECK": "0",
+        },
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "All tests passed" in completed.stdout + completed.stderr
