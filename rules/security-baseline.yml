@@ -6,8 +6,9 @@ rules:
     metadata:
       cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
     # R1-P: see docs/r1p-dynamic-eval-rule-integration.md for evidence and
-    # known limitations (var/escaped-identifier shadowing, globalThis/window
-    # member eval, Reflect.construct, closure-captured alias writes).
+    # known limitations (function/var/arrow-parameter/escaped-identifier eval
+    # shadowing, globalThis/window member eval, Reflect.construct,
+    # closure-captured alias writes).
     options:
       # Follows single-assignment aliases such as `const run = eval; run(x)`;
       # a later reassignment (`run = other`) stops propagation.
@@ -23,8 +24,8 @@ rules:
           function $F(..., eval, ...) { ... }
       - pattern-not-inside: |
           function $F(..., Function, ...) { ... }
-      - pattern-not-inside: |
-          function $F(...) { ... function eval(...) { ... } ... }
+      # No `function eval` exclusion: Semgrep's `...` also reaches nested
+      # helpers and hid real global eval calls (R1-P-R1).
       - pattern-not-inside: |
           const eval = $V;
           ...
