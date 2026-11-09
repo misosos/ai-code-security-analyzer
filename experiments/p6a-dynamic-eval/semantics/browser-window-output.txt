@@ -1,0 +1,5 @@
+# Chromium 156.0.8078.4 — node experiments/p6a-dynamic-eval/semantics/browser_window_cases.cjs
+# probe: "typeof arguments"
+P07_const_window_eval        direct-eval
+P11_window_member            indirect-eval
+N07_local_window_object      no-eval (returned "typeof arguments")

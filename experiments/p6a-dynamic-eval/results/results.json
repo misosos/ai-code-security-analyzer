@@ -1,9 +1,148 @@
 {
   "baseline_rule_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "evidence": {
+    "E1": {
+      "description": "Evidence: eval(...) inside the `const eval = $V; ...` region, capturing $V",
+      "matches": {
+        "I01_strict_a8:5:10": {
+          "V": "globalThis.eval"
+        },
+        "N01_const_json_parse:4:10": {
+          "V": "JSON.parse"
+        },
+        "N03_const_local_function:4:10": {
+          "V": "(v) => v"
+        },
+        "N04_tdz_self_reference:4:10": {
+          "V": "eval"
+        },
+        "N06_inner_shadow_under_a8:6:12": {
+          "V": "globalThis.eval"
+        },
+        "N09_local_global_this_binding:5:10": {
+          "V": "globalThis.eval"
+        },
+        "P05_a8_const_global_this:4:10": {
+          "V": "globalThis.eval"
+        },
+        "P07_const_window_eval:4:10": {
+          "V": "window.eval"
+        },
+        "P08_const_computed_member:4:10": {
+          "V": "globalThis[\"eval\"]"
+        },
+        "P10_two_step_alias:5:10": {
+          "V": "globalThis.eval"
+        },
+        "P12_a8_nested_use:5:12": {
+          "V": "globalThis.eval"
+        },
+        "U02_unknown_factory:4:10": {
+          "V": "getEvaluator()"
+        },
+        "U03_conditional_builtin:4:10": {
+          "V": "useNative ? globalThis.eval : JSON.parse"
+        },
+        "U04_configured_evaluator:4:10": {
+          "V": "config.evaluator"
+        }
+      }
+    },
+    "E2": {
+      "description": "Evidence: production positive patterns with all four exclusions removed",
+      "matches": {
+        "I01_strict_a8:5:10": {
+          "V": null
+        },
+        "N01_const_json_parse:4:10": {
+          "V": null
+        },
+        "N02_let_json_parse:4:10": {
+          "V": null
+        },
+        "N03_const_local_function:4:10": {
+          "V": null
+        },
+        "N04_tdz_self_reference:4:10": {
+          "V": null
+        },
+        "N06_inner_shadow_under_a8:6:12": {
+          "V": null
+        },
+        "N08_let_reassigned_after_builtin:5:10": {
+          "V": null
+        },
+        "N09_local_global_this_binding:5:10": {
+          "V": null
+        },
+        "P01_direct_eval:3:10": {
+          "V": null
+        },
+        "P02_comma_indirect:3:10": {
+          "V": null
+        },
+        "P03_alias:4:10": {
+          "V": null
+        },
+        "P05_a8_const_global_this:4:10": {
+          "V": null
+        },
+        "P06_let_global_this:4:10": {
+          "V": null
+        },
+        "P07_const_window_eval:4:10": {
+          "V": null
+        },
+        "P08_const_computed_member:4:10": {
+          "V": null
+        },
+        "P09_destructured_binding:4:10": {
+          "V": null
+        },
+        "P10_two_step_alias:5:10": {
+          "V": null
+        },
+        "P12_a8_nested_use:5:12": {
+          "V": null
+        },
+        "P14_var_global_this:4:10": {
+          "V": null
+        },
+        "U01_parameter_named_eval:3:10": {
+          "V": null
+        },
+        "U02_unknown_factory:4:10": {
+          "V": null
+        },
+        "U03_conditional_builtin:4:10": {
+          "V": null
+        },
+        "U04_configured_evaluator:4:10": {
+          "V": null
+        }
+      }
+    },
+    "ast_callees": {
+      "P01_direct_eval": [
+        "Call(Special(Eval))"
+      ],
+      "P03_alias": [
+        "Call(Id(run))"
+      ],
+      "P05_a8_const_global_this": [
+        "Call(Special(Eval))"
+      ],
+      "P13_member_alias": [
+        "Call(Id(evaluate))"
+      ]
+    }
+  },
   "rule_variant_sha256": {
     "CA": "2d4033458e93b62686eabf937b432e359537c7b92e52b4f736d1a8aebc4b730f",
     "CB": "e8a0d23c4182307cb62c7452bc80b8a3a934304654305ca8b92180671d9da303",
     "CC": "d8b3bbb1734e543fbac6415f22a1936cdb5608bb3ee352626327a4627e32a744",
+    "E1": "2f0bc46e45d45e321395b039b5e85a6e2e514702e79a0e9035dcfce88e4aeadb",
+    "E2": "0b481103e7da0e473ee41517131cfd4d33b7889e2504626934a305700ad72996",
     "R0": "245d5c45988826e96bdb18c998c9335cc252690e0b9a741d030d95f1126813a7",
     "X1": "fd16cf9b4343a3b64dcde6e4f14d3cb16b5a97c9412ec312791f9beb269172c6",
     "X2": "aea1b3404815819edf548bfecacf1e72f61dab9780651a0f204fcea07964aa7c",
@@ -29,7 +168,7 @@
         }
       },
       "description": "Candidate A: re-include const/let eval bound to globalThis.eval or window.eval",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -241,13 +380,24 @@
       "p6a": {
         "counts": {
           "FN": 4,
-          "FP": 2,
-          "TN": 6,
+          "FP": 3,
+          "TN": 7,
           "TP": 10,
+          "invalid_reported": 1,
+          "invalid_silent": 0,
           "undetermined_reported": 0,
           "undetermined_silent": 4
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_reported",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "TN",
@@ -256,6 +406,8 @@
           "N06_inner_shadow_under_a8": "FP",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "FP",
+          "N09_local_global_this_binding": "FP",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -283,8 +435,18 @@
             "FP": 2,
             "TN": 16,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -336,8 +498,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -363,17 +535,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 3.794,
-        "runs": [
-          4.815,
-          4.179,
-          3.794,
-          3.489,
-          3.438
-        ]
-      }
+      ]
     },
     "CB": {
       "benchmark_delta_vs_R0": {
@@ -391,7 +553,7 @@
         }
       },
       "description": "Candidate B: globalThis.eval / window.eval call branch via symbolic propagation",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -603,13 +765,24 @@
       "p6a": {
         "counts": {
           "FN": 6,
-          "FP": 1,
-          "TN": 7,
+          "FP": 2,
+          "TN": 8,
           "TP": 8,
+          "invalid_reported": 0,
+          "invalid_silent": 1,
           "undetermined_reported": 0,
           "undetermined_silent": 4
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_silent",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "TN",
@@ -618,6 +791,8 @@
           "N06_inner_shadow_under_a8": "TN",
           "N07_local_window_object": "FP",
           "N08_let_reassigned_after_builtin": "TN",
+          "N09_local_global_this_binding": "TN",
+          "N10_local_global_this_member": "FP",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -645,8 +820,18 @@
             "FP": 2,
             "TN": 16,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -698,8 +883,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 9,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "TP",
@@ -725,17 +920,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 3.217,
-        "runs": [
-          4.162,
-          3.217,
-          3.177,
-          3.208,
-          3.26
-        ]
-      }
+      ]
     },
     "CC": {
       "benchmark_delta_vs_R0": {
@@ -753,7 +938,7 @@
         }
       },
       "description": "Candidate C: drop const/let exclusions",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -968,13 +1153,24 @@
       "p6a": {
         "counts": {
           "FN": 3,
-          "FP": 6,
-          "TN": 2,
+          "FP": 7,
+          "TN": 3,
           "TP": 11,
+          "invalid_reported": 1,
+          "invalid_silent": 0,
           "undetermined_reported": 3,
           "undetermined_silent": 1
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_reported",
           "N01_const_json_parse": "FP",
           "N02_let_json_parse": "FP",
           "N03_const_local_function": "FP",
@@ -983,6 +1179,8 @@
           "N06_inner_shadow_under_a8": "FP",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "FP",
+          "N09_local_global_this_binding": "FP",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -1010,8 +1208,18 @@
             "FP": 3,
             "TN": 15,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -1063,8 +1271,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -1090,17 +1308,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 3.846,
-        "runs": [
-          3.275,
-          4.087,
-          3.846,
-          3.822,
-          4.842
-        ]
-      }
+      ]
     },
     "R0": {
       "benchmark_delta_vs_R0": {
@@ -1118,7 +1326,7 @@
         }
       },
       "description": "Production rule, unchanged",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -1331,12 +1539,23 @@
         "counts": {
           "FN": 9,
           "FP": 0,
-          "TN": 8,
+          "TN": 10,
           "TP": 5,
+          "invalid_reported": 0,
+          "invalid_silent": 1,
           "undetermined_reported": 0,
           "undetermined_silent": 4
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_silent",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "TN",
@@ -1345,6 +1564,8 @@
           "N06_inner_shadow_under_a8": "TN",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "TN",
+          "N09_local_global_this_binding": "TN",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -1372,8 +1593,18 @@
             "FP": 2,
             "TN": 16,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -1425,8 +1656,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -1452,17 +1693,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 2.943,
-        "runs": [
-          3.024,
-          2.811,
-          2.909,
-          2.943,
-          2.981
-        ]
-      }
+      ]
     },
     "X1": {
       "benchmark_delta_vs_R0": {
@@ -1480,7 +1711,7 @@
         }
       },
       "description": "Ablation: no `eval` parameter exclusion",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -1696,12 +1927,23 @@
         "counts": {
           "FN": 9,
           "FP": 0,
-          "TN": 8,
+          "TN": 10,
           "TP": 5,
+          "invalid_reported": 0,
+          "invalid_silent": 1,
           "undetermined_reported": 1,
           "undetermined_silent": 3
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_silent",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "TN",
@@ -1710,6 +1952,8 @@
           "N06_inner_shadow_under_a8": "TN",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "TN",
+          "N09_local_global_this_binding": "TN",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -1737,8 +1981,18 @@
             "FP": 3,
             "TN": 15,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -1790,8 +2044,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -1817,17 +2081,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 3.041,
-        "runs": [
-          3.041,
-          2.848,
-          3.306,
-          2.929,
-          3.379
-        ]
-      }
+      ]
     },
     "X2": {
       "benchmark_delta_vs_R0": {
@@ -1845,7 +2099,7 @@
         }
       },
       "description": "Ablation: no `Function` parameter exclusion",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -2061,12 +2315,23 @@
         "counts": {
           "FN": 9,
           "FP": 0,
-          "TN": 8,
+          "TN": 10,
           "TP": 5,
+          "invalid_reported": 0,
+          "invalid_silent": 1,
           "undetermined_reported": 0,
           "undetermined_silent": 4
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_silent",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "TN",
@@ -2075,6 +2340,8 @@
           "N06_inner_shadow_under_a8": "TN",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "TN",
+          "N09_local_global_this_binding": "TN",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -2102,8 +2369,18 @@
             "FP": 2,
             "TN": 16,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -2155,8 +2432,18 @@
             "FP": 2,
             "TN": 4,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -2182,17 +2469,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 2.905,
-        "runs": [
-          2.857,
-          2.905,
-          3.049,
-          2.902,
-          2.974
-        ]
-      }
+      ]
     },
     "X3": {
       "benchmark_delta_vs_R0": {
@@ -2210,7 +2487,7 @@
         }
       },
       "description": "Ablation: no `const eval = $V` exclusion",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -2425,13 +2702,24 @@
       "p6a": {
         "counts": {
           "FN": 4,
-          "FP": 4,
-          "TN": 4,
+          "FP": 5,
+          "TN": 5,
           "TP": 10,
+          "invalid_reported": 1,
+          "invalid_silent": 0,
           "undetermined_reported": 3,
           "undetermined_silent": 1
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_reported",
           "N01_const_json_parse": "FP",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "FP",
@@ -2440,6 +2728,8 @@
           "N06_inner_shadow_under_a8": "FP",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "TN",
+          "N09_local_global_this_binding": "FP",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -2467,8 +2757,18 @@
             "FP": 3,
             "TN": 15,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -2520,8 +2820,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -2547,17 +2857,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 3.803,
-        "runs": [
-          3.359,
-          3.164,
-          3.803,
-          4.169,
-          4.643
-        ]
-      }
+      ]
     },
     "X4": {
       "benchmark_delta_vs_R0": {
@@ -2575,7 +2875,7 @@
         }
       },
       "description": "Ablation: no `let eval = $V` exclusion",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -2788,12 +3088,23 @@
         "counts": {
           "FN": 8,
           "FP": 2,
-          "TN": 6,
+          "TN": 8,
           "TP": 6,
+          "invalid_reported": 0,
+          "invalid_silent": 1,
           "undetermined_reported": 0,
           "undetermined_silent": 4
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_silent",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "FP",
           "N03_const_local_function": "TN",
@@ -2802,6 +3113,8 @@
           "N06_inner_shadow_under_a8": "TN",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "FP",
+          "N09_local_global_this_binding": "TN",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "TP",
@@ -2829,8 +3142,18 @@
             "FP": 2,
             "TN": 16,
             "TP": 22,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -2882,8 +3205,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 7,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -2909,17 +3242,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 3.312,
-        "runs": [
-          3.465,
-          3.312,
-          3.726,
-          3.042,
-          2.943
-        ]
-      }
+      ]
     },
     "X5": {
       "benchmark_delta_vs_R0": {
@@ -2941,7 +3264,7 @@
         }
       },
       "description": "Ablation: no symbolic propagation",
-      "files_scanned": 214,
+      "files_scanned": 217,
       "fixture": [
         {
           "code": "return eval(input);",
@@ -3158,12 +3481,23 @@
         "counts": {
           "FN": 10,
           "FP": 0,
-          "TN": 8,
+          "TN": 10,
           "TP": 4,
+          "invalid_reported": 0,
+          "invalid_silent": 1,
           "undetermined_reported": 0,
           "undetermined_silent": 4
         },
+        "denominators": {
+          "invalid_program": 1,
+          "negative": 10,
+          "positive": 14,
+          "scored_in_confusion_matrix": 24,
+          "total_sites": 29,
+          "undetermined": 4
+        },
         "sites": {
+          "I01_strict_a8": "invalid_silent",
           "N01_const_json_parse": "TN",
           "N02_let_json_parse": "TN",
           "N03_const_local_function": "TN",
@@ -3172,6 +3506,8 @@
           "N06_inner_shadow_under_a8": "TN",
           "N07_local_window_object": "TN",
           "N08_let_reassigned_after_builtin": "TN",
+          "N09_local_global_this_binding": "TN",
+          "N10_local_global_this_member": "TN",
           "P01_direct_eval": "TP",
           "P02_comma_indirect": "TP",
           "P03_alias": "FN",
@@ -3199,8 +3535,18 @@
             "FP": 2,
             "TN": 16,
             "TP": 17,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 18,
+            "positive": 23,
+            "scored_in_confusion_matrix": 41,
+            "total_sites": 41,
+            "undetermined": 0
           },
           "sites": {
             "dev/a6/E01_route_expression.js:3:1": "TP",
@@ -3252,8 +3598,18 @@
             "FP": 1,
             "TN": 5,
             "TP": 6,
+            "invalid_reported": 0,
+            "invalid_silent": 0,
             "undetermined_reported": 0,
             "undetermined_silent": 0
+          },
+          "denominators": {
+            "invalid_program": 0,
+            "negative": 6,
+            "positive": 12,
+            "scored_in_confusion_matrix": 18,
+            "total_sites": 18,
+            "undetermined": 0
           },
           "sites": {
             "heldout/H01_globalthis_eval.js:1:1": "FN",
@@ -3279,17 +3635,7 @@
       },
       "semgrep_errors": [
         "syntax_error.js: PartialParsing"
-      ],
-      "timing_seconds": {
-        "median": 2.818,
-        "runs": [
-          2.815,
-          2.818,
-          2.823,
-          2.808,
-          3.018
-        ]
-      }
+      ]
     }
   }
 }

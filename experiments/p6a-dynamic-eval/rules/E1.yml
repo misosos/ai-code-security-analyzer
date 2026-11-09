@@ -1,0 +1,14 @@
+# P6-A research variant E1: Evidence: eval(...) inside the `const eval = $V; ...` region, capturing $V
+# Derived by run_p6a.py from rules/security-baseline.yml (77d085dd4901); not a product rule.
+rules:
+  - id: baseline.javascript-dynamic-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "P6-A-R evidence probe: eval(...) is inside the region `const eval = $V; ...`"
+    options:
+      symbolic_propagation: true
+    patterns:
+      - pattern: eval(...)
+      - pattern-inside: |
+          const eval = $V;
+          ...

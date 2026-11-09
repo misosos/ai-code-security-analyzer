@@ -9,10 +9,22 @@
   "label_values": {
     "positive": "The call evaluates code through %eval%.",
     "negative": "The call does not evaluate code through %eval%.",
-    "undetermined": "The value cannot be decided from this file alone."
+    "undetermined": "The value cannot be decided from this file alone.",
+    "invalid_program": "The file is a syntax error in its declared mode; excluded from TP/FP/FN/TN and reported separately."
   },
   "semantic_evidence": "semantics/probe.cjs output in semantics/probe-output.txt (Node 24.22.2)",
   "sites": [
+    {
+      "case": "I01_strict_a8",
+      "file": "cases/I01_strict_a8.js",
+      "line": 5,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "invalid_program",
+      "probe": "E:I01",
+      "rationale": "`'use strict'` script: `const eval` is an early SyntaxError, so the program never runs.",
+      "added_in": "P6-A-R"
+    },
     {
       "case": "N01_const_json_parse",
       "file": "cases/N01_const_json_parse.js",
@@ -92,6 +104,28 @@
       "label": "negative",
       "probe": "S7",
       "rationale": "`let eval` first holds %eval% but is reassigned to JSON.parse before the call."
+    },
+    {
+      "case": "N09_local_global_this_binding",
+      "file": "cases/N09_local_global_this_binding.js",
+      "line": 5,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "negative",
+      "probe": "E:N09",
+      "rationale": "Local `globalThis` object shadows the global; `eval` holds a local identity function.",
+      "added_in": "P6-A-R"
+    },
+    {
+      "case": "N10_local_global_this_member",
+      "file": "cases/N10_local_global_this_member.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "globalThis.eval(code)",
+      "label": "negative",
+      "probe": "E:N10",
+      "rationale": "Local `globalThis` object shadows the global; the member call is a local identity function.",
+      "added_in": "P6-A-R"
     },
     {
       "case": "P01_direct_eval",

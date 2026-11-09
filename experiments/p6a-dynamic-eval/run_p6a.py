@@ -168,21 +168,33 @@ def run_semgrep(rule: Path, root: Path, env: dict[str, str]) -> tuple[set[tuple[
     return matches, errors, len(payload["paths"]["scanned"])
 
 
+OUTCOME_KEYS = {
+    "positive": ("TP", "FN"),
+    "negative": ("FP", "TN"),
+    "undetermined": ("undetermined_reported", "undetermined_silent"),
+    "invalid_program": ("invalid_reported", "invalid_silent"),
+}
+
+
 def score(labels: list[dict], matches: set[tuple[str, int, int]], prefix: str) -> dict:
-    counts = {"TP": 0, "FP": 0, "FN": 0, "TN": 0, "undetermined_reported": 0, "undetermined_silent": 0}
+    """Score labelled sites. Only positive and negative sites enter TP/FP/FN/TN; the others are counted separately."""
+    counts = {key: 0 for pair in OUTCOME_KEYS.values() for key in pair}
+    denominators = {label: 0 for label in OUTCOME_KEYS}
     sites = {}
     for site in labels:
-        reported = (f"{prefix}/{site['file']}", site["line"], site["column"]) in matches
         label = site["label"]
-        if label == "positive":
-            key = "TP" if reported else "FN"
-        elif label == "negative":
-            key = "FP" if reported else "TN"
-        else:
-            key = "undetermined_reported" if reported else "undetermined_silent"
+        if label not in OUTCOME_KEYS:
+            raise SystemExit(f"unknown label {label!r} for {site['id']}")
+        reported = (f"{prefix}/{site['file']}", site["line"], site["column"]) in matches
+        key = OUTCOME_KEYS[label][0 if reported else 1]
         counts[key] += 1
+        denominators[label] += 1
         sites[site["id"]] = key
-    return {"counts": counts, "sites": sites}
+    if sum(counts.values()) != len(labels) or sum(denominators.values()) != len(labels):
+        raise SystemExit("scoring lost or double-counted a site")
+    denominators["scored_in_confusion_matrix"] = denominators["positive"] + denominators["negative"]
+    denominators["total_sites"] = len(labels)
+    return {"counts": counts, "denominators": denominators, "sites": sites}
 
 
 def p6a_sites() -> list[dict]:
@@ -227,6 +239,67 @@ def native_rule_test(rule: Path, fixture_copy: Path, env: dict[str, str]) -> str
     return f"exit={completed.returncode}; " + " | ".join(summary[-3:])
 
 
+EVIDENCE_INSIDE_CONST = f"""  - id: {RULE_ID}
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "P6-A-R evidence probe: eval(...) is inside the region `const eval = $V; ...`"
+    options:
+      symbolic_propagation: true
+    patterns:
+      - pattern: eval(...)
+      - pattern-inside: |
+          const eval = $V;
+          ...
+"""
+
+
+def evidence_variants() -> dict[str, tuple[str, str]]:
+    block = baseline_block()
+    positive_only = block
+    for fragment in (EXCLUSION_EVAL_PARAM, EXCLUSION_FUNCTION_PARAM, EXCLUSION_CONST, EXCLUSION_LET):
+        positive_only = remove_once(positive_only, fragment)
+    return {
+        "E1": ("Evidence: eval(...) inside the `const eval = $V; ...` region, capturing $V", EVIDENCE_INSIDE_CONST),
+        "E2": ("Evidence: production positive patterns with all four exclusions removed", positive_only),
+    }
+
+
+def evidence_run(rule: Path, cases_root: Path, env: dict[str, str]) -> dict[str, dict]:
+    completed = subprocess.run(
+        ["semgrep", "scan", "--config", str(rule), "--json", "--metrics=off", "--disable-version-check",
+         "--no-git-ignore", "--quiet", str(cases_root)],
+        capture_output=True, text=True, env=env, cwd=cases_root, timeout=600, check=False,
+    )
+    if completed.returncode not in (0, 1):
+        raise SystemExit(f"semgrep failed for {rule.name}: exit {completed.returncode}")
+    found: dict[str, dict] = {}
+    for item in json.loads(completed.stdout)["results"]:
+        case = Path(item["path"]).stem
+        # Semgrep interpolates the bound $V into the message; pattern-inside metavariables are not in extra.metavars.
+        message = item["extra"].get("message", "")
+        bound = message.split("const eval = ", 1)[1].rsplit("; ...", 1)[0] if "const eval = " in message else None
+        found[f"{case}:{item['start']['line']}:{item['start']['col']}"] = {"V": bound}
+    return found
+
+
+CALLEE = re.compile(r"Call\(\s*(Special\(\((\w+)|N\(\s*Id\(\(\"([^\"]+)\"|DotAccess)")
+
+
+def ast_callees(path: Path, env: dict[str, str]) -> list[str]:
+    completed = subprocess.run(["semgrep", "--dump-ast", "-l", "js", str(path)], capture_output=True, text=True,
+                               env=env, timeout=120, check=True)
+    flat = re.sub(r"\s+", " ", completed.stdout)
+    shapes = []
+    for match in CALLEE.finditer(flat):
+        if match.group(2):
+            shapes.append(f"Call(Special({match.group(2)}))")
+        elif match.group(3):
+            shapes.append(f"Call(Id({match.group(3)}))")
+        else:
+            shapes.append("Call(DotAccess)")
+    return shapes
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--r1-root", type=Path)
@@ -235,7 +308,8 @@ def main() -> None:
     args = parser.parse_args()
 
     variant_map = variants()
-    rule_hashes = write_rule_files(variant_map, args.check_rules)
+    evidence_map = evidence_variants()
+    rule_hashes = write_rule_files({**variant_map, **evidence_map}, args.check_rules)
     version = subprocess.run(["semgrep", "--version"], capture_output=True, text=True, check=True).stdout.strip().splitlines()[-1]
     if version != "1.182.1":
         raise SystemExit(f"Semgrep 1.182.1 required, found {version}")
@@ -262,7 +336,16 @@ def main() -> None:
         # One untimed warm-up so the first variant is not charged for cold caches.
         run_semgrep(HERE / "rules" / "R0.yml", workspace, env)
         results: dict = {"semgrep_version": version, "baseline_rule_sha256": BASELINE_SHA256,
-                         "rule_variant_sha256": rule_hashes, "variants": {}}
+                         "rule_variant_sha256": rule_hashes, "variants": {}, "evidence": {}}
+        timing: dict = {"note": "Wall-clock seconds; varies with machine load. Not a performance claim.", "variants": {}}
+        cases_root = workspace / "p6a" / "cases"
+        for name, (description, _block) in evidence_map.items():
+            results["evidence"][name] = {"description": description,
+                                         "matches": evidence_run(HERE / "rules" / f"{name}.yml", cases_root, env)}
+        results["evidence"]["ast_callees"] = {
+            case: ast_callees(cases_root / f"{case}.js", env)
+            for case in ("P01_direct_eval", "P03_alias", "P05_a8_const_global_this", "P13_member_alias")
+        }
         baseline_matches: set[tuple[str, int, int]] = set()
         for name, (description, _block) in variant_map.items():
             rule = HERE / "rules" / f"{name}.yml"
@@ -295,20 +378,22 @@ def main() -> None:
                                                   or (item["kind"] == "ok" and item["reported"])],
                 "native_rule_test": native_rule_test(rule, fixture_copy, env),
                 "benchmark_delta_vs_R0": bench_delta,
-                "timing_seconds": {"runs": [round(value, 3) for value in timings],
-                                   "median": round(statistics.median(timings), 3)},
             }
+            timing["variants"][name] = {"runs": [round(value, 3) for value in timings],
+                                        "median": round(statistics.median(timings), 3)}
     out = HERE / "results" / "results.json"
     out.write_text(json.dumps(results, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
-    print(f"wrote {out.relative_to(REPO)}")
+    (HERE / "results" / "timing.json").write_text(json.dumps(timing, indent=2, sort_keys=True) + "\n")
+    print(f"wrote {out.relative_to(REPO)} and results/timing.json")
     for name, item in results["variants"].items():
-        p = item["p6a"]["counts"]
+        p, d = item["p6a"]["counts"], item["p6a"]["denominators"]
         r1_text = " ".join(f"{k}:TP={v['counts']['TP']}/FP={v['counts']['FP']}/FN={v['counts']['FN']}/TN={v['counts']['TN']}"
                            for k, v in (item["r1"] or {}).items()) or "n/a"
-        print(f"{name}: P6A TP={p['TP']} FP={p['FP']} FN={p['FN']} TN={p['TN']} U+={p['undetermined_reported']} "
+        print(f"{name}: P6A pos={d['positive']} TP={p['TP']} FN={p['FN']} neg={d['negative']} FP={p['FP']} TN={p['TN']} "
+              f"undet={d['undetermined']} U+={p['undetermined_reported']} invalid={d['invalid_program']} I+={p['invalid_reported']} "
               f"| R1 {r1_text} "
               f"| fixture violations={item['fixture_ruleid_ok_violations']} | errors={item['semgrep_errors']} "
-              f"| median={item['timing_seconds']['median']}s")
+              f"| median={timing['variants'][name]['median']}s")
 
 
 if __name__ == "__main__":

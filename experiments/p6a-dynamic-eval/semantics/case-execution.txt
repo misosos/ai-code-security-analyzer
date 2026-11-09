@@ -1,0 +1,72 @@
+# node v24.22.2 — node experiments/p6a-dynamic-eval/semantics/execute_cases.cjs
+# probe: "typeof arguments"
+I01_strict_a8                        label=invalid_program observed=invalid_program OK
+    default: load-error (SyntaxError: Unexpected eval or arguments in strict mode)
+N01_const_json_parse                 label=negative        observed=negative        OK
+    default: no-eval (SyntaxError: Unexpected token 'y', "typeof arguments" is not valid JSON)
+N02_let_json_parse                   label=negative        observed=negative        OK
+    default: no-eval (SyntaxError: Unexpected token 'y', "typeof arguments" is not valid JSON)
+N03_const_local_function             label=negative        observed=negative        OK
+    default: no-eval (returned "typeof arguments")
+N04_tdz_self_reference               label=negative        observed=negative        OK
+    default: no-eval (ReferenceError: Cannot access 'eval' before initialization)
+N05_method_named_eval                label=negative        observed=negative        OK
+    policy object: no-eval (returned "typeof arguments")
+N06_inner_shadow_under_a8            label=negative        observed=negative        OK
+    default: no-eval (SyntaxError: Unexpected token 'y', "typeof arguments" is not valid JSON)
+N07_local_window_object              label=negative        observed=negative        OK
+    default: no-eval (returned "typeof arguments")
+N08_let_reassigned_after_builtin     label=negative        observed=negative        OK
+    default: no-eval (SyntaxError: Unexpected token 'y', "typeof arguments" is not valid JSON)
+N09_local_global_this_binding        label=negative        observed=negative        OK
+    default: no-eval (returned "typeof arguments")
+N10_local_global_this_member         label=negative        observed=negative        OK
+    default: no-eval (returned "typeof arguments")
+P01_direct_eval                      label=positive        observed=positive        OK
+    default: direct-eval
+P02_comma_indirect                   label=positive        observed=positive        OK
+    default: indirect-eval
+P03_alias                            label=positive        observed=positive        OK
+    default: indirect-eval
+P04_global_this_member               label=positive        observed=positive        OK
+    default: indirect-eval
+P05_a8_const_global_this             label=positive        observed=positive        OK
+    default: direct-eval
+P06_let_global_this                  label=positive        observed=positive        OK
+    default: direct-eval
+P07_const_window_eval                label=positive        observed=positive        OK
+    default: direct-eval
+P08_const_computed_member            label=positive        observed=positive        OK
+    default: direct-eval
+P09_destructured_binding             label=positive        observed=positive        OK
+    default: direct-eval
+P10_two_step_alias                   label=positive        observed=positive        OK
+    default: direct-eval
+P11_window_member                    label=positive        observed=positive        OK
+    default: indirect-eval
+P12_a8_nested_use                    label=positive        observed=positive        OK
+    default: direct-eval
+P13_member_alias                     label=positive        observed=positive        OK
+    default: indirect-eval
+P14_var_global_this                  label=positive        observed=positive        OK
+    default: direct-eval
+U01_parameter_named_eval             label=undetermined    observed=undetermined    OK
+    caller passes %eval%: direct-eval
+    caller passes JSON.parse: no-eval (SyntaxError: Unexpected token 'y', "typeof arguments" is not valid JSON)
+U02_unknown_factory                  label=undetermined    observed=undetermined    OK
+    factory returns %eval%: direct-eval
+    factory returns identity: no-eval (returned "typeof arguments")
+U03_conditional_builtin              label=undetermined    observed=undetermined    OK
+    useNative=true: direct-eval
+    useNative=false: no-eval (SyntaxError: Unexpected token 'y', "typeof arguments" is not valid JSON)
+U04_configured_evaluator             label=undetermined    observed=undetermined    OK
+    config holds %eval%: direct-eval
+    config holds identity: no-eval (returned "typeof arguments")
+# sites=29 disagreements=0
+# strict-mode compile check (vm.Script, not executed)
+    const eval = globalThis.eval;        SyntaxError: Unexpected eval or arguments in strict mode
+    let eval = globalThis.eval;          SyntaxError: Unexpected eval or arguments in strict mode
+    var eval = globalThis.eval;          SyntaxError: Unexpected eval or arguments in strict mode
+    const { eval } = globalThis;         SyntaxError: Unexpected eval or arguments in strict mode
+    function f(eval) { return eval; }    SyntaxError: Unexpected eval or arguments in strict mode
+    (eval) => eval;                      SyntaxError: Unexpected eval or arguments in strict mode
