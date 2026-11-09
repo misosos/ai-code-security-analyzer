@@ -269,18 +269,130 @@ describe('새 검사 시 분석가 검토 기록 보호', () => {
     expect(screen.getByRole('region', { name: 'Finding 목록' })).not.toHaveTextContent('분석가: 검토 완료');
   });
 
-  it('새 검사 요청이 실패해도 이전 결과를 현재 결과로 재사용하지 않고, 확인한 기록 삭제를 숨기지 않는다', async () => {
+  const partial = (findings: ApiFinding[]): ScanResponse => ({ ...scan(findings), scan_status: 'partial', completed: false });
+  const executionFailed = (): ScanResponse => ({ ...scan([]), scan_status: 'execution_failed', completed: false });
+  const openResults = (user: ReturnType<typeof userEvent.setup>) => user.click(within(screen.getByRole('navigation', { name: '화면 이동' })).getByRole('button', { name: /검사 결과/ }));
+  async function reviewFirstFinding(user: ReturnType<typeof userEvent.setup>, note: string) {
+    await user.selectOptions(screen.getByLabelText('수동 검토 상태'), 'needs_followup');
+    await user.type(screen.getByLabelText('분석가 메모'), note);
+  }
+  function expectRetainedReview(note: string) {
+    expect(screen.getByText(/마지막 새 검사 결과는 적용되지 않았습니다/)).toHaveAttribute('role', 'note');
+    expect(screen.getByLabelText('수동 검토 상태')).toHaveValue('needs_followup');
+    expect(screen.getByLabelText('분석가 메모')).toHaveValue(note);
+    expect(screen.getByRole('heading', { name: '정상 완료' })).toBeInTheDocument();
+  }
+
+  it('확인 문구는 정상 완료 시에만 기록이 지워지고 실패·부분 검사에는 유지된다고 안내한다', async () => {
+    installReplies([scan([finding('1')])]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await reviewFirstFinding(user, '문구 확인 메모');
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    await startRescan(user);
+    const warning = confirm.mock.calls[0][0] as string;
+    expect(warning).not.toContain('검사 성공 여부와 관계없이');
+    expect(warning).toContain('새 검사가 정상 완료되면 이 기록은 화면에서 지워지고');
+    expect(warning).toContain('실패하거나 일부만 완료되면 새 결과를 적용하지 않고 이전 결과와 기록을 유지');
+  });
+
+  it('새 검사 요청이 실패하면 이전 결과와 검토 기록을 그대로 복원하고 이전 결과임을 표시한다', async () => {
     installReplies([scan([finding('1')]), new TypeError('network down')]);
     const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
-    await user.type(screen.getByLabelText('분석가 메모'), '실패 시 메모');
+    await reviewFirstFinding(user, '실패 시 메모');
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await startRescan(user);
+    const failure = await screen.findByText(/이전 검사 결과와 분석가 검토 기록을 그대로 유지했습니다/, { selector: '.request-feedback' });
+    expect(failure).toHaveAttribute('role', 'alert');
+    expect(failure).not.toHaveTextContent('지워졌');
+    expect(scanRequests()).toBe(2);
+    await openResults(user);
+    expectRetainedReview('실패 시 메모');
+    expect(screen.getByRole('region', { name: 'Finding 목록' })).toHaveTextContent('baseline.rule-1');
+  });
+
+  it('부분 검사 응답은 검토 기록이 있으면 적용하지 않고 비교 가능하거나 완료된 결과로 취급하지 않는다', async () => {
+    installReplies([scan([finding('1')]), partial([finding('7')])]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await user.click(screen.getByRole('button', { name: /비교 기준/ }));
+    await reviewFirstFinding(user, '부분 검사 메모');
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await startRescan(user);
+    expect(await screen.findByText(/새 검사가 부분 검사로 끝나 결과를 적용하지 않았습니다/, { selector: '.request-feedback' })).toBeInTheDocument();
+    expectRetainedReview('부분 검사 메모');
+    expect(screen.getByRole('region', { name: 'Finding 목록' })).not.toHaveTextContent('baseline.rule-7');
+    expect(screen.queryByRole('heading', { name: '부분 검사' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '검사 결과 비교' })).toBeInTheDocument();
+    expect(scanRequests()).toBe(2);
+  });
+
+  it('실행 실패 상태 응답도 이전 결과와 검토 기록을 대체하지 않는다', async () => {
+    installReplies([scan([finding('1')]), executionFailed()]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await reviewFirstFinding(user, '실행 실패 메모');
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await startRescan(user);
+    expect(await screen.findByText(/새 검사가 실행 실패로 끝나 결과를 적용하지 않았습니다/, { selector: '.request-feedback' })).toBeInTheDocument();
+    expectRetainedReview('실행 실패 메모');
+  });
+
+  it('검토 기록이 없으면 부분 검사 결과를 기존처럼 부분 검사로 표시한다', async () => {
+    installReplies([scan([finding('1')]), partial([finding('7')])]);
+    const confirm = vi.spyOn(window, 'confirm');
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await startRescan(user);
+    expect(await screen.findByRole('heading', { name: '부분 검사' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Finding 목록' })).toHaveTextContent('baseline.rule-7');
+    expect(screen.queryByText(/마지막 새 검사 결과는 적용되지 않았습니다/)).not.toBeInTheDocument();
+    expect(confirm).not.toHaveBeenCalled();
+  });
+
+  it('복원된 기록은 다음 정상 완료 검사에서 같은 Finding ID라도 새 결과로 옮겨지지 않는다', async () => {
+    installReplies([scan([finding('1')]), new TypeError('network down'), scan([finding('1')])]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await reviewFirstFinding(user, '옮겨지면 안 되는 메모');
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
     await startRescan(user);
-    expect(confirm.mock.calls[0][0]).toContain('검사 성공 여부와 관계없이');
-    const failure = await screen.findByText(/이전 검사의 분석가 검토 기록은 지워졌으며 복원되지 않습니다/, { selector: '.request-feedback' });
-    expect(failure).toHaveAttribute('role', 'alert');
-    expect(scanRequests()).toBe(2);
-    await user.click(within(screen.getByRole('navigation', { name: '화면 이동' })).getByRole('button', { name: /검사 결과/ }));
+    await screen.findByText(/그대로 유지했습니다/, { selector: '.request-feedback' });
+    await openResults(user);
+    expectRetainedReview('옮겨지면 안 되는 메모');
+    await startRescan(user);
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(await screen.findByRole('heading', { name: '정상 완료' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/마지막 새 검사 결과는 적용되지 않았습니다/)).not.toBeInTheDocument());
+    expect(screen.queryByDisplayValue('옮겨지면 안 되는 메모')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('수동 검토 상태')).toHaveValue('pending');
+  });
+
+  it('복원 후 결과 지우기를 확인하면 복원 표시와 기록을 함께 지운다', async () => {
+    installReplies([scan([finding('1')]), new TypeError('network down')]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await reviewFirstFinding(user, '지울 메모');
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await startRescan(user);
+    await screen.findByText(/그대로 유지했습니다/, { selector: '.request-feedback' });
+    await openResults(user);
+    await user.click(screen.getByRole('button', { name: '결과 지우기' }));
     expect(screen.getByRole('heading', { name: '아직 검사 결과가 없습니다.' })).toBeInTheDocument();
+    expect(screen.queryByText(/마지막 새 검사 결과는 적용되지 않았습니다/)).not.toBeInTheDocument();
+  });
+
+  it('검사 중 반복 실행 후 대기 중인 요청이 실패해도 기록을 한 번만 확인하고 복원한다', async () => {
+    let fail: (error: Error) => void = () => {};
+    const pending = new Promise<Response>((_, reject) => { fail = reject; });
+    installReplies([scan([finding('1')]), pending]);
+    const user = userEvent.setup(); render(<App/>); await screen.findByText('API 연결됨'); await performScan(user);
+    await reviewFirstFinding(user, '대기 중 실패 메모');
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await user.click(within(screen.getByRole('navigation', { name: '화면 이동' })).getByRole('button', { name: '검사 시작' }));
+    const submit = screen.getByRole('button', { name: '검사 실행' }).closest('form')!;
+    fireEvent.submit(submit); fireEvent.submit(submit);
+    expect(confirm).toHaveBeenCalledOnce();
+    await waitFor(() => expect(scanRequests()).toBe(2));
+    fail(new TypeError('network down'));
+    await screen.findByText(/그대로 유지했습니다/, { selector: '.request-feedback' });
+    await openResults(user);
+    expectRetainedReview('대기 중 실패 메모');
+    expect(scanRequests()).toBe(2);
   });
 
   it('검토 기록 없이 실패한 검사는 기록 삭제 문구를 붙이지 않는다', async () => {

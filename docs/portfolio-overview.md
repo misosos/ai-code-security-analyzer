@@ -85,7 +85,7 @@ The full, evidence-linked list is in the [README](../README.md#known-limitations
 - AI review is not part of the product.
 - Partial scans stay `INCOMPARABLE`. Investigation over-abstention (S5a) is unresolved.
 - No proof of remediation, no Git integration, no rename linking.
-- Review state is in browser memory only. A rescan asks for confirmation, but a confirmed rescan that fails still discards review records.
+- Review state is in browser memory only. A confirmed rescan clears it only when the new scan completes normally; failed or partial rescans restore the previous result and its records.
 - Investigation evidence expires after 15 minutes.
 - SARIF passes schema validation, but GitHub Code Scanning upload is untested.
 - There is no evidence of better detection or faster triage than Semgrep CLI plus Git, and no execution sandbox.
@@ -95,7 +95,6 @@ The full, evidence-linked list is in the [README](../README.md#known-limitations
 Each item below is a possible next step. None of them exists in the product today.
 
 - Persisting review state across reloads without weakening the in-memory privacy default.
-- Preserving review records when a confirmed rescan fails.
 - Collecting source snapshots or Git metadata so disappearances can be tied to code changes and renames.
 - Reducing investigation over-abstention (S5a) without making unsupported causal claims.
 - Fixing A8 and the other documented dynamic-eval false negatives.
