@@ -1,4 +1,4 @@
-import type { ApiFinding } from '../../api/types';
+import type { ApiFinding, ScanResponse } from '../../api/types';
 
 export type AnalystReviewStatus = 'pending' | 'needs_followup' | 'reviewed';
 
@@ -85,4 +85,12 @@ export function hasAnalystReviewWork(findings: readonly ApiFinding[], state: Ana
     const entry = getAnalystReviewEntry(state, findings, finding.finding_id);
     return entry.status !== 'pending' || entry.note.length > 0;
   });
+}
+
+/**
+ * Review records belong to the findings of the scan they were written on. A rescan may replace them only
+ * when it produced a normally completed response; partial or failed responses never replace prior records.
+ */
+export function rescanReplacesAnalystReview(result: Pick<ScanResponse, 'scan_status' | 'completed'>): boolean {
+  return result.scan_status === 'completed' && result.completed;
 }

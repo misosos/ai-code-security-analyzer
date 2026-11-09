@@ -3,7 +3,7 @@ import type { ApiFinding } from '../src/api/types';
 import {
   countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus,
   getAnalystReviewEntry, hasAnalystReviewWork, MAX_ANALYST_NOTE_BYTES,
-  setAnalystReviewNote, setAnalystReviewStatus,
+  rescanReplacesAnalystReview, setAnalystReviewNote, setAnalystReviewStatus,
 } from '../src/features/scans/analystReview';
 
 const finding = (id: string, verification_status: ApiFinding['verification_status'] = 'unverified'): ApiFinding => ({
@@ -76,5 +76,15 @@ describe('analyst review state', () => {
     const reviewed = setAnalystReviewStatus(emptyAnalystReviewState, findings, findings[0].finding_id, 'reviewed')!;
     expect(hasAnalystReviewWork(findings, reviewed)).toBe(true);
     expect(hasAnalystReviewWork([], reviewed)).toBe(false);
+  });
+
+  it('lets only a normally completed rescan replace prior review records', () => {
+    expect(rescanReplacesAnalystReview({ scan_status: 'completed', completed: true })).toBe(true);
+    expect(rescanReplacesAnalystReview({ scan_status: 'partial', completed: false })).toBe(false);
+    for (const status of ['execution_failed', 'not_installed', 'invalid_json', 'timed_out', 'output_limit_exceeded'] as const) {
+      expect(rescanReplacesAnalystReview({ scan_status: status, completed: false })).toBe(false);
+    }
+    // Defensive: an inconsistent completed flag is never treated as success.
+    expect(rescanReplacesAnalystReview({ scan_status: 'completed', completed: false })).toBe(false);
   });
 });

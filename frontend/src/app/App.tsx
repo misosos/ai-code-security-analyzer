@@ -5,7 +5,7 @@ import type { ApiFinding, ClaimType, FindingKind, Options, ScanResponse, Severit
 import { createReviewMarkdown, downloadReviewMarkdown, type ScanContext } from '../features/scans/markdownExport';
 import { compareScanSnapshots, type ComparisonBlockReason, type ComparisonGroups, type ScanSnapshot } from '../features/scans/compare';
 import { createComparisonMarkdown, downloadComparisonMarkdown } from '../features/scans/comparisonMarkdownExport';
-import { countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus, getAnalystReviewEntry, hasAnalystReviewWork, setAnalystReviewNote, setAnalystReviewStatus, type AnalystReviewFilter, type AnalystReviewState, type AnalystReviewStatus } from '../features/scans/analystReview';
+import { countAnalystReviewStatuses, emptyAnalystReviewState, filterFindingsByAnalystStatus, getAnalystReviewEntry, hasAnalystReviewWork, rescanReplacesAnalystReview, setAnalystReviewNote, setAnalystReviewStatus, type AnalystReviewFilter, type AnalystReviewState, type AnalystReviewStatus } from '../features/scans/analystReview';
 import { createAnalystReviewMarkdown, downloadAnalystReviewMarkdown } from '../features/scans/analystReviewMarkdownExport';
 import { ANALYST_REVIEW_BACKUP_FILENAME, createAnalystReviewBackup, downloadAnalystReviewBackup, MAX_ANALYST_REVIEW_BACKUP_BYTES, parseAnalystReviewBackup, validateBackupForRestore, type AnalystReviewBackup, type RestoreBlockReason } from '../features/scans/analystReviewBackup';
 import { createScanTriage, type FindingTriage } from '../features/scans/findingTriage';
@@ -20,6 +20,7 @@ import { QuickStart, ScanStatusGuidance, SecurityGlossary, ServerAdminSettings }
 
 type RequestState = 'ready' | 'scanning' | 'completed' | 'partial' | 'failed' | 'unauthorized' | 'scan_already_running' | 'connection_error';
 type WorkspaceView = 'start' | 'results' | 'guide';
+type RetainedReviewWorkspace = { scan: ScanResponse; context: ScanContext; reviews: AnalystReviewState; filter: AnalystReviewFilter; selectedId: string };
 const severityOrder: Severity[] = ['critical','high','medium','low','info'];
 const severityLabels: Record<Severity,string> = { critical: '매우 높음', high: '높음', medium: '중간', low: '낮음', info: '정보' };
 const kindLabels: Record<FindingKind,string> = { taint: '입력 흐름 분석', pattern: '코드 형태 검사', unclassified: '분류 확인 불가' };
@@ -94,6 +95,9 @@ export function App() {
   const [scanContext, setScanContext] = useState<ScanContext | null>(null);
   const [baselineSnapshot, setBaselineSnapshot] = useState<ScanSnapshot | null>(null);
   const scanRequestSequence = useRef(0);
+  // The confirmed-rescan workspace is kept here until a rescan completes; failed or partial rescans restore it intact.
+  const retainedReviewWorkspace = useRef<RetainedReviewWorkspace | null>(null);
+  const [showingRetainedResult, setShowingRetainedResult] = useState(false);
   const [investigationMode, setInvestigationMode] = useState(false);
   const [ruleBytesEvidenceEnabled, setRuleBytesEvidenceEnabled] = useState(false);
   const [currentEvidence, setCurrentEvidence] = useState<EvidenceBackedScan | null>(null);
@@ -286,13 +290,17 @@ export function App() {
     if (!target || !profile) return;
     const discardsReview = scan !== null && hasAnalystReviewWork(scan.findings, analystReviews);
     if (discardsReview
-      && !window.confirm('현재 검사 결과에 작성한 분석가 검토 상태와 메모는 이전 검사의 Finding에 연결되어 있으며 새 검사 결과로 옮겨지지 않습니다. 새 검사를 시작하면 검사 성공 여부와 관계없이 이 기록이 화면에서 지워지고 자동 저장되지 않습니다. 보관하려면 취소한 뒤 "검토 기록 백업 JSON 다운로드"를 사용하세요. 계속하시겠습니까?')) {
+      && !window.confirm('현재 검사 결과에 작성한 분석가 검토 상태와 메모는 이전 검사의 Finding에 연결되어 있으며 새 검사 결과로 옮겨지지 않습니다. 새 검사가 정상 완료되면 이 기록은 화면에서 지워지고 자동 저장되지 않습니다. 새 검사가 실패하거나 일부만 완료되면 새 결과를 적용하지 않고 이전 결과와 기록을 유지합니다. 보관하려면 취소한 뒤 "검토 기록 백업 JSON 다운로드"를 사용하세요. 계속하시겠습니까?')) {
       setActiveView('results');
       setMessage('새 검사를 시작하지 않았습니다. 기존 검사 결과와 분석가 검토 기록을 유지했습니다.');
       setBackupMessage('새 검사를 취소했습니다. 검토 기록을 보관하려면 백업 JSON을 다운로드하세요. 다운로드 여부는 브라우저에서 확인하세요.');
       window.setTimeout(() => { const tool = document.querySelector<HTMLDetailsElement>('.analyst-backup-tool'); if (tool) tool.open = true; document.querySelector<HTMLElement>('button[aria-label="검토 기록 백업 JSON 다운로드"]')?.focus(); }, 0);
       return;
     }
+    // Keep an in-flight retained workspace when the screen is already empty; a result without review work is simply replaced.
+    if (discardsReview && scan && scanContext) retainedReviewWorkspace.current = { scan, context: scanContext, reviews: analystReviews, filter: analystReviewFilter, selectedId };
+    else if (scan !== null) retainedReviewWorkspace.current = null;
+    setShowingRetainedResult(false);
     const requestSequence = ++scanRequestSequence.current;
     const evidenceValidUntilMs = performance.now() + 900_000;
     const evidenceValidUntilWallMs = Date.now() + 900_000;
@@ -320,6 +328,15 @@ export function App() {
         if (evidenceResponse) await releaseEvidenceHandle(token, 'run', evidenceResponse.run_handle);
         return;
       }
+      if (retainedReviewWorkspace.current && !rescanReplacesAnalystReview(result)) {
+        if (evidenceResponse) await releaseEvidenceHandle(token, 'run', evidenceResponse.run_handle);
+        if (requestSequence !== scanRequestSequence.current) return;
+        restoreRetainedReviewWorkspace();
+        setState('failed'); setActiveView('results');
+        setMessage(`새 검사가 ${statusLabels[result.scan_status] ?? '알 수 없는 상태'}로 끝나 결과를 적용하지 않았습니다. 이전 검사 결과와 분석가 검토 기록을 그대로 유지했습니다.`);
+        return;
+      }
+      retainedReviewWorkspace.current = null;
       const nextContext = { ...requestedContext, scanStatus: result.scan_status, receivedAt: new Date().toISOString() };
       const snapshot: ScanSnapshot = { scan: result, context: nextContext };
       setScan(result); setScanContext(nextContext);
@@ -336,8 +353,10 @@ export function App() {
       if (evidenceResponse) setInvestigationMessage('이 검사 응답에 연결된 서버 증거를 보관했습니다. 증거 접근은 생성 후 최대 15분에 만료됩니다.');
     } catch (error) {
       if (requestSequence !== scanRequestSequence.current) return;
-      // A failed rescan must not reuse the stale result (comparison invariant), so say the consented reset happened.
-      const clearedNote = discardsReview ? ' 확인에 따라 이전 검사의 분석가 검토 기록은 지워졌으며 복원되지 않습니다.' : '';
+      // A failed rescan never becomes a result. If review work was confirmed away, restore the exact prior workspace
+      // (same scan, context and records) and say so, instead of presenting the old result as the new one.
+      const retained = restoreRetainedReviewWorkspace();
+      const clearedNote = retained ? ' 새 결과는 없으며, 이전 검사 결과와 분석가 검토 기록을 그대로 유지했습니다.' : '';
       if (runWithEvidence) {
         const apiError = error instanceof ApiError ? error : new ApiError(500, 'invalid_api_response');
         const mapped = investigationErrorMessage(apiError.status, apiError.code);
@@ -347,6 +366,14 @@ export function App() {
         const result = safeError(error); setState(result.state); setMessage(result.message + clearedNote);
       }
     }
+  }
+  function restoreRetainedReviewWorkspace(): boolean {
+    const retained = retainedReviewWorkspace.current;
+    if (!retained) return false;
+    retainedReviewWorkspace.current = null;
+    setScan(retained.scan); setScanContext(retained.context); setAnalystReviews(retained.reviews);
+    setAnalystReviewFilter(retained.filter); setSelectedId(retained.selectedId); setShowingRetainedResult(true);
+    return true;
   }
   function clearToken() { void releaseInvestigationEvidence(); setToken(''); setState('ready'); setMessage('화면에 입력한 토큰을 지웠습니다. 서버 설정의 토큰은 변경되지 않습니다.'); setInvestigationMessage('토큰이 제거되어 조사 Handle을 사용할 수 없습니다. 해제를 요청했으며 보존 한계는 서버의 15분 TTL입니다.'); }
   function resetFilters() { setSeverityFilter('all'); setKindFilter('all'); setVerificationFilter('all'); setSearchQuery(''); }
@@ -366,6 +393,7 @@ export function App() {
     if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
       && !window.confirm('현재 검사 결과의 분석가 검토 상태와 메모, 비교 기준이 모두 삭제됩니다. 계속하시겠습니까?')) return;
     scanRequestSequence.current += 1;
+    retainedReviewWorkspace.current = null; setShowingRetainedResult(false);
     void releaseInvestigationEvidence(); setBaselineEvidence(null); setCurrentEvidence(null); setInvestigationMessage('');
     setScan(null); setScanContext(null); setBaselineSnapshot(null); setAnalystReviews(emptyAnalystReviewState); setAnalystReviewFilter('all'); setAnalystNoteError(''); setSelectedId(''); setBackupPreview(null); setBackupMessage(''); setIncludeBackupNotes(false); setBackupAppliedIds(new Set()); setBackupSkippedIds(new Set()); resetFilters(); setExportMessage(''); setSarifExportMessage(''); setComparisonExportMessage(''); setAnalystReviewExportMessage(''); setIncludeAnalystNotes(false); setMessage('화면의 검사 결과와 비교 기준을 지웠습니다. 서버의 검사 취소나 다운로드 파일 삭제는 수행하지 않습니다.');
     if (state !== 'unauthorized' && state !== 'connection_error' && state !== 'scan_already_running') setState('ready');
@@ -680,6 +708,7 @@ export function App() {
         {scanContext && <section className="scan-context panel glass-surface" aria-label="이 결과를 생성한 검사 설정"><div className="context-copy"><h2 className="sr-only">검사 정보</h2><p className="eyebrow">검사 설정 요약</p><p className="context-primary"><strong>{scanContext.targetLabel}</strong><span className="context-divider" aria-hidden="true">/</span><strong>{scanContext.experimental ? '실험 · ' : ''}{scanContext.ruleProfileLabel}</strong></p><p className="context-received-at">결과 수신: {new Date(scanContext.receivedAt).toLocaleString()}</p><details className="context-identifiers-disclosure"><summary>검사 내부 ID</summary><div className="context-identifiers"><span>대상 ID <code>{scanContext.targetId}</code></span><span>규칙 ID <code>{scanContext.ruleProfileId}</code></span></div></details></div><div className="context-actions"><button type="button" className="button secondary" aria-label="현재 검사 결과 내보내기" onClick={exportResults}><Icon name="download"/> 결과 내보내기</button><button type="button" className="button tertiary" aria-label="결과 지우기" onClick={clearResults}>결과 지우기</button></div>
         </section>}
         {investigationMode && <section className="investigation-evidence-notice" role="status" aria-live="polite"><strong>{currentEvidence?.snapshot.scan === scan ? '현재 응답에 서버 조사 증거가 연결됐습니다.' : '다음 검사를 조사 모드로 실행해야 증거를 보관합니다.'}</strong><p>서버 증거 접근은 생성 후 최대 15분에 만료됩니다. 로컬 API 토큰은 사용자별 격리를 제공하지 않으며, 증거는 화면 새로고침 뒤 복원되지 않습니다.</p>{investigationMessage && <p>{investigationMessage}</p>}</section>}
+        {showingRetainedResult && <p className="alert warning retained-result-note" role="note">마지막 새 검사 결과는 적용되지 않았습니다. 아래는 이전 검사 결과와 그 검사에 작성한 분석가 검토 기록입니다. 결과 수신 시각을 확인하세요.</p>}
         <section className={`scan-banner ${scan.scan_status}`} aria-labelledby="scan-result-title"><div className="scan-state-copy"><p className="eyebrow">검사 상태 {scan.semgrep_version ? `· Semgrep ${scan.semgrep_version}` : '· 버전 확인 불가'}</p><h2 id="scan-result-title">{statusLabels[scan.scan_status] ?? '알 수 없는 검사 상태'}</h2></div><span className={`state-pill ${scan.scan_status}`}>{scan.completed ? '완료' : scan.scan_status === 'partial' ? '일부만 완료' : '완료되지 않음'}</span></section>
         <ScanStatusGuidance scan={scan} />
         {scan.omitted_finding_count > 0 && <p className="alert warning scan-omission-note" role="alert">{scan.omitted_finding_count}개 Finding이 생략되어 목록과 검토 현황에 포함되지 않았습니다. 생략 항목의 개별 근거는 확인할 수 없습니다.</p>}

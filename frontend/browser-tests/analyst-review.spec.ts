@@ -180,3 +180,58 @@ test('새 검사 경고를 닫으면 검토 기록을 유지하고 키보드로 
   const axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations).toEqual([]);
 });
+
+test('실패·부분 재검사는 이전 결과와 검토 기록을 유지하고 정상 완료 재검사만 기록을 지운다', async ({ page }) => {
+  const replies: Array<'abort' | object> = [
+    scan([finding('aaaaaaaaaaaaaaaaaaaaaaaa')]),
+    'abort',
+    { ...scan([finding('bbbbbbbbbbbbbbbbbbbbbbbb')]), scan_status: 'partial', completed: false },
+    scan([finding('aaaaaaaaaaaaaaaaaaaaaaaa')]),
+  ];
+  let scanRequests = 0;
+  await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+  await page.route('**/api/v1/options', (route) => route.fulfill({ json: { targets: [{ id: 'project-a', label: 'Synthetic Project' }], rule_profiles: [{ id: 'baseline', label: 'Baseline Rules', experimental: false }] } }));
+  await page.route('**/api/v1/scans', (route) => {
+    scanRequests += 1;
+    const next = replies.shift();
+    return next === 'abort' ? route.abort('connectionrefused') : route.fulfill({ json: next });
+  });
+  const dialogs: string[] = [];
+  page.on('dialog', (dialog) => { dialogs.push(dialog.message()); void dialog.accept(); });
+  const results = page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: /검사 결과/ });
+  const retainedNote = page.getByText(/마지막 새 검사 결과는 적용되지 않았습니다/);
+  const rescan = async () => {
+    await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '검사 시작' }).click();
+    await page.getByRole('button', { name: '검사 실행' }).click();
+  };
+
+  await page.goto('/');
+  await page.getByLabel('로컬 API 토큰').fill('synthetic-review-token');
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await page.getByLabel('수동 검토 상태').selectOption('needs_followup');
+  await page.getByLabel('분석가 메모').fill('failed rescan must keep this note');
+
+  await rescan();
+  await expect(page.locator('.request-feedback')).toContainText('이전 검사 결과와 분석가 검토 기록을 그대로 유지했습니다');
+  await results.click();
+  await expect(retainedNote).toBeVisible();
+  await expect(page.getByLabel('분석가 메모')).toHaveValue('failed rescan must keep this note');
+  await expect(page.getByLabel('수동 검토 상태')).toHaveValue('needs_followup');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await rescan();
+  await expect(page.locator('.request-feedback')).toContainText('부분 검사로 끝나 결과를 적용하지 않았습니다');
+  await expect(retainedNote).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Finding 목록' })).not.toContainText('baseline.rule-bbbbbbbbbbbbbbbbbbbbbbbb');
+  await expect(page.getByLabel('분석가 메모')).toHaveValue('failed rescan must keep this note');
+
+  await rescan();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await expect(retainedNote).toHaveCount(0);
+  await expect(page.getByLabel('분석가 메모')).toHaveValue('');
+  await expect(page.getByLabel('수동 검토 상태')).toHaveValue('pending');
+  expect(dialogs).toHaveLength(3);
+  for (const text of dialogs) expect(text).toContain('실패하거나 일부만 완료되면 새 결과를 적용하지 않고 이전 결과와 기록을 유지');
+  expect(scanRequests).toBe(4);
+});
