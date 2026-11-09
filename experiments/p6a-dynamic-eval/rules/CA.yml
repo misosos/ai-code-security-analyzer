@@ -1,0 +1,55 @@
+# P6-A research variant CA: Candidate A: re-include const/let eval bound to globalThis.eval or window.eval
+# Derived by run_p6a.py from rules/security-baseline.yml (77d085dd4901); not a product rule.
+rules:
+  - id: baseline.javascript-dynamic-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Dynamic code evaluation requires review of input provenance and safer alternatives.
+    metadata:
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+    # R1-P: see docs/r1p-dynamic-eval-rule-integration.md for evidence and
+    # known limitations (function/var/arrow-parameter/escaped-identifier eval
+    # shadowing, globalThis/window member eval, Reflect.construct,
+    # closure-captured alias writes).
+    options:
+      # Follows single-assignment aliases such as `const run = eval; run(x)`;
+      # a later reassignment (`run = other`) stops propagation.
+      symbolic_propagation: true
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: eval(...)
+              - pattern: ($X, eval)(...)
+              - pattern: new Function(...)
+              - pattern: Function(...)
+          # A local binding named eval or Function shadows the global intrinsic.
+          - pattern-not-inside: |
+              function $F(..., eval, ...) { ... }
+          - pattern-not-inside: |
+              function $F(..., Function, ...) { ... }
+          # No `function eval` exclusion: Semgrep's `...` also reaches nested
+          # helpers and hid real global eval calls (R1-P-R1).
+          - pattern-not-inside: |
+              const eval = $V;
+              ...
+          - pattern-not-inside: |
+              let eval = $V;
+              ...
+
+      - patterns:
+          - pattern-either:
+              - pattern-inside: |
+                  const eval = globalThis.eval;
+                  ...
+              - pattern-inside: |
+                  let eval = globalThis.eval;
+                  ...
+              - pattern-inside: |
+                  const eval = window.eval;
+                  ...
+              - pattern-inside: |
+                  let eval = window.eval;
+                  ...
+          - pattern: eval(...)
+          - pattern-not-inside: |
+              function $F(..., eval, ...) { ... }

@@ -1,0 +1,16 @@
+# node v24.22.2 — node semantics/probe.cjs
+S1 eval(x)                         -> local
+S2 (0, eval)(x)                    -> ReferenceError: secret is not defined
+S3 const run = eval; run(x)        -> ReferenceError: secret is not defined
+S4 globalThis.eval(x)              -> ReferenceError: secret is not defined
+S5 const eval = globalThis.eval    -> local
+S6 let eval = globalThis.eval      -> local
+S7 const eval = JSON.parse         -> parsed
+S8 eval param holding %eval%       -> local
+S9 const eval = eval (TDZ)         -> ReferenceError: Cannot access 'eval' before initialization
+S10 const {eval} = globalThis      -> local
+S11 globalThis.eval replaced       -> replaced
+# node --check semantics/strict.cjs
+SyntaxError: Unexpected eval or arguments in strict mode
+# node --check semantics/module.mjs
+SyntaxError: Unexpected eval or arguments in strict mode

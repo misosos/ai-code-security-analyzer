@@ -1,0 +1,277 @@
+{
+  "contract": "p6a-dynamic-eval-labels/v1",
+  "label_question": "At the anchored call, does the callee resolve to %eval% (direct or indirect) under the assumptions?",
+  "assumptions": [
+    "Classic sloppy-mode script (strict code and ES modules reject an `eval` binding).",
+    "Standard globals are not replaced before the call (globalThis.eval, window.eval are %eval%).",
+    "`window` cases assume a browser script; Node has no `window`."
+  ],
+  "label_values": {
+    "positive": "The call evaluates code through %eval%.",
+    "negative": "The call does not evaluate code through %eval%.",
+    "undetermined": "The value cannot be decided from this file alone."
+  },
+  "semantic_evidence": "semantics/probe.cjs output in semantics/probe-output.txt (Node 24.22.2)",
+  "sites": [
+    {
+      "case": "N01_const_json_parse",
+      "file": "cases/N01_const_json_parse.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(text)",
+      "label": "negative",
+      "probe": "S7",
+      "rationale": "Local const holds JSON.parse; no code evaluation."
+    },
+    {
+      "case": "N02_let_json_parse",
+      "file": "cases/N02_let_json_parse.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(text)",
+      "label": "negative",
+      "probe": "S7",
+      "rationale": "Local let holds JSON.parse."
+    },
+    {
+      "case": "N03_const_local_function",
+      "file": "cases/N03_const_local_function.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(value)",
+      "label": "negative",
+      "probe": "S7",
+      "rationale": "Local const holds a local identity function."
+    },
+    {
+      "case": "N04_tdz_self_reference",
+      "file": "cases/N04_tdz_self_reference.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "negative",
+      "probe": "S9",
+      "rationale": "`const eval = eval` reads its own binding in the TDZ and throws before any call."
+    },
+    {
+      "case": "N05_method_named_eval",
+      "file": "cases/N05_method_named_eval.js",
+      "line": 3,
+      "column": 10,
+      "anchor": "policy.eval(input)",
+      "label": "negative",
+      "probe": "-",
+      "rationale": "Method of a user object, not %eval%."
+    },
+    {
+      "case": "N06_inner_shadow_under_a8",
+      "file": "cases/N06_inner_shadow_under_a8.js",
+      "line": 6,
+      "column": 12,
+      "anchor": "eval(text)",
+      "label": "negative",
+      "probe": "S7",
+      "rationale": "Inner block const shadows the outer A8 binding; the inner call is JSON.parse."
+    },
+    {
+      "case": "N07_local_window_object",
+      "file": "cases/N07_local_window_object.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "window.eval(input)",
+      "label": "negative",
+      "probe": "-",
+      "rationale": "Local object named `window` shadows the browser global."
+    },
+    {
+      "case": "N08_let_reassigned_after_builtin",
+      "file": "cases/N08_let_reassigned_after_builtin.js",
+      "line": 5,
+      "column": 10,
+      "anchor": "eval(text)",
+      "label": "negative",
+      "probe": "S7",
+      "rationale": "`let eval` first holds %eval% but is reassigned to JSON.parse before the call."
+    },
+    {
+      "case": "P01_direct_eval",
+      "file": "cases/P01_direct_eval.js",
+      "line": 3,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S1",
+      "rationale": "Identifier `eval` resolves to %eval%: direct eval."
+    },
+    {
+      "case": "P02_comma_indirect",
+      "file": "cases/P02_comma_indirect.js",
+      "line": 3,
+      "column": 10,
+      "anchor": "(0, eval)(code)",
+      "label": "positive",
+      "probe": "S2",
+      "rationale": "`(0, eval)` yields %eval%: indirect eval."
+    },
+    {
+      "case": "P03_alias",
+      "file": "cases/P03_alias.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "run(code)",
+      "label": "positive",
+      "probe": "S3",
+      "rationale": "Alias holds %eval%: indirect eval."
+    },
+    {
+      "case": "P04_global_this_member",
+      "file": "cases/P04_global_this_member.js",
+      "line": 3,
+      "column": 10,
+      "anchor": "globalThis.eval(code)",
+      "label": "positive",
+      "probe": "S4",
+      "rationale": "`globalThis.eval` is %eval%: indirect eval."
+    },
+    {
+      "case": "P05_a8_const_global_this",
+      "file": "cases/P05_a8_const_global_this.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S5",
+      "rationale": "A8. Reference named `eval` whose value is %eval%: direct eval."
+    },
+    {
+      "case": "P06_let_global_this",
+      "file": "cases/P06_let_global_this.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S6",
+      "rationale": "A8 `let` variant: direct eval."
+    },
+    {
+      "case": "P07_const_window_eval",
+      "file": "cases/P07_const_window_eval.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S5 (browser)",
+      "rationale": "Browser script: `window.eval` is %eval%; same structure as A8."
+    },
+    {
+      "case": "P08_const_computed_member",
+      "file": "cases/P08_const_computed_member.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S5",
+      "rationale": "`globalThis[\"eval\"]` is %eval%; computed member form of A8."
+    },
+    {
+      "case": "P09_destructured_binding",
+      "file": "cases/P09_destructured_binding.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S10",
+      "rationale": "Destructured binding named `eval` holding %eval%: direct eval."
+    },
+    {
+      "case": "P10_two_step_alias",
+      "file": "cases/P10_two_step_alias.js",
+      "line": 5,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S5",
+      "rationale": "Two-step: `builtin` holds %eval%, then `const eval = builtin`: direct eval."
+    },
+    {
+      "case": "P11_window_member",
+      "file": "cases/P11_window_member.js",
+      "line": 3,
+      "column": 10,
+      "anchor": "window.eval(code)",
+      "label": "positive",
+      "probe": "S4 (browser)",
+      "rationale": "Browser script: `window.eval` call is indirect eval."
+    },
+    {
+      "case": "P12_a8_nested_use",
+      "file": "cases/P12_a8_nested_use.js",
+      "line": 5,
+      "column": 12,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S5",
+      "rationale": "Inner function resolves `eval` to the outer const holding %eval%: direct eval."
+    },
+    {
+      "case": "P13_member_alias",
+      "file": "cases/P13_member_alias.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "evaluate(code)",
+      "label": "positive",
+      "probe": "S3",
+      "rationale": "Alias of `globalThis.eval` holds %eval%: indirect eval."
+    },
+    {
+      "case": "P14_var_global_this",
+      "file": "cases/P14_var_global_this.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "positive",
+      "probe": "S5",
+      "rationale": "`var eval` holding %eval% (SA-1 form): direct eval; the rule has no `var` exclusion."
+    },
+    {
+      "case": "U01_parameter_named_eval",
+      "file": "cases/U01_parameter_named_eval.js",
+      "line": 3,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "undetermined",
+      "probe": "S8",
+      "rationale": "Value depends on the caller; S8 shows a caller can pass %eval% and make it a direct eval."
+    },
+    {
+      "case": "U02_unknown_factory",
+      "file": "cases/U02_unknown_factory.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "undetermined",
+      "probe": "-",
+      "rationale": "Return value of an unknown function."
+    },
+    {
+      "case": "U03_conditional_builtin",
+      "file": "cases/U03_conditional_builtin.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "undetermined",
+      "probe": "S5/S7",
+      "rationale": "Path-dependent: %eval% on one branch, JSON.parse on the other."
+    },
+    {
+      "case": "U04_configured_evaluator",
+      "file": "cases/U04_configured_evaluator.js",
+      "line": 4,
+      "column": 10,
+      "anchor": "eval(code)",
+      "label": "undetermined",
+      "probe": "-",
+      "rationale": "Value from configuration; unknown statically."
+    }
+  ]
+}

@@ -1,0 +1,3295 @@
+{
+  "baseline_rule_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "rule_variant_sha256": {
+    "CA": "2d4033458e93b62686eabf937b432e359537c7b92e52b4f736d1a8aebc4b730f",
+    "CB": "e8a0d23c4182307cb62c7452bc80b8a3a934304654305ca8b92180671d9da303",
+    "CC": "d8b3bbb1734e543fbac6415f22a1936cdb5608bb3ee352626327a4627e32a744",
+    "R0": "245d5c45988826e96bdb18c998c9335cc252690e0b9a741d030d95f1126813a7",
+    "X1": "fd16cf9b4343a3b64dcde6e4f14d3cb16b5a97c9412ec312791f9beb269172c6",
+    "X2": "aea1b3404815819edf548bfecacf1e72f61dab9780651a0f204fcea07964aa7c",
+    "X3": "9cd51cd7ff9d745703107c3b94704bdd8b4d83c6e6467a9a59cc64d75efa41c0",
+    "X4": "54733d618e9e38c1902b00e51c98118b192af99f649481181c7d1c1708753f99",
+    "X5": "6a1f950e7af7fca01500de71f3c600a8adc402db582bbc1642bdb20f1648c1e9"
+  },
+  "semgrep_version": "1.182.1",
+  "variants": {
+    "CA": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Candidate A: re-include const/let eval bound to globalThis.eval or window.eval",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": true
+        }
+      ],
+      "fixture_ruleid_ok_violations": [],
+      "native_rule_test": "exit=0; 1/1: ✓ All tests passed",
+      "p6a": {
+        "counts": {
+          "FN": 4,
+          "FP": 2,
+          "TN": 6,
+          "TP": 10,
+          "undetermined_reported": 0,
+          "undetermined_silent": 4
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "FP",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "FP",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "TP",
+          "P06_let_global_this": "TP",
+          "P07_const_window_eval": "TP",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "TP",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "TP",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 2,
+            "TN": 16,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 1,
+            "TN": 5,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 3.794,
+        "runs": [
+          4.815,
+          4.179,
+          3.794,
+          3.489,
+          3.438
+        ]
+      }
+    },
+    "CB": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Candidate B: globalThis.eval / window.eval call branch via symbolic propagation",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": true
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": false
+        }
+      ],
+      "fixture_ruleid_ok_violations": [],
+      "native_rule_test": "exit=0; 1/1: ✓ All tests passed",
+      "p6a": {
+        "counts": {
+          "FN": 6,
+          "FP": 1,
+          "TN": 7,
+          "TP": 8,
+          "undetermined_reported": 0,
+          "undetermined_silent": 4
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "TN",
+          "N07_local_window_object": "FP",
+          "N08_let_reassigned_after_builtin": "TN",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "TP",
+          "P05_a8_const_global_this": "FN",
+          "P06_let_global_this": "FN",
+          "P07_const_window_eval": "FN",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "FN",
+          "P11_window_member": "TP",
+          "P12_a8_nested_use": "FN",
+          "P13_member_alias": "TP",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 2,
+            "TN": 16,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 3,
+            "FP": 1,
+            "TN": 5,
+            "TP": 9,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "TP",
+            "heldout/H02_window_eval.js:1:1": "TP",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 3.217,
+        "runs": [
+          4.162,
+          3.217,
+          3.177,
+          3.208,
+          3.26
+        ]
+      }
+    },
+    "CC": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Candidate C: drop const/let exclusions",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": true
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": true
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": true
+        }
+      ],
+      "fixture_ruleid_ok_violations": [
+        "ok@63",
+        "ok@133"
+      ],
+      "native_rule_test": "exit=1; missed lines: [], incorrect lines: [133, 63]",
+      "p6a": {
+        "counts": {
+          "FN": 3,
+          "FP": 6,
+          "TN": 2,
+          "TP": 11,
+          "undetermined_reported": 3,
+          "undetermined_silent": 1
+        },
+        "sites": {
+          "N01_const_json_parse": "FP",
+          "N02_let_json_parse": "FP",
+          "N03_const_local_function": "FP",
+          "N04_tdz_self_reference": "FP",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "FP",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "FP",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "TP",
+          "P06_let_global_this": "TP",
+          "P07_const_window_eval": "TP",
+          "P08_const_computed_member": "TP",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "TP",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "TP",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_reported",
+          "U03_conditional_builtin": "undetermined_reported",
+          "U04_configured_evaluator": "undetermined_reported"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 3,
+            "TN": 15,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "FP",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 1,
+            "TN": 5,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 3.846,
+        "runs": [
+          3.275,
+          4.087,
+          3.846,
+          3.822,
+          4.842
+        ]
+      }
+    },
+    "R0": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Production rule, unchanged",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": false
+        }
+      ],
+      "fixture_ruleid_ok_violations": [],
+      "native_rule_test": "exit=0; 1/1: ✓ All tests passed",
+      "p6a": {
+        "counts": {
+          "FN": 9,
+          "FP": 0,
+          "TN": 8,
+          "TP": 5,
+          "undetermined_reported": 0,
+          "undetermined_silent": 4
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "TN",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "TN",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "FN",
+          "P06_let_global_this": "FN",
+          "P07_const_window_eval": "FN",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "FN",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "FN",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 2,
+            "TN": 16,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 1,
+            "TN": 5,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 2.943,
+        "runs": [
+          3.024,
+          2.811,
+          2.909,
+          2.943,
+          2.981
+        ]
+      }
+    },
+    "X1": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Ablation: no `eval` parameter exclusion",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": false
+        }
+      ],
+      "fixture_ruleid_ok_violations": [
+        "ok@56",
+        "ok@124"
+      ],
+      "native_rule_test": "exit=1; missed lines: [], incorrect lines: [56, 124]",
+      "p6a": {
+        "counts": {
+          "FN": 9,
+          "FP": 0,
+          "TN": 8,
+          "TP": 5,
+          "undetermined_reported": 1,
+          "undetermined_silent": 3
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "TN",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "TN",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "FN",
+          "P06_let_global_this": "FN",
+          "P07_const_window_eval": "FN",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "FN",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "FN",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_reported",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 3,
+            "TN": 15,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "FP",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 1,
+            "TN": 5,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 3.041,
+        "runs": [
+          3.041,
+          2.848,
+          3.306,
+          2.929,
+          3.379
+        ]
+      }
+    },
+    "X2": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Ablation: no `Function` parameter exclusion",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": false
+        }
+      ],
+      "fixture_ruleid_ok_violations": [
+        "ok@71",
+        "ok@141"
+      ],
+      "native_rule_test": "exit=1; missed lines: [], incorrect lines: [141, 71]",
+      "p6a": {
+        "counts": {
+          "FN": 9,
+          "FP": 0,
+          "TN": 8,
+          "TP": 5,
+          "undetermined_reported": 0,
+          "undetermined_silent": 4
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "TN",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "TN",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "FN",
+          "P06_let_global_this": "FN",
+          "P07_const_window_eval": "FN",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "FN",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "FN",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 2,
+            "TN": 16,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 2,
+            "TN": 4,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "FP",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 2.905,
+        "runs": [
+          2.857,
+          2.905,
+          3.049,
+          2.902,
+          2.974
+        ]
+      }
+    },
+    "X3": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Ablation: no `const eval = $V` exclusion",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": true
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": true
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": true
+        }
+      ],
+      "fixture_ruleid_ok_violations": [
+        "ok@63",
+        "ok@133"
+      ],
+      "native_rule_test": "exit=1; missed lines: [], incorrect lines: [133, 63]",
+      "p6a": {
+        "counts": {
+          "FN": 4,
+          "FP": 4,
+          "TN": 4,
+          "TP": 10,
+          "undetermined_reported": 3,
+          "undetermined_silent": 1
+        },
+        "sites": {
+          "N01_const_json_parse": "FP",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "FP",
+          "N04_tdz_self_reference": "FP",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "FP",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "TN",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "TP",
+          "P06_let_global_this": "FN",
+          "P07_const_window_eval": "TP",
+          "P08_const_computed_member": "TP",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "TP",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "TP",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_reported",
+          "U03_conditional_builtin": "undetermined_reported",
+          "U04_configured_evaluator": "undetermined_reported"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 3,
+            "TN": 15,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "FP",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 1,
+            "TN": 5,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 3.803,
+        "runs": [
+          3.359,
+          3.164,
+          3.803,
+          4.169,
+          4.643
+        ]
+      }
+    },
+    "X4": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": []
+        },
+        "6E": {
+          "added": [],
+          "removed": []
+        }
+      },
+      "description": "Ablation: no `let eval = $V` exclusion",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": true
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": false
+        }
+      ],
+      "fixture_ruleid_ok_violations": [],
+      "native_rule_test": "exit=0; 1/1: ✓ All tests passed",
+      "p6a": {
+        "counts": {
+          "FN": 8,
+          "FP": 2,
+          "TN": 6,
+          "TP": 6,
+          "undetermined_reported": 0,
+          "undetermined_silent": 4
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "FP",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "TN",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "FP",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "TP",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "FN",
+          "P06_let_global_this": "TP",
+          "P07_const_window_eval": "FN",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "FN",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "FN",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 1,
+            "FP": 2,
+            "TN": 16,
+            "TP": 22,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "TP",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "TP",
+            "dev/ind1/alias_chain.js:1:1": "TP",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "TP",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "TP",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 5,
+            "FP": 1,
+            "TN": 5,
+            "TP": 7,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "TP",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 3.312,
+        "runs": [
+          3.465,
+          3.312,
+          3.726,
+          3.042,
+          2.943
+        ]
+      }
+    },
+    "X5": {
+      "benchmark_delta_vs_R0": {
+        "6A": {
+          "added": [],
+          "removed": []
+        },
+        "6D": {
+          "added": [],
+          "removed": [
+            "bench/6D/cases/js_eval/EJ08_alias_wrapper/src/compat/evaluator.js:3:10"
+          ]
+        },
+        "6E": {
+          "added": [],
+          "removed": [
+            "bench/6E/cases/js_eval/EJX11_alias_constructor/src/compiler.js:2:34"
+          ]
+        }
+      },
+      "description": "Ablation: no symbolic propagation",
+      "files_scanned": 214,
+      "fixture": [
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 7,
+          "reported": true
+        },
+        {
+          "code": "return eval(\"6 * 7\");",
+          "kind": "ruleid",
+          "line": 12,
+          "reported": true
+        },
+        {
+          "code": "return new Function(\"record\", source);",
+          "kind": "ruleid",
+          "line": 17,
+          "reported": true
+        },
+        {
+          "code": "return Function(sourceText)();",
+          "kind": "ruleid",
+          "line": 22,
+          "reported": true
+        },
+        {
+          "code": "return compileText(body);",
+          "kind": "ruleid",
+          "line": 28,
+          "reported": false
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ruleid",
+          "line": 34,
+          "reported": false
+        },
+        {
+          "code": "return (0, eval)(input);",
+          "kind": "ruleid",
+          "line": 39,
+          "reported": true
+        },
+        {
+          "code": "return eval?.(input);",
+          "kind": "ruleid",
+          "line": 44,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "ok",
+          "line": 51,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ok",
+          "line": 56,
+          "reported": false
+        },
+        {
+          "code": "eval(input);",
+          "kind": "ok",
+          "line": 63,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "ruleid",
+          "line": 66,
+          "reported": true
+        },
+        {
+          "code": "return new Function(body);",
+          "kind": "ok",
+          "line": 71,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 77,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 85,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 91,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 97,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ruleid",
+          "line": 103,
+          "reported": true
+        },
+        {
+          "code": "return Function(code);",
+          "kind": "ruleid",
+          "line": 109,
+          "reported": true
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ruleid",
+          "line": 116,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 124,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "ok",
+          "line": 133,
+          "reported": false
+        },
+        {
+          "code": "return new Function(code);",
+          "kind": "ok",
+          "line": 141,
+          "reported": false
+        },
+        {
+          "code": "return run(code);",
+          "kind": "ok",
+          "line": 151,
+          "reported": false
+        },
+        {
+          "code": "return policy.eval(input);",
+          "kind": "ok",
+          "line": 158,
+          "reported": false
+        },
+        {
+          "code": "return JSON.parse(input);",
+          "kind": "ok",
+          "line": 163,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 172,
+          "reported": true
+        },
+        {
+          "code": "eval(input);",
+          "kind": "todook",
+          "line": 177,
+          "reported": true
+        },
+        {
+          "code": "return run(input);",
+          "kind": "todoruleid",
+          "line": 183,
+          "reported": false
+        },
+        {
+          "code": "return eval(input);",
+          "kind": "todook",
+          "line": 188,
+          "reported": true
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todook",
+          "line": 194,
+          "reported": true
+        },
+        {
+          "code": "return globalThis.eval(code);",
+          "kind": "todoruleid",
+          "line": 199,
+          "reported": false
+        },
+        {
+          "code": "return Reflect.construct(Function, [body]);",
+          "kind": "todoruleid",
+          "line": 204,
+          "reported": false
+        },
+        {
+          "code": "return eval(code);",
+          "kind": "todoruleid",
+          "line": 212,
+          "reported": false
+        }
+      ],
+      "fixture_ruleid_ok_violations": [
+        "ruleid@28",
+        "ruleid@34",
+        "ruleid@116"
+      ],
+      "native_rule_test": "exit=1; missed lines: [34, 116, 28], incorrect lines: []",
+      "p6a": {
+        "counts": {
+          "FN": 10,
+          "FP": 0,
+          "TN": 8,
+          "TP": 4,
+          "undetermined_reported": 0,
+          "undetermined_silent": 4
+        },
+        "sites": {
+          "N01_const_json_parse": "TN",
+          "N02_let_json_parse": "TN",
+          "N03_const_local_function": "TN",
+          "N04_tdz_self_reference": "TN",
+          "N05_method_named_eval": "TN",
+          "N06_inner_shadow_under_a8": "TN",
+          "N07_local_window_object": "TN",
+          "N08_let_reassigned_after_builtin": "TN",
+          "P01_direct_eval": "TP",
+          "P02_comma_indirect": "TP",
+          "P03_alias": "FN",
+          "P04_global_this_member": "FN",
+          "P05_a8_const_global_this": "FN",
+          "P06_let_global_this": "FN",
+          "P07_const_window_eval": "FN",
+          "P08_const_computed_member": "FN",
+          "P09_destructured_binding": "TP",
+          "P10_two_step_alias": "FN",
+          "P11_window_member": "FN",
+          "P12_a8_nested_use": "FN",
+          "P13_member_alias": "FN",
+          "P14_var_global_this": "TP",
+          "U01_parameter_named_eval": "undetermined_silent",
+          "U02_unknown_factory": "undetermined_silent",
+          "U03_conditional_builtin": "undetermined_silent",
+          "U04_configured_evaluator": "undetermined_silent"
+        }
+      },
+      "r1": {
+        "dev": {
+          "counts": {
+            "FN": 6,
+            "FP": 2,
+            "TN": 16,
+            "TP": 17,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "dev/a6/E01_route_expression.js:3:1": "TP",
+            "dev/a6/E02_query_filter.ts:2:1": "TP",
+            "dev/a6/E03_template_builder.js:2:1": "TP",
+            "dev/a6/E04_admin_preview.js:2:1": "TP",
+            "dev/a6/E05_constant_expression.js:2:1": "TP",
+            "dev/a6/E06_comment_only.js:1:1": "TN",
+            "dev/a6/E07_log_message.js:2:1": "TN",
+            "dev/a6/E08_object_method.js:2:1": "TN",
+            "dev/a6/E09_safe_parser.js:2:1": "TN",
+            "dev/a6/E10_named_evaluator.js:2:1": "TN",
+            "dev/e6/EJX01_invoice_preview.js:2:1": "TP",
+            "dev/e6/EJX02_fixed_formula.ts:1:1": "TP",
+            "dev/e6/EJX03_legacy_console.js:1:1": "TP",
+            "dev/e6/EJX04_worker_transform.js:2:1": "TP",
+            "dev/e6/EJX05_import_map_expression.ts:2:1": "TP",
+            "dev/e6/EJX06_migration_constant.js:2:1": "TP",
+            "dev/e6/EJX07_comment_documentation.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:1:1": "TN",
+            "dev/e6/EJX08_method_name.js:2:1": "TN",
+            "dev/e6/EJX09_text_template.js:1:1": "TN",
+            "dev/e6/EJX10_safe_parser.js:2:1": "TN",
+            "dev/e6/EJX11_alias_constructor.js:2:1": "FN",
+            "dev/e6/EJX12_deferred_wrapper.js:1:1": "TN",
+            "dev/e6/EJX12_deferred_wrapper.js:2:1": "TP",
+            "dev/ind1/alias.js:1:1": "FN",
+            "dev/ind1/alias_chain.js:1:1": "FN",
+            "dev/ind1/block_shadow.js:1:1": "TN",
+            "dev/ind1/block_shadow.js:1:2": "TP",
+            "dev/ind1/branch_alias.js:1:1": "FN",
+            "dev/ind1/captured_write.js:1:1": "FN",
+            "dev/ind1/constructor.js:1:1": "TP",
+            "dev/ind1/cross_function.js:1:1": "FN",
+            "dev/ind1/direct.js:1:1": "TP",
+            "dev/ind1/escaped_identifier.js:1:1": "FP",
+            "dev/ind1/function_shadow.js:1:1": "FP",
+            "dev/ind1/indirect.js:1:1": "TP",
+            "dev/ind1/optional.js:1:1": "TP",
+            "dev/ind1/parameter_shadow.js:1:1": "TN",
+            "dev/ind1/reassigned.js:1:1": "TN",
+            "dev/ind1/text.js:1:1": "TN",
+            "dev/ind1/text.js:2:1": "TN"
+          }
+        },
+        "heldout": {
+          "counts": {
+            "FN": 6,
+            "FP": 1,
+            "TN": 5,
+            "TP": 6,
+            "undetermined_reported": 0,
+            "undetermined_silent": 0
+          },
+          "sites": {
+            "heldout/H01_globalthis_eval.js:1:1": "FN",
+            "heldout/H02_window_eval.js:1:1": "FN",
+            "heldout/H03_destructured_alias.js:2:1": "FN",
+            "heldout/H04_comma_indirect.js:1:1": "TP",
+            "heldout/H05_function_call_iife.js:1:1": "TP",
+            "heldout/H06_function_spread.js:1:1": "TP",
+            "heldout/H07_function_alias_new.js:2:1": "FN",
+            "heldout/H08_globalthis_function.js:1:1": "FN",
+            "heldout/H09_reflect_construct.js:1:1": "FN",
+            "heldout/H10_var_shadow.js:3:1": "FP",
+            "heldout/H11_object_eval_property.js:2:1": "TN",
+            "heldout/H12_local_evaluate.js:2:1": "TN",
+            "heldout/H13_shadowed_function_ctor.js:1:1": "TN",
+            "heldout/H15_function_timer.js:1:1": "TN",
+            "heldout/H18_regex_lookalike.js:1:1": "TN",
+            "heldout/H19_direct_eval.js:1:1": "TP",
+            "heldout/H20_nested_shadow_outer_global.js:3:1": "TP",
+            "heldout/H21_arrow_shadow_outer_function.js:3:1": "TP"
+          }
+        }
+      },
+      "semgrep_errors": [
+        "syntax_error.js: PartialParsing"
+      ],
+      "timing_seconds": {
+        "median": 2.818,
+        "runs": [
+          2.815,
+          2.818,
+          2.823,
+          2.808,
+          3.018
+        ]
+      }
+    }
+  }
+}
