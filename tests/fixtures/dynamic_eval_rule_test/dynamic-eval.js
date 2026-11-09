@@ -211,3 +211,58 @@ function constBindingHoldsBuiltinEval(code) {
   // todoruleid: baseline.javascript-dynamic-eval
   return eval(code);
 }
+
+// P6-B negative regressions: each local binding below shadows the global name
+// and is verified by execution never to evaluate code (none holds the built-in).
+function constBindingHoldsParser(text) {
+  const eval = JSON.parse;
+  // ok: baseline.javascript-dynamic-eval
+  return eval(text);
+}
+
+function letBindingHoldsParser(text) {
+  let eval = JSON.parse;
+  // ok: baseline.javascript-dynamic-eval
+  return eval(text);
+}
+
+function constBindingHoldsLocalFunction(value) {
+  const eval = (v) => v;
+  // ok: baseline.javascript-dynamic-eval
+  return eval(value);
+}
+
+function innerBlockShadowsOuterBinding(text) {
+  const eval = globalThis.eval;
+  {
+    const eval = JSON.parse;
+    // ok: baseline.javascript-dynamic-eval
+    return eval(text);
+  }
+}
+
+function letReassignedBeforeCall(text) {
+  let eval = globalThis.eval;
+  eval = JSON.parse;
+  // ok: baseline.javascript-dynamic-eval
+  return eval(text);
+}
+
+function localGlobalThisBinding(code) {
+  const globalThis = { eval: (v) => v };
+  const eval = globalThis.eval;
+  // ok: baseline.javascript-dynamic-eval
+  return eval(code);
+}
+
+function localGlobalThisMember(code) {
+  const globalThis = { eval: (v) => v };
+  // ok: baseline.javascript-dynamic-eval
+  return globalThis.eval(code);
+}
+
+function localWindowMember(input) {
+  const window = { eval: (v) => v };
+  // ok: baseline.javascript-dynamic-eval
+  return window.eval(input);
+}
