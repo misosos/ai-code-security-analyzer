@@ -203,3 +203,11 @@ function reflectConstruct(body) {
   // todoruleid: baseline.javascript-dynamic-eval
   return Reflect.construct(Function, [body]);
 }
+
+// A8: the `const eval = $V` exclusion ignores $V, so a binding that holds the
+// built-in hides a real direct eval. Pending only; todo lines are not enforced.
+function constBindingHoldsBuiltinEval(code) {
+  const eval = globalThis.eval;
+  // todoruleid: baseline.javascript-dynamic-eval
+  return eval(code);
+}
