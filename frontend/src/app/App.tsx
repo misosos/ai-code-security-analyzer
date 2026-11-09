@@ -284,8 +284,15 @@ export function App() {
     const target = options?.targets.find((item) => item.id === targetId);
     const profile = options?.rule_profiles.find((item) => item.id === profileId);
     if (!target || !profile) return;
-    if (scan && hasAnalystReviewWork(scan.findings, analystReviews)
-      && !window.confirm('현재 검사에 작성한 분석가 검토 상태와 메모가 새 검사 시작 시 사라집니다. 계속하시겠습니까?')) return;
+    const discardsReview = scan !== null && hasAnalystReviewWork(scan.findings, analystReviews);
+    if (discardsReview
+      && !window.confirm('현재 검사 결과에 작성한 분석가 검토 상태와 메모는 이전 검사의 Finding에 연결되어 있으며 새 검사 결과로 옮겨지지 않습니다. 새 검사를 시작하면 검사 성공 여부와 관계없이 이 기록이 화면에서 지워지고 자동 저장되지 않습니다. 보관하려면 취소한 뒤 "검토 기록 백업 JSON 다운로드"를 사용하세요. 계속하시겠습니까?')) {
+      setActiveView('results');
+      setMessage('새 검사를 시작하지 않았습니다. 기존 검사 결과와 분석가 검토 기록을 유지했습니다.');
+      setBackupMessage('새 검사를 취소했습니다. 검토 기록을 보관하려면 백업 JSON을 다운로드하세요. 다운로드 여부는 브라우저에서 확인하세요.');
+      window.setTimeout(() => { const tool = document.querySelector<HTMLDetailsElement>('.analyst-backup-tool'); if (tool) tool.open = true; document.querySelector<HTMLElement>('button[aria-label="검토 기록 백업 JSON 다운로드"]')?.focus(); }, 0);
+      return;
+    }
     const requestSequence = ++scanRequestSequence.current;
     const evidenceValidUntilMs = performance.now() + 900_000;
     const evidenceValidUntilWallMs = Date.now() + 900_000;
@@ -329,13 +336,15 @@ export function App() {
       if (evidenceResponse) setInvestigationMessage('이 검사 응답에 연결된 서버 증거를 보관했습니다. 증거 접근은 생성 후 최대 15분에 만료됩니다.');
     } catch (error) {
       if (requestSequence !== scanRequestSequence.current) return;
+      // A failed rescan must not reuse the stale result (comparison invariant), so say the consented reset happened.
+      const clearedNote = discardsReview ? ' 확인에 따라 이전 검사의 분석가 검토 기록은 지워졌으며 복원되지 않습니다.' : '';
       if (runWithEvidence) {
         const apiError = error instanceof ApiError ? error : new ApiError(500, 'invalid_api_response');
         const mapped = investigationErrorMessage(apiError.status, apiError.code);
         const standard = safeError(error);
-        setState(standard.state); setMessage(mapped); setInvestigationMessage(mapped); setInvestigationState('error');
+        setState(standard.state); setMessage(mapped + clearedNote); setInvestigationMessage(mapped); setInvestigationState('error');
       } else {
-        const result = safeError(error); setState(result.state); setMessage(result.message);
+        const result = safeError(error); setState(result.state); setMessage(result.message + clearedNote);
       }
     }
   }

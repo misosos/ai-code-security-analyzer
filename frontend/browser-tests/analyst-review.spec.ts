@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
@@ -151,4 +152,31 @@ test('Finding 검토 상태와 메모는 현재 검사에 격리되고 확인·�
     const dimensions = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
     expect(dimensions.scroll, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(dimensions.client);
   }
+});
+
+test('새 검사 경고를 닫으면 검토 기록을 유지하고 키보드로 기존 JSON 백업에 도달한다', async ({ page }) => {
+  let scanRequests = 0;
+  await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+  await page.route('**/api/v1/options', (route) => route.fulfill({ json: { targets: [{ id: 'project-a', label: 'Synthetic Project' }], rule_profiles: [{ id: 'baseline', label: 'Baseline Rules', experimental: false }] } }));
+  await page.route('**/api/v1/scans', (route) => { scanRequests += 1; return route.fulfill({ json: scan([finding('aaaaaaaaaaaaaaaaaaaaaaaa')]) }); });
+  await page.goto('/');
+  await page.getByLabel('로컬 API 토큰').fill('synthetic-review-token');
+  await page.getByRole('button', { name: '검사 실행' }).click();
+  await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
+  await page.getByLabel('분석가 메모').fill('dismissed warning keeps this note');
+
+  const warning = page.waitForEvent('dialog').then(async (dialog) => { const text = dialog.message(); await dialog.dismiss(); return text; });
+  await page.getByRole('button', { name: '검사 시작' }).click();
+  await page.getByRole('button', { name: '검사 실행' }).press('Enter');
+  expect(await warning).toContain('검토 기록 백업 JSON 다운로드');
+  const backupButton = page.getByRole('button', { name: '검토 기록 백업 JSON 다운로드' });
+  await expect(backupButton).toBeFocused();
+  await expect(page.getByLabel('분석가 메모')).toHaveValue('dismissed warning keeps this note');
+  const backup = page.waitForEvent('download');
+  await page.keyboard.press('Enter');
+  const backupJson = JSON.parse(await readFile((await (await backup).path())!, 'utf8'));
+  expect(backupJson.findings[0]).toMatchObject({ finding_id: 'semgrep:aaaaaaaaaaaaaaaaaaaaaaaa', review_status: 'pending' });
+  expect(scanRequests).toBe(1);
+  const axe = await new AxeBuilder({ page }).analyze();
+  expect(axe.violations).toEqual([]);
 });
