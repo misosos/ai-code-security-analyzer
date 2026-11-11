@@ -1,0 +1,43 @@
+{
+  "errors": [
+    {
+      "level": "warn",
+      "path": "src/wide.js",
+      "type": "Timeout"
+    }
+  ],
+  "exit_code": 0,
+  "expected_rules_sha256": null,
+  "expected_sources": [
+    "src/found.js",
+    "src/wide.js"
+  ],
+  "reasons": [
+    {
+      "class": "TIMEOUT",
+      "detail": "\"Timeout\""
+    },
+    {
+      "class": "SCOPE",
+      "detail": "skipped:src/wide.js:analysis_failed_parser_or_internal_error"
+    }
+  ],
+  "rules_sha256": "2992db965c1b67e016a67d399ee63e334af69b719eb5e6d2f514f260efb23f96",
+  "scanned": [
+    "src/found.js",
+    "src/wide.js"
+  ],
+  "semgrep_version": "1.182.1",
+  "skipped": [
+    {
+      "path": "src/wide.js",
+      "reason": "analysis_failed_parser_or_internal_error"
+    }
+  ],
+  "target": {
+    "exists": true,
+    "relative_to_root": "."
+  },
+  "tool": "d2-integrity-check/v1",
+  "verdict": "FLAG"
+}

@@ -1,0 +1,2225 @@
+{
+  "evidence_fidelity_case_A": {
+    "a": {
+      "error_type_and_path": true,
+      "exit_code": false,
+      "rule_set_hash": false,
+      "scanned_list": true,
+      "semgrep_version": true,
+      "skipped_list_with_reason": false,
+      "target_identity": false
+    },
+    "b": {
+      "error_type_and_path": true,
+      "exit_code": false,
+      "rule_set_hash": false,
+      "scanned_list": true,
+      "semgrep_version": true,
+      "skipped_list_with_reason": false,
+      "target_identity": false
+    },
+    "c": {
+      "error_type_and_path": true,
+      "exit_code": true,
+      "rule_set_hash": true,
+      "scanned_list": true,
+      "semgrep_version": true,
+      "skipped_list_with_reason": true,
+      "target_identity": true
+    },
+    "d_api": {
+      "error_type_and_path": false,
+      "exit_code": false,
+      "rule_set_hash": false,
+      "scanned_list": false,
+      "semgrep_version": true,
+      "skipped_list_with_reason": false,
+      "target_identity": false
+    },
+    "d_cli": {
+      "error_type_and_path": false,
+      "exit_code": true,
+      "rule_set_hash": false,
+      "scanned_list": false,
+      "semgrep_version": true,
+      "skipped_list_with_reason": false,
+      "target_identity": true
+    }
+  },
+  "excluded": [],
+  "per_case_first_rep": [
+    {
+      "arm": "a",
+      "case": "A",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "A",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "A",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "A",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "A",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "A",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "B",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "B",
+      "classes": [],
+      "exit_code": 3,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "c",
+      "case": "B",
+      "classes": [
+        "PARSE",
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "B",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": 1,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_api",
+      "case": "B",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_inv",
+      "case": "B",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "PARSE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "Bs",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Bs",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "Bs",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Bs",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "Bs",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Bs",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "C",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "C",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "C",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "C",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "C",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "C",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "Cd",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Cd",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "Cd",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Cd",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "Cd",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Cd",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "D",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "D",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "D",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "D",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "D",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "D",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": true,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "E",
+      "classes": [],
+      "exit_code": 7,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "b",
+      "case": "E",
+      "classes": [],
+      "exit_code": 7,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "c",
+      "case": "E",
+      "classes": [
+        "PARSE",
+        "RULE",
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "exit_code": 7,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "E",
+      "classes": [
+        "GENERIC",
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "exit_code": 3,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "execution_failed",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_api",
+      "case": "E",
+      "classes": [
+        "SCAN_FAILED"
+      ],
+      "exit_code": null,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "execution_failed",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_inv",
+      "case": "E",
+      "classes": [
+        "SCAN_FAILED"
+      ],
+      "exit_code": null,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "execution_failed",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "F1",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "F1",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "F1",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "F1",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "F1",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "F1",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE",
+        "SCAN_FAILED"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "F2",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "F2",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "F2",
+      "classes": [
+        "RULE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "F2",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "F2",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "F2",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "RULE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "Gt",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "TIMEOUT"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Gt",
+      "classes": [],
+      "exit_code": 2,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "TIMEOUT"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "c",
+      "case": "Gt",
+      "classes": [
+        "SCOPE",
+        "TIMEOUT"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "TIMEOUT"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Gt",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": 1,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "TIMEOUT"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_api",
+      "case": "Gt",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "TIMEOUT"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Gt",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "TIMEOUT"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "Go",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 5000,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Go",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 5000,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "Go",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 5000,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Go",
+      "classes": [
+        "OUTPUT"
+      ],
+      "exit_code": 3,
+      "explanation": null,
+      "false_block": true,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "output_limit_exceeded",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_api",
+      "case": "Go",
+      "classes": [
+        "OUTPUT",
+        "SCAN_FAILED"
+      ],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": true,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "output_limit_exceeded",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Go",
+      "classes": [
+        "OUTPUT",
+        "SCAN_FAILED"
+      ],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": true,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "output_limit_exceeded",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "H",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "H",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "H",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "H",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "H",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "H",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "Hp",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Hp",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "Hp",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Hp",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "Hp",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Hp",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 1,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "Hm",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Hm",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "Hm",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Hm",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "Hm",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Hm",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "a",
+      "case": "Hn",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "Hn",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "Hn",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_cli",
+      "case": "Hn",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "Hn",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "Hn",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": true,
+      "label_complete": true,
+      "label_reasons": [],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "I1",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "I1",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "I1",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "I1",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 1,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_api",
+      "case": "I1",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_inv",
+      "case": "I1",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "I2",
+      "classes": [],
+      "exit_code": 2,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "b",
+      "case": "I2",
+      "classes": [],
+      "exit_code": 2,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "c",
+      "case": "I2",
+      "classes": [
+        "GENERIC",
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "exit_code": 2,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "I2",
+      "classes": [
+        "SCAN_FAILED"
+      ],
+      "exit_code": 2,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": null,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_api",
+      "case": "I2",
+      "classes": [
+        "SCAN_FAILED"
+      ],
+      "exit_code": null,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": null,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_inv",
+      "case": "I2",
+      "classes": [
+        "SCAN_FAILED"
+      ],
+      "exit_code": null,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCAN_FAILED",
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": null,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "a",
+      "case": "J",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "b",
+      "case": "J",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "PASS"
+    },
+    {
+      "arm": "c",
+      "case": "J",
+      "classes": [
+        "SCOPE"
+      ],
+      "exit_code": 0,
+      "explanation": "MATCH",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": null,
+      "verdict": "FLAG"
+    },
+    {
+      "arm": "d_cli",
+      "case": "J",
+      "classes": [],
+      "exit_code": 0,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_api",
+      "case": "J",
+      "classes": [],
+      "exit_code": null,
+      "explanation": null,
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": true,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "completed",
+      "verdict": "PASS"
+    },
+    {
+      "arm": "d_inv",
+      "case": "J",
+      "classes": [
+        "GENERIC"
+      ],
+      "exit_code": null,
+      "explanation": "GENERIC",
+      "false_block": false,
+      "label_complete": false,
+      "label_reasons": [
+        "SCOPE"
+      ],
+      "miss": false,
+      "policy_dependent": false,
+      "rep": "run1",
+      "result_count": 0,
+      "status": "partial",
+      "verdict": "FLAG"
+    }
+  ],
+  "product_best_mode": "d_inv",
+  "reps": [
+    "run1",
+    "run2",
+    "run3"
+  ],
+  "summary": {
+    "a": {
+      "M1_missed": [
+        "A",
+        "B",
+        "Bs",
+        "C",
+        "Cd",
+        "D",
+        "F1",
+        "F2",
+        "Gt",
+        "I1",
+        "J"
+      ],
+      "M1_missed_non_policy": [
+        "A",
+        "B",
+        "Bs",
+        "C",
+        "F1",
+        "F2",
+        "Gt",
+        "I1",
+        "J"
+      ],
+      "M2_false_block": [],
+      "M3_explanation": {
+        "GENERIC": 2,
+        "MATCH": 0,
+        "WRONG": 0
+      },
+      "cases": 18,
+      "complete_cases": 5,
+      "incomplete_cases": 13,
+      "reproducible": true,
+      "unstable": []
+    },
+    "b": {
+      "M1_missed": [
+        "A",
+        "Bs",
+        "C",
+        "Cd",
+        "D",
+        "F1",
+        "F2",
+        "I1",
+        "J"
+      ],
+      "M1_missed_non_policy": [
+        "A",
+        "Bs",
+        "C",
+        "F1",
+        "F2",
+        "I1",
+        "J"
+      ],
+      "M2_false_block": [],
+      "M3_explanation": {
+        "GENERIC": 4,
+        "MATCH": 0,
+        "WRONG": 0
+      },
+      "cases": 18,
+      "complete_cases": 5,
+      "incomplete_cases": 13,
+      "reproducible": true,
+      "unstable": []
+    },
+    "c": {
+      "M1_missed": [
+        "A",
+        "F1"
+      ],
+      "M1_missed_non_policy": [
+        "A",
+        "F1"
+      ],
+      "M2_false_block": [],
+      "M3_explanation": {
+        "GENERIC": 0,
+        "MATCH": 11,
+        "WRONG": 0
+      },
+      "cases": 18,
+      "complete_cases": 5,
+      "incomplete_cases": 13,
+      "reproducible": true,
+      "unstable": []
+    },
+    "d_api": {
+      "M1_missed": [
+        "A",
+        "Bs",
+        "C",
+        "Cd",
+        "D",
+        "F1",
+        "F2",
+        "J"
+      ],
+      "M1_missed_non_policy": [
+        "A",
+        "Bs",
+        "C",
+        "F1",
+        "F2",
+        "J"
+      ],
+      "M2_false_block": [
+        "Go"
+      ],
+      "M3_explanation": {
+        "GENERIC": 3,
+        "MATCH": 2,
+        "WRONG": 0
+      },
+      "cases": 18,
+      "complete_cases": 5,
+      "incomplete_cases": 13,
+      "reproducible": true,
+      "unstable": []
+    },
+    "d_cli": {
+      "M1_missed": [
+        "A",
+        "Bs",
+        "C",
+        "Cd",
+        "D",
+        "F1",
+        "F2",
+        "J"
+      ],
+      "M1_missed_non_policy": [
+        "A",
+        "Bs",
+        "C",
+        "F1",
+        "F2",
+        "J"
+      ],
+      "M2_false_block": [
+        "Go"
+      ],
+      "M3_explanation": {
+        "GENERIC": 2,
+        "MATCH": 3,
+        "WRONG": 0
+      },
+      "cases": 18,
+      "complete_cases": 5,
+      "incomplete_cases": 13,
+      "reproducible": true,
+      "unstable": []
+    },
+    "d_inv": {
+      "M1_missed": [
+        "A",
+        "D",
+        "F1",
+        "F2"
+      ],
+      "M1_missed_non_policy": [
+        "A",
+        "F1",
+        "F2"
+      ],
+      "M2_false_block": [
+        "Go",
+        "Hn"
+      ],
+      "M3_explanation": {
+        "GENERIC": 7,
+        "MATCH": 2,
+        "WRONG": 0
+      },
+      "cases": 18,
+      "complete_cases": 5,
+      "incomplete_cases": 13,
+      "reproducible": true,
+      "unstable": []
+    }
+  }
+}

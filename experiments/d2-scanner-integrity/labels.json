@@ -1,0 +1,32 @@
+{
+  "label_version": "d2-labels/v1",
+  "note": "Ground truth by construction (build_cases.py). Committed before any arm was run. 'complete' means: every file the declared intent puts in scope was fully analysed by every rule the declared intent expects. It says nothing about whether the code is safe. 'policy_dependent' marks cases where the intended scope is a judgment call; they are scored but also reported separately.",
+  "production_rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "default_intent": {
+    "intended_root": ".",
+    "source_extensions": [".js", ".jsx", ".ts", ".tsx"],
+    "source_names": ["firestore.rules"],
+    "declared_exclusions": ["node_modules/", ".git/"],
+    "expected_rules": "production"
+  },
+  "cases": {
+    "A":  {"situation": "파싱 오류가 있는 파일 + 다른 파일의 Finding", "complete": false, "reason": ["PARSE"], "policy_dependent": false, "dangerous_code_unscanned": false},
+    "B":  {"situation": "유일한 위험 코드가 파싱 실패 파일 안에 있음", "complete": false, "reason": ["PARSE"], "policy_dependent": false, "dangerous_code_unscanned": "conditional"},
+    "Bs": {"situation": "1MB 초과 파일에 위험 코드 (기본 크기 제한)", "complete": false, "reason": ["SCOPE"], "policy_dependent": false, "dangerous_code_unscanned": true},
+    "C":  {"situation": ".semgrepignore가 위험 파일 제외", "complete": false, "reason": ["SCOPE"], "policy_dependent": false, "dangerous_code_unscanned": true},
+    "Cd": {"situation": "Semgrep 기본 ignore가 tests/ 아래 위험 파일 제외", "complete": false, "reason": ["SCOPE"], "policy_dependent": true, "dangerous_code_unscanned": true},
+    "D":  {"situation": ".gitignore된 미추적 파일에 위험 코드", "complete": false, "reason": ["SCOPE"], "policy_dependent": true, "dangerous_code_unscanned": true},
+    "E":  {"situation": "규칙 파일이 잘못된 YAML", "complete": false, "reason": ["RULE", "SCAN_FAILED"], "policy_dependent": false, "dangerous_code_unscanned": true},
+    "F1": {"situation": "규칙 하나의 패턴이 파싱되지 않음, 나머지는 유효", "complete": false, "reason": ["RULE", "SCAN_FAILED"], "policy_dependent": false, "dangerous_code_unscanned": "conditional", "intent": {"expected_rules": "as_given"}},
+    "F2": {"situation": "기대한 규칙이 설정에서 조용히 빠짐 (설정은 유효)", "complete": false, "reason": ["RULE"], "policy_dependent": false, "dangerous_code_unscanned": true},
+    "Gt": {"situation": "규칙 타임아웃", "complete": "CONDITIONAL", "if_reference_timeout": {"complete": false, "reason": ["TIMEOUT"]}, "otherwise": "EXCLUDED", "policy_dependent": false, "dangerous_code_unscanned": false, "intent": {"expected_rules": "as_given"}},
+    "Go": {"situation": "Finding 5,000건의 큰 출력, 검사 자체는 완전", "complete": true, "reason": [], "policy_dependent": false, "dangerous_code_unscanned": false},
+    "H":  {"situation": "정상 코드, Finding 0건", "complete": true, "reason": [], "policy_dependent": false, "dangerous_code_unscanned": false},
+    "Hp": {"situation": "정상 검사, Finding 있음", "complete": true, "reason": [], "policy_dependent": false, "dangerous_code_unscanned": false},
+    "Hm": {"situation": "규칙 대상이 아닌 언어 파일(.py, .md)이 섞인 저장소", "complete": true, "reason": [], "policy_dependent": false, "dangerous_code_unscanned": false},
+    "Hn": {"situation": "선언된 제외 대상 node_modules/ 포함", "complete": true, "reason": [], "policy_dependent": false, "dangerous_code_unscanned": false},
+    "I1": {"situation": "검사 대상이 소스 없는 다른 디렉터리로 설정됨", "complete": false, "reason": ["SCOPE"], "policy_dependent": false, "dangerous_code_unscanned": true},
+    "I2": {"situation": "검사 대상 경로가 존재하지 않음 (오타)", "complete": false, "reason": ["SCAN_FAILED", "SCOPE"], "policy_dependent": false, "dangerous_code_unscanned": true},
+    "J":  {"situation": "한 파일은 실제 수정, 다른 위험 파일은 새로 제외", "complete": false, "reason": ["SCOPE"], "policy_dependent": false, "dangerous_code_unscanned": true}
+  }
+}

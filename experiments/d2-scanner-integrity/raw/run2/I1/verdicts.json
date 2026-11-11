@@ -1,0 +1,52 @@
+{
+  "a": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "PASS"
+  },
+  "b": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "PASS"
+  },
+  "c": {
+    "exit_code": 0,
+    "reasons": [
+      "SCOPE"
+    ],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "case": "I1",
+  "d_api": {
+    "error": null,
+    "issues": [
+      "evidence_unavailable"
+    ],
+    "result_count": 0,
+    "status": "partial",
+    "verdict": "FLAG"
+  },
+  "d_cli": {
+    "exit_code": 1,
+    "issues": [
+      "no_files_scanned"
+    ],
+    "result_count": 0,
+    "status": "partial",
+    "verdict": "FLAG"
+  },
+  "d_inv": {
+    "error": null,
+    "issues": [
+      "evidence_unavailable"
+    ],
+    "result_count": 0,
+    "status": "partial",
+    "verdict": "FLAG"
+  },
+  "rep": 2,
+  "semgrep": "1.182.1"
+}

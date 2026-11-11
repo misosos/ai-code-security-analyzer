@@ -1,0 +1,40 @@
+{
+  "completed": true,
+  "coverage": {
+    "no_files_scanned": false,
+    "paths_skipped": false,
+    "rules_skipped": false
+  },
+  "findings": [],
+  "issues": [],
+  "limitations": [
+    "Findings are unverified static-analysis candidates.",
+    "This CLI does not enforce OS-level network isolation.",
+    "No findings does not establish that the target is safe."
+  ],
+  "rules": {
+    "file_name": "security-baseline.yml"
+  },
+  "schema_version": "1.0",
+  "status": "completed",
+  "summary": {
+    "by_severity": {
+      "critical": 0,
+      "high": 0,
+      "info": 0,
+      "low": 0,
+      "medium": 0
+    },
+    "finding_count": 0,
+    "issue_count": 0
+  },
+  "target": {
+    "id": "0625f8fa24145c9d",
+    "kind": "directory"
+  },
+  "tool": {
+    "exit_code": 0,
+    "name": "semgrep",
+    "version": "1.182.1"
+  }
+}

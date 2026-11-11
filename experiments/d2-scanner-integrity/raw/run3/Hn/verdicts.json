@@ -1,0 +1,46 @@
+{
+  "a": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "PASS"
+  },
+  "b": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "PASS"
+  },
+  "c": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "PASS"
+  },
+  "case": "Hn",
+  "d_api": {
+    "error": null,
+    "issues": [],
+    "result_count": 0,
+    "status": "completed",
+    "verdict": "PASS"
+  },
+  "d_cli": {
+    "exit_code": 0,
+    "issues": [],
+    "result_count": 0,
+    "status": "completed",
+    "verdict": "PASS"
+  },
+  "d_inv": {
+    "error": null,
+    "issues": [
+      "evidence_unavailable"
+    ],
+    "result_count": 0,
+    "status": "partial",
+    "verdict": "FLAG"
+  },
+  "rep": 3,
+  "semgrep": "1.182.1"
+}

@@ -1,0 +1,21 @@
+{
+  "errors": [],
+  "exit_code": 0,
+  "expected_rules_sha256": null,
+  "expected_sources": [
+    "src/found.js"
+  ],
+  "reasons": [],
+  "rules_sha256": "f4cc7109d5c5bcca61c492a811df6290aedafd097f5fec947018de86852edafb",
+  "scanned": [
+    "src/found.js"
+  ],
+  "semgrep_version": "1.182.1",
+  "skipped": [],
+  "target": {
+    "exists": true,
+    "relative_to_root": "."
+  },
+  "tool": "d2-integrity-check/v1",
+  "verdict": "PASS"
+}
