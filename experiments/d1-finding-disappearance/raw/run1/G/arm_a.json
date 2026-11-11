@@ -1,0 +1,27 @@
+{
+  "baseline_commit": {
+    "exit_code": 0,
+    "results": []
+  },
+  "current_only_count": 0,
+  "exit_codes": {
+    "base": 0,
+    "current": 0
+  },
+  "findings": [
+    {
+      "causes": [],
+      "fix_claim": false,
+      "line": 4,
+      "path": "src/handler.js",
+      "presence": "DISAPPEARED"
+    },
+    {
+      "causes": [],
+      "fix_claim": false,
+      "line": 4,
+      "path": "src/stable.js",
+      "presence": "DISAPPEARED"
+    }
+  ]
+}
