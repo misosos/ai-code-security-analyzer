@@ -1,0 +1,113 @@
+{
+  "label_version": "d1-labels/v1",
+  "note": "Ground truth by construction (the change applied by build_cases.py). Committed before any arm was run. 'fate' PERSISTS means the same dangerous code is still present AND still within the scanned, rule-covered scope, so a correct tool must report it as still present. 'conditional' entries are resolved only by the stock reference observation defined in PROTOCOL.md section 6, never by an arm's verdict.",
+  "fine_causes": ["CODE_CHANGED_AT_MATCH", "FILE_DELETED", "SCOPE_EXCLUDED", "RULE_DISABLED", "RULE_CHANGED", "SCAN_INCOMPLETE"],
+  "coarse": {
+    "CODE_CHANGED_AT_MATCH": "CODE", "FILE_DELETED": "CODE",
+    "SCOPE_EXCLUDED": "SCOPE",
+    "RULE_DISABLED": "RULE", "RULE_CHANGED": "RULE",
+    "SCAN_INCOMPLETE": "SCAN"
+  },
+  "cases": {
+    "A": {
+      "applied_change": "eval(input) replaced by JSON.parse(input) on the matched line",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["CODE_CHANGED_AT_MATCH"], "dangerous_code_present_after": false, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "B": {
+      "applied_change": "one comment line inserted above the match; matched code byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "PERSISTS", "moved_to": "src/handler.js:5", "causes": [], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "C": {
+      "applied_change": "git mv src/handler.js src/payload-handler.js; content byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "PERSISTS", "moved_to": "src/payload-handler.js:4", "causes": [], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "Da": {
+      "applied_change": "file has two byte-identical dangerous lines; the first function is deleted, the second shifts up",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["CODE_CHANGED_AT_MATCH"], "dangerous_code_present_after": false, "determinable": true},
+        {"key": "src/handler.js:8", "fate": "PERSISTS", "moved_to": "src/handler.js:4", "causes": [], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "Db": {
+      "applied_change": "two byte-identical files; src/b.js deleted, src/a.js untouched",
+      "findings": [
+        {"key": "src/a.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/b.js:4", "fate": "NOT_REPORTED", "causes": ["FILE_DELETED"], "dangerous_code_present_after": false, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "E": {
+      "applied_change": ".semgrepignore added listing src/handler.js; code byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["SCOPE_EXCLUDED"], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "F": {
+      "applied_change": "src/handler.js removed from the Git index and added to .gitignore; file still on disk, byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "CONDITIONAL", "if_reference_reports": {"fate": "PERSISTS", "causes": []}, "if_reference_absent": {"fate": "NOT_REPORTED", "causes": ["SCOPE_EXCLUDED"]}, "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "G": {
+      "applied_change": "rule baseline.javascript-dynamic-eval removed from the rule file; code byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["RULE_DISABLED"], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "NOT_REPORTED", "causes": ["RULE_DISABLED"], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "H": {
+      "applied_change": "eval(...) and ($X, eval)(...) patterns removed from the same rule id; new Function patterns kept; code byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["RULE_CHANGED"], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "Ia": {
+      "applied_change": "syntax errors appended to the end of src/handler.js; matched line untouched and not shifted",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "CONDITIONAL", "if_reference_reports": {"fate": "PERSISTS", "causes": []}, "if_reference_absent": {"fate": "NOT_REPORTED", "causes": ["SCAN_INCOMPLETE"]}, "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "Ib": {
+      "applied_change": "rule file made invalid YAML so the current scan cannot run; code byte-identical",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["SCAN_INCOMPLETE"], "dangerous_code_present_after": true, "determinable": false},
+        {"key": "src/stable.js:4", "fate": "NOT_REPORTED", "causes": ["SCAN_INCOMPLETE"], "dangerous_code_present_after": true, "determinable": false}
+      ]
+    },
+    "J": {
+      "applied_change": "eval(input) rewritten to globalThis.eval(input); a documented false negative of the rule; danger remains",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["CODE_CHANGED_AT_MATCH"], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "Ka": {
+      "applied_change": "eval(input) replaced by JSON.parse(input) AND .semgrepignore added for the same file",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["CODE_CHANGED_AT_MATCH", "SCOPE_EXCLUDED"], "dangerous_code_present_after": false, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    },
+    "Kb": {
+      "applied_change": "eval(input) rewritten to globalThis.eval(input) AND .semgrepignore added for the same file; danger remains",
+      "findings": [
+        {"key": "src/handler.js:4", "fate": "NOT_REPORTED", "causes": ["CODE_CHANGED_AT_MATCH", "SCOPE_EXCLUDED"], "dangerous_code_present_after": true, "determinable": true},
+        {"key": "src/stable.js:4", "fate": "PERSISTS", "causes": [], "dangerous_code_present_after": true, "determinable": true}
+      ]
+    }
+  }
+}

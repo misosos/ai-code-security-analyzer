@@ -1,0 +1,68 @@
+{
+  "comparison": {
+    "reasons": [],
+    "valid": true
+  },
+  "exit_codes": {
+    "base": 0,
+    "current": 0
+  },
+  "findings": [
+    {
+      "causes": [],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 4,
+      "fix_claim": false,
+      "line": 4,
+      "mapped_line": 4,
+      "mapped_path": "src/payload-handler.js",
+      "match_sha256": "a6e5a774a6557bcb926f8f3c1171626e4f79c82fd76fa783169c5f0f6d92e99e",
+      "on_disk": true,
+      "path": "src/handler.js",
+      "presence": "STILL_PRESENT",
+      "removed_from_git_index": false
+    },
+    {
+      "causes": [],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 4,
+      "fix_claim": false,
+      "line": 4,
+      "mapped_line": 4,
+      "mapped_path": "src/stable.js",
+      "match_sha256": "a3114fe950a1b40727eb025316a697da32c5ea0829eaabe8c1e4590f80ef69b2",
+      "on_disk": true,
+      "path": "src/stable.js",
+      "presence": "STILL_PRESENT",
+      "removed_from_git_index": false
+    }
+  ],
+  "git": {
+    "base": "0944d8dd35af69d2a1abed3a04875a7693855d3c",
+    "current": "0eae3aa5d89b79d4f9445b748d3fec0bca55cdcc",
+    "deleted": [],
+    "renames": {
+      "src/handler.js": "src/payload-handler.js"
+    }
+  },
+  "raw_sha256": {
+    "base": "e25e2f44df0645020cc8eebe24a88e64254ba2a469df454c8b062b548a70cefb",
+    "current": "375335988bb63261045a1926dbd81ff8a2f64a712b3d3d7478acd09a0f46a6de"
+  },
+  "rule_file_sha256": {
+    "base": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+    "current": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df"
+  },
+  "scope": {
+    "scanned": [
+      "src/payload-handler.js",
+      "src/stable.js"
+    ],
+    "skipped": {}
+  },
+  "semgrep_version": {
+    "base": "1.182.1",
+    "current": "1.182.1"
+  },
+  "tool": "d1-baseline-b/v1"
+}

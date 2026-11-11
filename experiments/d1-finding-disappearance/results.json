@@ -1,0 +1,2432 @@
+{
+  "evidence_fidelity_first_rep": {
+    "A": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "B": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "C": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "Da": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "Db": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "E": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "F": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "G": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "H": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "Ia": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "Ib": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "J": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "Ka": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    },
+    "Kb": {
+      "a": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": true,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      },
+      "b": {
+        "exit_code": true,
+        "git_commit": true,
+        "match_content_or_hash": true,
+        "raw_or_digest": true,
+        "rule_file_hash": true,
+        "scanned_and_skipped_paths": true,
+        "semgrep_version": true
+      },
+      "c": {
+        "exit_code": false,
+        "git_commit": false,
+        "match_content_or_hash": false,
+        "raw_or_digest": false,
+        "rule_file_hash": false,
+        "scanned_and_skipped_paths": false,
+        "semgrep_version": true
+      }
+    }
+  },
+  "excluded": [],
+  "extras_first_rep": {
+    "run1/A": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/B": {
+      "a_current_only": 1,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 1,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/C": {
+      "a_current_only": 1,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 1,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/Da": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/Db": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/E": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "INCOMPARABLE",
+        "standard": "UNDETERMINED",
+        "verbose": "INCOMPARABLE"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "UNVERIFIED",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "partial"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "partial"
+        ]
+      }
+    },
+    "run1/F": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/G": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "DIFFERENT_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/H": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "DIFFERENT_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/Ia": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "INCOMPARABLE",
+        "standard": "INCOMPARABLE",
+        "verbose": "INCOMPARABLE"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "UNVERIFIED",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "partial"
+        ],
+        "standard": [
+          "completed",
+          "partial"
+        ],
+        "verbose": [
+          "completed",
+          "partial"
+        ]
+      }
+    },
+    "run1/Ib": {
+      "a_current_only": null,
+      "a_exit": {
+        "base": 0,
+        "current": 7
+      },
+      "baseline_commit": {
+        "exit_code": 7,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "INCOMPARABLE",
+        "standard": "INCOMPARABLE",
+        "verbose": "INCOMPARABLE"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "UNVERIFIED",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "execution_failed"
+        ],
+        "standard": [
+          "completed",
+          "execution_failed"
+        ],
+        "verbose": [
+          "completed",
+          "execution_failed"
+        ]
+      }
+    },
+    "run1/J": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "UNDETERMINED",
+        "standard": "UNDETERMINED",
+        "verbose": "UNDETERMINED"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "SAME_SELECTED_BYTES",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "completed"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "completed"
+        ]
+      }
+    },
+    "run1/Ka": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "INCOMPARABLE",
+        "standard": "UNDETERMINED",
+        "verbose": "INCOMPARABLE"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "UNVERIFIED",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "partial"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "partial"
+        ]
+      }
+    },
+    "run1/Kb": {
+      "a_current_only": 0,
+      "a_exit": {
+        "base": 0,
+        "current": 0
+      },
+      "baseline_commit": {
+        "exit_code": 0,
+        "results": []
+      },
+      "c_current_only": 0,
+      "c_overall": {
+        "rule_bytes": "INCOMPARABLE",
+        "standard": "UNDETERMINED",
+        "verbose": "INCOMPARABLE"
+      },
+      "c_partition_mode": "verbose",
+      "c_rule_bytes": "UNVERIFIED",
+      "c_scan_status": {
+        "rule_bytes": [
+          "completed",
+          "partial"
+        ],
+        "standard": [
+          "completed",
+          "completed"
+        ],
+        "verbose": [
+          "completed",
+          "partial"
+        ]
+      }
+    }
+  },
+  "per_finding_first_rep": [
+    {
+      "arm": "a",
+      "case": "A",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "A",
+      "causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "A",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "a",
+      "case": "A",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "A",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "A",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "B",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "b",
+      "case": "B",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "B",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "a",
+      "case": "B",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "B",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "B",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "C",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "b",
+      "case": "C",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "C",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "a",
+      "case": "C",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "C",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "C",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "b",
+      "case": "Da",
+      "causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "a",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:8",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "b",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:8",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:8",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "WRONG"
+    },
+    {
+      "arm": "a",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Da",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/a.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/a.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/a.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/b.js:4",
+      "label_causes": [
+        "FILE_DELETED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "Db",
+      "causes": [
+        "FILE_DELETED"
+      ],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/b.js:4",
+      "label_causes": [
+        "FILE_DELETED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/b.js:4",
+      "label_causes": [
+        "FILE_DELETED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "a",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Db",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "E",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "E",
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "E",
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "E",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "E",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "E",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "F",
+      "causes": [],
+      "conditional": true,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "F",
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": true,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "F",
+      "causes": [],
+      "conditional": true,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "a",
+      "case": "F",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "F",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "F",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "G",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "RULE_DISABLED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "G",
+      "causes": [
+        "RULE_DISABLED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "RULE_DISABLED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "G",
+      "causes": [
+        "RULE_FILE_CHANGED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "RULE_DISABLED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "COARSE"
+    },
+    {
+      "arm": "a",
+      "case": "G",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [
+        "RULE_DISABLED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "G",
+      "causes": [
+        "RULE_DISABLED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [
+        "RULE_DISABLED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "G",
+      "causes": [
+        "RULE_FILE_CHANGED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [
+        "RULE_DISABLED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "COARSE"
+    },
+    {
+      "arm": "a",
+      "case": "H",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "RULE_CHANGED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "H",
+      "causes": [
+        "RULE_CHANGED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "RULE_CHANGED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "H",
+      "causes": [
+        "RULE_FILE_CHANGED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "RULE_CHANGED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "COARSE"
+    },
+    {
+      "arm": "a",
+      "case": "H",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "H",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "H",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Ia",
+      "causes": [],
+      "conditional": true,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Ia",
+      "causes": [],
+      "conditional": true,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Ia",
+      "causes": [],
+      "conditional": true,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Ia",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Ia",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Ia",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Ib",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": false,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCAN_INCOMPLETE"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "NO_VALID_COMPARISON",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Ib",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": false,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCAN_INCOMPLETE"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "NO_VALID_COMPARISON",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Ib",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": false,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "SCAN_INCOMPLETE"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "a",
+      "case": "Ib",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": false,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [
+        "SCAN_INCOMPLETE"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "NO_VALID_COMPARISON",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Ib",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": false,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [
+        "SCAN_INCOMPLETE"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "NO_VALID_COMPARISON",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Ib",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": false,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [
+        "SCAN_INCOMPLETE"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "a",
+      "case": "J",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "J",
+      "causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "J",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "a",
+      "case": "J",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "J",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "J",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Ka",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "Ka",
+      "causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Ka",
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": false,
+      "dangerous_after": false,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "PARTIAL"
+    },
+    {
+      "arm": "a",
+      "case": "Ka",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Ka",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Ka",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "a",
+      "case": "Kb",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "NONE"
+    },
+    {
+      "arm": "b",
+      "case": "Kb",
+      "causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Kb",
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/handler.js:4",
+      "label_causes": [
+        "CODE_CHANGED_AT_MATCH",
+        "SCOPE_EXCLUDED"
+      ],
+      "label_fate": "NOT_REPORTED",
+      "presence": "DISAPPEARED",
+      "rep": "run1",
+      "score": "PARTIAL"
+    },
+    {
+      "arm": "a",
+      "case": "Kb",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "b",
+      "case": "Kb",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    },
+    {
+      "arm": "c",
+      "case": "Kb",
+      "causes": [],
+      "conditional": false,
+      "dangerous_after": true,
+      "determinable": true,
+      "fix_claim": false,
+      "key": "src/stable.js:4",
+      "label_causes": [],
+      "label_fate": "PERSISTS",
+      "presence": "STILL_PRESENT",
+      "rep": "run1",
+      "score": "EXACT"
+    }
+  ],
+  "reps": [
+    "run1",
+    "run2",
+    "run3"
+  ],
+  "summary": {
+    "a": {
+      "M1_false_fix_claims": 0,
+      "M3a_correct_hold": [
+        2,
+        2
+      ],
+      "M3b_no_fix_claim_on_disappeared": [
+        10,
+        10
+      ],
+      "M4_unnecessary_hold": [
+        10,
+        28
+      ],
+      "exact_or_coarse_rate": 0.5333,
+      "false_disappearance": 3,
+      "n": 30,
+      "naive_reading_exposure": 10,
+      "reproducible_across_reps": true,
+      "scores": {
+        "EXACT": 16,
+        "NONE": 10,
+        "WRONG": 4
+      },
+      "unstable": []
+    },
+    "b": {
+      "M1_false_fix_claims": 0,
+      "M3a_correct_hold": [
+        2,
+        2
+      ],
+      "M3b_no_fix_claim_on_disappeared": [
+        11,
+        11
+      ],
+      "M4_unnecessary_hold": [
+        0,
+        28
+      ],
+      "exact_or_coarse_rate": 1.0,
+      "false_disappearance": 0,
+      "n": 30,
+      "naive_reading_exposure": 0,
+      "reproducible_across_reps": true,
+      "scores": {
+        "EXACT": 30
+      },
+      "unstable": []
+    },
+    "c": {
+      "M1_false_fix_claims": 0,
+      "M3a_correct_hold": [
+        2,
+        2
+      ],
+      "M3b_no_fix_claim_on_disappeared": [
+        12,
+        12
+      ],
+      "M4_unnecessary_hold": [
+        4,
+        28
+      ],
+      "exact_or_coarse_rate": 0.6,
+      "false_disappearance": 3,
+      "n": 30,
+      "naive_reading_exposure": 7,
+      "reproducible_across_reps": true,
+      "scores": {
+        "COARSE": 3,
+        "EXACT": 15,
+        "NONE": 6,
+        "PARTIAL": 2,
+        "WRONG": 4
+      },
+      "unstable": []
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "errors": [],
+  "exit_code": 0,
+  "expected_rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "expected_sources": [
+    "src/bundle.js",
+    "src/ok.js"
+  ],
+  "reasons": [
+    {
+      "class": "SCOPE",
+      "detail": "skipped:src/bundle.js:exceeded_size_limit"
+    },
+    {
+      "class": "SCOPE",
+      "detail": "not_scanned:src/bundle.js"
+    }
+  ],
+  "rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "scanned": [
+    "src/ok.js"
+  ],
+  "semgrep_version": "1.182.1",
+  "skipped": [
+    {
+      "path": "src/bundle.js",
+      "reason": "exceeded_size_limit"
+    }
+  ],
+  "target": {
+    "exists": true,
+    "relative_to_root": "."
+  },
+  "tool": "d2-integrity-check/v1",
+  "verdict": "FLAG"
+}

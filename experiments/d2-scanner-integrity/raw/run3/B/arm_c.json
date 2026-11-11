@@ -1,0 +1,73 @@
+{
+  "errors": [
+    {
+      "level": "warn",
+      "path": "src/broken.js",
+      "type": [
+        "PartialParsing",
+        [
+          {
+            "end": {
+              "col": 8,
+              "line": 7,
+              "offset": 7
+            },
+            "path": "<TMP>/run3/B/repo/src/broken.js",
+            "start": {
+              "col": 1,
+              "line": 7,
+              "offset": 0
+            }
+          },
+          {
+            "end": {
+              "col": 13,
+              "line": 8,
+              "offset": 12
+            },
+            "path": "<TMP>/run3/B/repo/src/broken.js",
+            "start": {
+              "col": 1,
+              "line": 8,
+              "offset": 0
+            }
+          }
+        ]
+      ]
+    }
+  ],
+  "exit_code": 0,
+  "expected_rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "expected_sources": [
+    "src/broken.js",
+    "src/ok.js"
+  ],
+  "reasons": [
+    {
+      "class": "PARSE",
+      "detail": "[\"PartialParsing\", [{\"path\": \"<TMP-TRUNCATED>"
+    },
+    {
+      "class": "SCOPE",
+      "detail": "skipped:src/broken.js:analysis_failed_parser_or_internal_error"
+    }
+  ],
+  "rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "scanned": [
+    "src/broken.js",
+    "src/ok.js"
+  ],
+  "semgrep_version": "1.182.1",
+  "skipped": [
+    {
+      "path": "src/broken.js",
+      "reason": "analysis_failed_parser_or_internal_error"
+    }
+  ],
+  "target": {
+    "exists": true,
+    "relative_to_root": "."
+  },
+  "tool": "d2-integrity-check/v1",
+  "verdict": "FLAG"
+}

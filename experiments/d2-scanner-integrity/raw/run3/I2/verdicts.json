@@ -1,0 +1,48 @@
+{
+  "a": {
+    "exit_code": 2,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "b": {
+    "exit_code": 2,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "c": {
+    "exit_code": 2,
+    "reasons": [
+      "GENERIC",
+      "SCAN_FAILED",
+      "SCOPE"
+    ],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "case": "I2",
+  "d_api": {
+    "error": "settings_rejected:directory_configuration_invalid",
+    "issues": [],
+    "result_count": null,
+    "status": null,
+    "verdict": "FLAG"
+  },
+  "d_cli": {
+    "exit_code": 2,
+    "issues": [],
+    "result_count": null,
+    "status": null,
+    "verdict": "FLAG"
+  },
+  "d_inv": {
+    "error": "settings_rejected:directory_configuration_invalid",
+    "issues": [],
+    "result_count": null,
+    "status": null,
+    "verdict": "FLAG"
+  },
+  "rep": 3,
+  "semgrep": "1.182.1"
+}

@@ -1,0 +1,1 @@
+{"version":"1.182.1","results":[],"errors":[{"code":2,"level":"error","type":"SemgrepError","message":"Invalid scanning root: <TMP>/run2/I2/repo/srcc"}],"paths":{"scanned":[]},"engine_requested":"OSS","skipped_rules":[],"profiling_results":[]}

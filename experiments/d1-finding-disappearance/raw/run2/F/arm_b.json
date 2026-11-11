@@ -1,0 +1,70 @@
+{
+  "comparison": {
+    "reasons": [],
+    "valid": true
+  },
+  "exit_codes": {
+    "base": 0,
+    "current": 0
+  },
+  "findings": [
+    {
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 4,
+      "fix_claim": false,
+      "line": 4,
+      "mapped_line": 4,
+      "mapped_path": "src/handler.js",
+      "match_sha256": "a6e5a774a6557bcb926f8f3c1171626e4f79c82fd76fa783169c5f0f6d92e99e",
+      "on_disk": true,
+      "path": "src/handler.js",
+      "presence": "DISAPPEARED",
+      "removed_from_git_index": true,
+      "scope_reason": "not_in_scanned_list"
+    },
+    {
+      "causes": [],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 4,
+      "fix_claim": false,
+      "line": 4,
+      "mapped_line": 4,
+      "mapped_path": "src/stable.js",
+      "match_sha256": "a3114fe950a1b40727eb025316a697da32c5ea0829eaabe8c1e4590f80ef69b2",
+      "on_disk": true,
+      "path": "src/stable.js",
+      "presence": "STILL_PRESENT",
+      "removed_from_git_index": false
+    }
+  ],
+  "git": {
+    "base": "0944d8dd35af69d2a1abed3a04875a7693855d3c",
+    "current": "355621e9266a6ef1721eaa470411b84e1e6baf5f",
+    "deleted": [
+      "src/handler.js"
+    ],
+    "renames": {}
+  },
+  "raw_sha256": {
+    "base": "f4722d865fc7ae11b48272c26cce5be3b94056576dd8f179a581d1d14184bf80",
+    "current": "cedc18ffd1d51d4040c8f1aa6d4033e22464763f5a3edde355f2ddf31fb464b4"
+  },
+  "rule_file_sha256": {
+    "base": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+    "current": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df"
+  },
+  "scope": {
+    "scanned": [
+      "src/stable.js"
+    ],
+    "skipped": {}
+  },
+  "semgrep_version": {
+    "base": "1.182.1",
+    "current": "1.182.1"
+  },
+  "tool": "d1-baseline-b/v1"
+}

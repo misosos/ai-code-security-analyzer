@@ -1,0 +1,57 @@
+{
+  "a": {
+    "exit_code": 7,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "b": {
+    "exit_code": 7,
+    "reasons": [],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "c": {
+    "exit_code": 7,
+    "reasons": [
+      "PARSE",
+      "RULE",
+      "SCAN_FAILED",
+      "SCOPE"
+    ],
+    "result_count": 0,
+    "verdict": "FLAG"
+  },
+  "case": "E",
+  "d_api": {
+    "error": null,
+    "issues": [
+      "semgrep_failed"
+    ],
+    "result_count": 0,
+    "status": "execution_failed",
+    "verdict": "FLAG"
+  },
+  "d_cli": {
+    "exit_code": 3,
+    "issues": [
+      "semgrep_reported_errors",
+      "no_files_scanned",
+      "nonzero_exit"
+    ],
+    "result_count": 0,
+    "status": "execution_failed",
+    "verdict": "FLAG"
+  },
+  "d_inv": {
+    "error": null,
+    "issues": [
+      "semgrep_failed"
+    ],
+    "result_count": 0,
+    "status": "execution_failed",
+    "verdict": "FLAG"
+  },
+  "rep": 1,
+  "semgrep": "1.182.1"
+}
