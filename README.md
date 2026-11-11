@@ -6,6 +6,20 @@ It is a security-engineering portfolio project. It is **not** an independent det
 
 > Most detailed design and validation records under `docs/` are written in Korean. This README and the portfolio overview are in English.
 
+## Project status: feature development is frozen
+
+Four checks looked for evidence that this product improves on existing tools. None found any, so no further features are planned. The code is kept as it is, with its known defects documented and not fixed. Start with the [research record](docs/research/README.md).
+
+| Category | What belongs here |
+| --- | --- |
+| Implemented | The features in [What is implemented](#what-is-implemented). They exist and are covered by tests; that says nothing about whether they help an analyst. |
+| Verified by experiment | Semgrep 1.182.1 with default options exited 0 on 11 of 13 synthetic incomplete scans ([D2](experiments/d2-scanner-integrity/RESULTS.md)). Comparing findings by location mis-identifies them after a line shift, a rename, or deletion of a duplicate line ([D1](experiments/d1-finding-disappearance/RESULTS.md)). No tested approach, including this product, claimed a fix it could not support. |
+| Not verified | Whether the dashboard, review notes, or exports make a human analyst faster or more accurate. No person was measured and no user was interviewed. Real-world precision and recall. |
+| Refuted differentiation hypotheses | "The product explains a disappeared finding better than Semgrep + Git": a 227-line script classified 30 of 30 tracked findings correctly, the product 15 ([D1](experiments/d1-finding-disappearance/RESULTS.md)). "The product catches incomplete scans better than existing approaches": it flagged no case that a 152-line script missed, and missed more ([D2](experiments/d2-scanner-integrity/RESULTS.md)). |
+| Deliberately stopped | Expansion of the finding-disappearance evaluator and investigation API; scanner-integrity verdicts as a selling point; the search for new differentiators ([U1](docs/research/u1-appsec-workflow-problem-discovery.md)); a DefectDojo upstream contribution ([U1 closeout](docs/research/u1-closeout-defectdojo-upstream-feasibility.md)). The independent engine and AI review remain on hold. |
+
+These experiments were small, synthetic, and designed, run, and scored without an independent party. They support "no evidence the product is better", not "a script is always enough". The limits are spelled out in the [research record](docs/research/README.md#limits-that-apply-to-all-of-this).
+
 ## What is implemented
 
 | Area | Status | Notes |
@@ -182,7 +196,9 @@ These are current, verified limitations. A missing finding is never evidence tha
 | Rescan requires confirmation | When review work exists, starting a new scan asks for confirmation and points to the backup download. Only a normally completed rescan clears the previous review records. | `frontend/src/app/App.tsx` |
 | Failed or partial rescans keep the previous result | If a confirmed rescan fails or returns a partial/failed status, the new result is not applied; the previous scan and its review records are restored and labeled as the previous result. To view that partial result, export a backup, clear results, and rescan. | [P5 record](docs/p5-failure-safe-review-rescan.md) |
 | SARIF upload compatibility unverified | SARIF output validates against the official 2.1.0 schema, but upload to GitHub Code Scanning has not been tested. | [Phase 8M](docs/phase8m-sarif-export.md), [Phase 8N](docs/phase8n-github-code-scanning-preflight.md) |
-| No proven improvement over Semgrep CLI + Git | No study shows better detection, faster triage, or better decisions than using Semgrep with Git directly. | [ER-D9 differentiation](docs/er-d9-differentiation-assessment.md) |
+| No improvement over Semgrep CLI + Git, and two comparisons went the other way | No study shows better detection, faster triage, or better decisions than using Semgrep with Git directly. In two synthetic comparisons a short script matched or beat the product. | [ER-D9 differentiation](docs/er-d9-differentiation-assessment.md), [D1](experiments/d1-finding-disappearance/RESULTS.md), [D2](experiments/d2-scanner-integrity/RESULTS.md) |
+| Findings are identified by line and column | A line shift or file rename changes a finding's ID, so comparison reports it as disappeared and review state does not carry over. | [Frozen-state limitations](docs/research/frozen-state-known-limitations.md) |
+| CI does not pin uv | The workflow passes `uv-version`, which `setup-uv` ignores; CI installs the latest uv instead of 0.11.26. Documented, not fixed. | [Frozen-state limitations](docs/research/frozen-state-known-limitations.md) |
 | No execution sandbox | Semgrep runs with local rules, metrics off and a temporary `HOME`, but without OS-level network or filesystem isolation. Scan untrusted repositories only inside a separately isolated environment. | [Phase 7C-1B design](docs/phase7c1b-verifiable-worker-design.md) |
 | Synthetic evaluation only | Benchmarks use small, author-written synthetic corpora. Real-world precision and recall are not measured. | [Phase 6E](docs/phase6e-heldout-sast-evaluation.md) |
 
@@ -203,6 +219,7 @@ SEMGREP_REQUIRED=1 uv run --locked python -m pytest -q -rs
 
 ## Further documentation
 
+- [Research record](docs/research/README.md): what was tested, the verdicts, how to recompute the scores, and why development stopped
 - [Portfolio overview](docs/portfolio-overview.md): problem, architecture, workflow, controls, and future work
 - [Local API](docs/phase5a-local-api.md) and [React dashboard](docs/phase5b-react-dashboard.md)
 - [Analyst review view](docs/analyst-review-view.md) and [Markdown review report](docs/phase3c4-markdown-review-report.md)
