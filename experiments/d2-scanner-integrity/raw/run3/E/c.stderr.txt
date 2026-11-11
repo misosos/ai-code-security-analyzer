@@ -1,0 +1,2 @@
+running 0 rules from 0 configs  (1 config error)
+Not sending pseudonymous metrics since metrics are configured to OFF, registry usage is False, and login status is False

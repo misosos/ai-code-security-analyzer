@@ -1,0 +1,32 @@
+{
+  "issues": [
+    "semgrep_output_limit",
+    "semgrep_failed"
+  ],
+  "response": {
+    "completed": false,
+    "displayed_finding_count": 0,
+    "finding_count": 0,
+    "findings": [],
+    "issues": [
+      "semgrep_output_limit",
+      "semgrep_failed"
+    ],
+    "limitations": [
+      "finding_count_not_confirmed_vulnerability_count",
+      "scan_result_is_not_safety_proof",
+      "scan_failed"
+    ],
+    "omitted_finding_count": 0,
+    "scan_status": "output_limit_exceeded",
+    "semgrep_version": null,
+    "severity_counts": {
+      "critical": 0,
+      "high": 0,
+      "info": 0,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "verdict": "FLAG"
+}

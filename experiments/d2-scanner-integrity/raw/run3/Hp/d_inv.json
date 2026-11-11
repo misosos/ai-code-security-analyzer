@@ -1,0 +1,112 @@
+{
+  "issues": [],
+  "response": {
+    "completed": true,
+    "displayed_finding_count": 1,
+    "finding_count": 1,
+    "findings": [
+      {
+        "evidence_validation_status": "validated",
+        "file_path": "src/found.js",
+        "finding_id": "semgrep:de0fb21c0895a54773dca6b6",
+        "finding_kind": "pattern",
+        "line_number": 4,
+        "restricted_claims": [
+          {
+            "claim_type": "taint_rule_match_reported",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "source_pattern_declared",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "sink_pattern_declared",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "match_location_observed",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "source_location_identified",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "sink_argument_location_identified",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "flow_trace_available",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "sanitizer_match_observed",
+            "decision": "unavailable",
+            "reason_codes": [
+              "taint_evidence_unavailable"
+            ]
+          },
+          {
+            "claim_type": "sanitizer_effectiveness_verified",
+            "decision": "unsupported_claim",
+            "reason_codes": [
+              "sanitizer_effectiveness_not_verified"
+            ]
+          },
+          {
+            "claim_type": "vulnerability_confirmed",
+            "decision": "unsupported_claim",
+            "reason_codes": [
+              "independent_confirmation_required"
+            ]
+          }
+        ],
+        "rule_id": "baseline.javascript-dynamic-eval",
+        "severity": "high",
+        "supported_claims": [
+          "match_reported"
+        ],
+        "validation_error_code": null,
+        "verification_status": "unverified"
+      }
+    ],
+    "issues": [],
+    "limitations": [
+      "finding_count_not_confirmed_vulnerability_count",
+      "scan_result_is_not_safety_proof"
+    ],
+    "omitted_finding_count": 0,
+    "scan_status": "completed",
+    "semgrep_version": "1.182.1",
+    "severity_counts": {
+      "critical": 0,
+      "high": 1,
+      "info": 0,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "verdict": "PASS"
+}

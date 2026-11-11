@@ -1,0 +1,52 @@
+{
+  "a": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 5000,
+    "verdict": "PASS"
+  },
+  "b": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 5000,
+    "verdict": "PASS"
+  },
+  "c": {
+    "exit_code": 0,
+    "reasons": [],
+    "result_count": 5000,
+    "verdict": "PASS"
+  },
+  "case": "Go",
+  "d_api": {
+    "error": null,
+    "issues": [
+      "semgrep_output_limit",
+      "semgrep_failed"
+    ],
+    "result_count": 0,
+    "status": "output_limit_exceeded",
+    "verdict": "FLAG"
+  },
+  "d_cli": {
+    "exit_code": 3,
+    "issues": [
+      "semgrep_output_limit"
+    ],
+    "result_count": 0,
+    "status": "output_limit_exceeded",
+    "verdict": "FLAG"
+  },
+  "d_inv": {
+    "error": null,
+    "issues": [
+      "semgrep_output_limit",
+      "semgrep_failed"
+    ],
+    "result_count": 0,
+    "status": "output_limit_exceeded",
+    "verdict": "FLAG"
+  },
+  "rep": 3,
+  "semgrep": "1.182.1"
+}

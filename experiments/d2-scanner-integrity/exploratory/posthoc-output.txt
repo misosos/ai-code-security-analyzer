@@ -1,0 +1,14 @@
+# Post-hoc exploration, run AFTER scoring. Not part of the preregistered evaluation.
+# Semgrep OSS 1.182.1, same common options as the arms, baseline rule file copy.
+# Target: one file = clean JS + trailing syntax errors + a comment that contains the word "eval".
+
+X1 clean file + syntax errors + the word "eval" in a comment
+  default : exit 0, results 0, errors [PartialParsing (warn)]
+  --strict: exit 3, results 0, errors [PartialParsing (warn)]
+
+X2 one extra rule appended with the given pattern (languages: [javascript]), default options
+  pattern "eval("        : exit 0, no rule error  (Semgrep accepts it as a valid pattern)
+  pattern "$X ==== $Y"   : exit 0, errors ["Rule parse error" (error): Invalid pattern for JavaScript]
+  pattern "function ("   : exit 0, errors ["Rule parse error" (error): Invalid pattern for JavaScript]
+  pattern "<<<"          : exit 0, errors ["Rule parse error" (error): Invalid pattern for JavaScript]
+  pattern "$X ==== $Y" with --strict : exit 3 (confounded: the target also has a PartialParsing warning)

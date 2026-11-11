@@ -1,0 +1,36 @@
+{
+  "errors": [],
+  "exit_code": 0,
+  "expected_rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "expected_sources": [
+    "src/ok.js",
+    "tests/helpers/run.js"
+  ],
+  "reasons": [
+    {
+      "class": "SCOPE",
+      "detail": "skipped:tests/helpers/run.js:semgrepignore_patterns_match"
+    },
+    {
+      "class": "SCOPE",
+      "detail": "not_scanned:tests/helpers/run.js"
+    }
+  ],
+  "rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "scanned": [
+    "src/ok.js"
+  ],
+  "semgrep_version": "1.182.1",
+  "skipped": [
+    {
+      "path": "tests/helpers/run.js",
+      "reason": "semgrepignore_patterns_match"
+    }
+  ],
+  "target": {
+    "exists": true,
+    "relative_to_root": "."
+  },
+  "tool": "d2-integrity-check/v1",
+  "verdict": "FLAG"
+}

@@ -1,0 +1,14 @@
+{
+  "bytes": 2550858,
+  "errors": [],
+  "omitted_large_output": true,
+  "paths": {
+    "scanned": [
+      "<TMP>/run2/Go/repo/src/many.js"
+    ]
+  },
+  "result_count": 5000,
+  "sha256_of_sanitized_text": "dae02926ddc8fe59034b49809338ddcd0655b930e599cc1b2b3299a47e314415",
+  "skipped_rules": [],
+  "version": "1.182.1"
+}

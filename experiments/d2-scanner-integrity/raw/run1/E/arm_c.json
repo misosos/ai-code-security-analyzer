@@ -1,0 +1,55 @@
+{
+  "errors": [
+    {
+      "level": "error",
+      "path": null,
+      "type": "SemgrepError"
+    },
+    {
+      "level": "error",
+      "path": null,
+      "type": "SemgrepError"
+    }
+  ],
+  "exit_code": 7,
+  "expected_rules_sha256": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+  "expected_sources": [
+    "src/found.js"
+  ],
+  "reasons": [
+    {
+      "class": "SCAN_FAILED",
+      "detail": "exit_code=7"
+    },
+    {
+      "class": "PARSE",
+      "detail": "\"SemgrepError\""
+    },
+    {
+      "class": "RULE",
+      "detail": "\"SemgrepError\""
+    },
+    {
+      "class": "SCOPE",
+      "detail": "not_scanned:src/found.js"
+    },
+    {
+      "class": "SCOPE",
+      "detail": "no_files_scanned"
+    },
+    {
+      "class": "RULE",
+      "detail": "rules_sha256_mismatch"
+    }
+  ],
+  "rules_sha256": "31a77cddcba4be2013fd7fdac4428d5c58c495a7d4e82d928d1a58283fd6d075",
+  "scanned": [],
+  "semgrep_version": "1.182.1",
+  "skipped": [],
+  "target": {
+    "exists": true,
+    "relative_to_root": "."
+  },
+  "tool": "d2-integrity-check/v1",
+  "verdict": "FLAG"
+}

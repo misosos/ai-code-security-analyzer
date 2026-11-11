@@ -1,0 +1,2 @@
+running 3 rules from 1 config security-baseline.yml_0
+Not sending pseudonymous metrics since metrics are configured to OFF, registry usage is False, and login status is False
