@@ -1,0 +1,27 @@
+{
+  "baseline_commit": {
+    "exit_code": 7,
+    "results": []
+  },
+  "current_only_count": null,
+  "exit_codes": {
+    "base": 0,
+    "current": 7
+  },
+  "findings": [
+    {
+      "causes": [],
+      "fix_claim": false,
+      "line": 4,
+      "path": "src/handler.js",
+      "presence": "NO_VALID_COMPARISON"
+    },
+    {
+      "causes": [],
+      "fix_claim": false,
+      "line": 4,
+      "path": "src/stable.js",
+      "presence": "NO_VALID_COMPARISON"
+    }
+  ]
+}

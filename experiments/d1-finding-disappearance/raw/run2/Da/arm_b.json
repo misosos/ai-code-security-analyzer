@@ -1,0 +1,83 @@
+{
+  "comparison": {
+    "reasons": [],
+    "valid": true
+  },
+  "exit_codes": {
+    "base": 0,
+    "current": 0
+  },
+  "findings": [
+    {
+      "causes": [
+        "CODE_CHANGED_AT_MATCH"
+      ],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 4,
+      "fix_claim": false,
+      "line": 4,
+      "mapped_line": null,
+      "mapped_path": "src/handler.js",
+      "match_sha256": "a6e5a774a6557bcb926f8f3c1171626e4f79c82fd76fa783169c5f0f6d92e99e",
+      "note": "manual_review_required_not_evidence_of_fix",
+      "on_disk": true,
+      "path": "src/handler.js",
+      "presence": "DISAPPEARED",
+      "removed_from_git_index": false
+    },
+    {
+      "causes": [],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 8,
+      "fix_claim": false,
+      "line": 8,
+      "mapped_line": 4,
+      "mapped_path": "src/handler.js",
+      "match_sha256": "a6e5a774a6557bcb926f8f3c1171626e4f79c82fd76fa783169c5f0f6d92e99e",
+      "on_disk": true,
+      "path": "src/handler.js",
+      "presence": "STILL_PRESENT",
+      "removed_from_git_index": false
+    },
+    {
+      "causes": [],
+      "check_id": "baseline.javascript-dynamic-eval",
+      "end_line": 4,
+      "fix_claim": false,
+      "line": 4,
+      "mapped_line": 4,
+      "mapped_path": "src/stable.js",
+      "match_sha256": "a3114fe950a1b40727eb025316a697da32c5ea0829eaabe8c1e4590f80ef69b2",
+      "on_disk": true,
+      "path": "src/stable.js",
+      "presence": "STILL_PRESENT",
+      "removed_from_git_index": false
+    }
+  ],
+  "git": {
+    "base": "f0948bfd350590ba24b10ab9d407c6adadf13481",
+    "current": "02def58fe60ffa1901490a7555adbd8c80358cae",
+    "deleted": [],
+    "renames": {}
+  },
+  "raw_sha256": {
+    "base": "7f22955b3f70da4fb1ae3f2c88f115d514a65b7832ac31a20d1902ecbfd50751",
+    "current": "d44b3b3df6e43d0ff08c1fba8444f79ab0928df15ef9e39b62cf24f2d939de62"
+  },
+  "rule_file_sha256": {
+    "base": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df",
+    "current": "77d085dd4901863f8873c987f70d6ccd376ab33590724a1389885df09d5ff9df"
+  },
+  "scope": {
+    "scanned": [
+      "src/handler.js",
+      "src/stable.js"
+    ],
+    "skipped": {}
+  },
+  "semgrep_version": {
+    "base": "1.182.1",
+    "current": "1.182.1"
+  },
+  "tool": "d1-baseline-b/v1"
+}

@@ -1,0 +1,1147 @@
+{
+  "current_only_count": 0,
+  "findings": [
+    {
+      "causes": [
+        "SCOPE_EXCLUDED"
+      ],
+      "fix_claim": false,
+      "line": 4,
+      "path": "src/handler.js",
+      "presence": "DISAPPEARED"
+    },
+    {
+      "causes": [],
+      "fix_claim": false,
+      "line": 4,
+      "path": "src/stable.js",
+      "presence": "STILL_PRESENT"
+    }
+  ],
+  "modes": {
+    "rule_bytes": {
+      "base": {
+        "response": {
+          "completed": true,
+          "displayed_finding_count": 2,
+          "finding_count": 2,
+          "findings": [
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/handler.js",
+              "finding_id": "semgrep:0a52174dc25c97864e5a5a05",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            },
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/stable.js",
+              "finding_id": "semgrep:c123409bca240bcae079df5a",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            }
+          ],
+          "issues": [],
+          "limitations": [
+            "finding_count_not_confirmed_vulnerability_count",
+            "scan_result_is_not_safety_proof"
+          ],
+          "omitted_finding_count": 0,
+          "scan_status": "completed",
+          "semgrep_version": "1.182.1",
+          "severity_counts": {
+            "critical": 0,
+            "high": 2,
+            "info": 0,
+            "low": 0,
+            "medium": 0
+          }
+        },
+        "scope": {
+          "errors_count": 0,
+          "limitations": [
+            "scanned_paths_do_not_prove_complete_analysis"
+          ],
+          "scanned_paths": [
+            "src/handler.js",
+            "src/stable.js"
+          ],
+          "scanned_status": "OBSERVED",
+          "skipped_paths": [],
+          "skipped_status": "OBSERVED"
+        }
+      },
+      "cur": {
+        "response": {
+          "completed": false,
+          "displayed_finding_count": 1,
+          "finding_count": 1,
+          "findings": [
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/stable.js",
+              "finding_id": "semgrep:c123409bca240bcae079df5a",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            }
+          ],
+          "issues": [
+            "evidence_unavailable"
+          ],
+          "limitations": [
+            "finding_count_not_confirmed_vulnerability_count",
+            "scan_result_is_not_safety_proof",
+            "scan_partial"
+          ],
+          "omitted_finding_count": 0,
+          "scan_status": "partial",
+          "semgrep_version": "1.182.1",
+          "severity_counts": {
+            "critical": 0,
+            "high": 1,
+            "info": 0,
+            "low": 0,
+            "medium": 0
+          }
+        },
+        "scope": {
+          "errors_count": 0,
+          "limitations": [
+            "scanned_paths_do_not_prove_complete_analysis"
+          ],
+          "scanned_paths": [
+            "src/stable.js"
+          ],
+          "scanned_status": "OBSERVED",
+          "skipped_paths": [
+            [
+              "src/handler.js",
+              "semgrepignore_patterns_match"
+            ]
+          ],
+          "skipped_status": "OBSERVED"
+        }
+      },
+      "evaluation": {
+        "comparability": "INCOMPARABLE",
+        "contract_version": "finding-disappearance-evaluation/v1",
+        "findings": [
+          {
+            "category": "shared",
+            "finding_id": "semgrep:c123409bca240bcae079df5a",
+            "path_observation": null,
+            "rule_identity_hypothesis": null,
+            "skip_hypothesis": null,
+            "source_snapshot_hypothesis": null
+          },
+          {
+            "category": "baselineOnly",
+            "finding_id": "semgrep:0a52174dc25c97864e5a5a05",
+            "path_observation": "PATH_EXPLICITLY_SKIPPED",
+            "rule_identity_hypothesis": "UNDETERMINED",
+            "skip_hypothesis": "SUPPORTED",
+            "source_snapshot_hypothesis": "UNDETERMINED"
+          }
+        ],
+        "limitation_codes": [
+          "rule_bytes_unverified",
+          "loaded_rule_identity_unverified",
+          "source_snapshot_not_collected",
+          "scope_completeness_unverified",
+          "scan_result_is_not_safety_proof",
+          "scan_incomplete",
+          "finding_id_not_observed",
+          "path_explicitly_skipped"
+        ],
+        "overall_assessment": "INCOMPARABLE"
+      },
+      "rule_bytes": {
+        "contract_version": "rule-bytes-comparison/v1",
+        "limitation_codes": [
+          "selected_rule_bytes_only",
+          "loaded_rule_identity_unverified"
+        ],
+        "status": "UNVERIFIED"
+      }
+    },
+    "standard": {
+      "base": {
+        "response": {
+          "completed": true,
+          "displayed_finding_count": 2,
+          "finding_count": 2,
+          "findings": [
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/handler.js",
+              "finding_id": "semgrep:0a52174dc25c97864e5a5a05",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            },
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/stable.js",
+              "finding_id": "semgrep:c123409bca240bcae079df5a",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            }
+          ],
+          "issues": [],
+          "limitations": [
+            "finding_count_not_confirmed_vulnerability_count",
+            "scan_result_is_not_safety_proof"
+          ],
+          "omitted_finding_count": 0,
+          "scan_status": "completed",
+          "semgrep_version": "1.182.1",
+          "severity_counts": {
+            "critical": 0,
+            "high": 2,
+            "info": 0,
+            "low": 0,
+            "medium": 0
+          }
+        },
+        "scope": {
+          "errors_count": 0,
+          "limitations": [
+            "scanned_paths_do_not_prove_complete_analysis",
+            "skip_details_not_collected"
+          ],
+          "scanned_paths": [
+            "src/handler.js",
+            "src/stable.js"
+          ],
+          "scanned_status": "OBSERVED",
+          "skipped_paths": [],
+          "skipped_status": "NOT_COLLECTED"
+        }
+      },
+      "cur": {
+        "response": {
+          "completed": true,
+          "displayed_finding_count": 1,
+          "finding_count": 1,
+          "findings": [
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/stable.js",
+              "finding_id": "semgrep:c123409bca240bcae079df5a",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            }
+          ],
+          "issues": [],
+          "limitations": [
+            "finding_count_not_confirmed_vulnerability_count",
+            "scan_result_is_not_safety_proof"
+          ],
+          "omitted_finding_count": 0,
+          "scan_status": "completed",
+          "semgrep_version": "1.182.1",
+          "severity_counts": {
+            "critical": 0,
+            "high": 1,
+            "info": 0,
+            "low": 0,
+            "medium": 0
+          }
+        },
+        "scope": {
+          "errors_count": 0,
+          "limitations": [
+            "scanned_paths_do_not_prove_complete_analysis",
+            "skip_details_not_collected"
+          ],
+          "scanned_paths": [
+            "src/stable.js"
+          ],
+          "scanned_status": "OBSERVED",
+          "skipped_paths": [],
+          "skipped_status": "NOT_COLLECTED"
+        }
+      },
+      "evaluation": {
+        "comparability": "COMPARABLE",
+        "contract_version": "finding-disappearance-evaluation/v1",
+        "findings": [
+          {
+            "category": "shared",
+            "finding_id": "semgrep:c123409bca240bcae079df5a",
+            "path_observation": null,
+            "rule_identity_hypothesis": null,
+            "skip_hypothesis": null,
+            "source_snapshot_hypothesis": null
+          },
+          {
+            "category": "baselineOnly",
+            "finding_id": "semgrep:0a52174dc25c97864e5a5a05",
+            "path_observation": "SKIP_EVIDENCE_NOT_COLLECTED",
+            "rule_identity_hypothesis": "UNDETERMINED",
+            "skip_hypothesis": "UNDETERMINED",
+            "source_snapshot_hypothesis": "UNDETERMINED"
+          }
+        ],
+        "limitation_codes": [
+          "rule_bytes_unverified",
+          "loaded_rule_identity_unverified",
+          "source_snapshot_not_collected",
+          "scope_completeness_unverified",
+          "scan_result_is_not_safety_proof",
+          "finding_id_not_observed",
+          "skip_details_not_collected"
+        ],
+        "overall_assessment": "UNDETERMINED"
+      }
+    },
+    "verbose": {
+      "base": {
+        "response": {
+          "completed": true,
+          "displayed_finding_count": 2,
+          "finding_count": 2,
+          "findings": [
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/handler.js",
+              "finding_id": "semgrep:0a52174dc25c97864e5a5a05",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            },
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/stable.js",
+              "finding_id": "semgrep:c123409bca240bcae079df5a",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            }
+          ],
+          "issues": [],
+          "limitations": [
+            "finding_count_not_confirmed_vulnerability_count",
+            "scan_result_is_not_safety_proof"
+          ],
+          "omitted_finding_count": 0,
+          "scan_status": "completed",
+          "semgrep_version": "1.182.1",
+          "severity_counts": {
+            "critical": 0,
+            "high": 2,
+            "info": 0,
+            "low": 0,
+            "medium": 0
+          }
+        },
+        "scope": {
+          "errors_count": 0,
+          "limitations": [
+            "scanned_paths_do_not_prove_complete_analysis"
+          ],
+          "scanned_paths": [
+            "src/handler.js",
+            "src/stable.js"
+          ],
+          "scanned_status": "OBSERVED",
+          "skipped_paths": [],
+          "skipped_status": "OBSERVED"
+        }
+      },
+      "cur": {
+        "response": {
+          "completed": false,
+          "displayed_finding_count": 1,
+          "finding_count": 1,
+          "findings": [
+            {
+              "evidence_validation_status": "validated",
+              "file_path": "src/stable.js",
+              "finding_id": "semgrep:c123409bca240bcae079df5a",
+              "finding_kind": "pattern",
+              "line_number": 4,
+              "restricted_claims": [
+                {
+                  "claim_type": "taint_rule_match_reported",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_pattern_declared",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "match_location_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "source_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sink_argument_location_identified",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "flow_trace_available",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_match_observed",
+                  "decision": "unavailable",
+                  "reason_codes": [
+                    "taint_evidence_unavailable"
+                  ]
+                },
+                {
+                  "claim_type": "sanitizer_effectiveness_verified",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "sanitizer_effectiveness_not_verified"
+                  ]
+                },
+                {
+                  "claim_type": "vulnerability_confirmed",
+                  "decision": "unsupported_claim",
+                  "reason_codes": [
+                    "independent_confirmation_required"
+                  ]
+                }
+              ],
+              "rule_id": "baseline.javascript-dynamic-eval",
+              "severity": "high",
+              "supported_claims": [
+                "match_reported"
+              ],
+              "validation_error_code": null,
+              "verification_status": "unverified"
+            }
+          ],
+          "issues": [
+            "evidence_unavailable"
+          ],
+          "limitations": [
+            "finding_count_not_confirmed_vulnerability_count",
+            "scan_result_is_not_safety_proof",
+            "scan_partial"
+          ],
+          "omitted_finding_count": 0,
+          "scan_status": "partial",
+          "semgrep_version": "1.182.1",
+          "severity_counts": {
+            "critical": 0,
+            "high": 1,
+            "info": 0,
+            "low": 0,
+            "medium": 0
+          }
+        },
+        "scope": {
+          "errors_count": 0,
+          "limitations": [
+            "scanned_paths_do_not_prove_complete_analysis"
+          ],
+          "scanned_paths": [
+            "src/stable.js"
+          ],
+          "scanned_status": "OBSERVED",
+          "skipped_paths": [
+            [
+              "src/handler.js",
+              "semgrepignore_patterns_match"
+            ]
+          ],
+          "skipped_status": "OBSERVED"
+        }
+      },
+      "evaluation": {
+        "comparability": "INCOMPARABLE",
+        "contract_version": "finding-disappearance-evaluation/v1",
+        "findings": [
+          {
+            "category": "shared",
+            "finding_id": "semgrep:c123409bca240bcae079df5a",
+            "path_observation": null,
+            "rule_identity_hypothesis": null,
+            "skip_hypothesis": null,
+            "source_snapshot_hypothesis": null
+          },
+          {
+            "category": "baselineOnly",
+            "finding_id": "semgrep:0a52174dc25c97864e5a5a05",
+            "path_observation": "PATH_EXPLICITLY_SKIPPED",
+            "rule_identity_hypothesis": "UNDETERMINED",
+            "skip_hypothesis": "SUPPORTED",
+            "source_snapshot_hypothesis": "UNDETERMINED"
+          }
+        ],
+        "limitation_codes": [
+          "rule_bytes_unverified",
+          "loaded_rule_identity_unverified",
+          "source_snapshot_not_collected",
+          "scope_completeness_unverified",
+          "scan_result_is_not_safety_proof",
+          "scan_incomplete",
+          "finding_id_not_observed",
+          "path_explicitly_skipped"
+        ],
+        "overall_assessment": "INCOMPARABLE"
+      }
+    }
+  },
+  "partition_mode": "verbose"
+}
