@@ -1,4 +1,4 @@
-# AI Code Security Analyzer: 프로젝트 지침
+# SAST Review Workspace: 프로젝트 지침
 
 ## 적용 범위
 
@@ -39,6 +39,6 @@
 | `security-review` | 코드의 취약점 판정, 위협 모델링, 탐지 결과의 보안 해석 |
 | `secure-development` | 분석기의 모듈 설계, 탐지 로직 또는 기능 구현·수정 |
 | `security-validation` | 단위·회귀 테스트, 오탐·미탐 및 탐지 정확도 검증 |
-| `security-report` | 보안 진단 결과 또는 기술 포트폴리오 문서 작성 |
+| `security-report` | 보안 진단 결과 또는 구현 및 검증 기록 문서 작성 |
 
 공통 원칙은 이 파일에만 둔다. 각 스킬은 해당 작업의 판단 기준, 절차, 완료 기준을 정의한다. 요청 없이 모든 스킬을 일괄 적용하지 않는다.

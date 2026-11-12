@@ -1,8 +1,8 @@
-# Portfolio Overview: SAST Review Workspace
+# Project Overview: SAST Review Workspace
 
 This page explains what the project does today, how it is built, how it was validated, and where its limits are. Setup steps are in [Getting started](getting-started.md).
 
-**Feature development is frozen.** The idea described below was tested and did not hold up: in two experiments a short script on top of Semgrep and Git did as well as or better than this product. See the [research record](research/README.md).
+**Feature expansion is on hold; confirmed defects are fixed.** The idea described below was tested and did not hold up: in two experiments a short script on top of Semgrep and Git did as well as or better than this product. See the [research record](research/README.md).
 
 ## The problem
 
@@ -98,9 +98,9 @@ The full, evidence-linked list is in [Known limitations](known-limitations.md). 
 - SARIF passes schema validation, but GitHub Code Scanning upload is untested.
 - There is no evidence of better detection or faster triage than Semgrep CLI plus Git, and two synthetic comparisons went the other way. There is no execution sandbox.
 
-## Not implemented, and not planned
+## Not implemented
 
-Feature development is frozen, so none of the items below is scheduled. They are listed as known gaps, not as a roadmap.
+Feature expansion is on hold, so none of the items below is scheduled. They are listed as known gaps, not as a roadmap. How each known limitation is classified is in [Limitation triage](limitations-triage.md).
 
 - Persisting review state across reloads without weakening the in-memory privacy default.
 - Collecting source snapshots or Git metadata so disappearances can be tied to code changes and renames.

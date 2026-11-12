@@ -6,7 +6,7 @@ A local workspace that lets a security analyst **review, annotate, compare acros
 
 A static application security testing (SAST) tool reports candidate vulnerabilities. This project covers the step after that: the analyst triages the candidates, records decisions, and checks them against the next scan. Detection itself is done by Semgrep OSS 1.182.1, and every finding is treated as an unverified candidate, not a confirmed vulnerability.
 
-**Status:** feature development is complete and frozen. Whether the implemented features improve on existing approaches was tested directly, and the results are published under [Validation and research](#validation-and-research).
+**Status:** in maintenance. Confirmed defects are fixed, and new feature expansion is on hold. Whether the implemented features improve on existing approaches was tested directly, and the results are published under [Validation and research](#validation-and-research).
 
 ## Key features
 
@@ -28,7 +28,7 @@ The baseline rules cover three patterns (dynamic eval, React `dangerouslySetInne
 
 ![Scan results view: a completed scan with 7 unverified candidates](docs/assets/readme/dashboard-results.png)
 
-This is the result view of a real scan of the fixtures shipped in the repository (commit `b4f973d`, Semgrep 1.182.1). The dashboard text is Korean, and the product name on screen is the former name.
+This is the result view of a real scan of the fixtures shipped in the repository (Semgrep 1.182.1). The dashboard text is Korean.
 
 ```mermaid
 flowchart TD
@@ -49,7 +49,7 @@ flowchart TD
     N -.->|"investigation mode only"| E
 ```
 
-Components and security controls are described in the [portfolio overview](docs/portfolio-overview.md).
+Components and security controls are described in the [project overview](docs/project-overview.md).
 
 ## Tech stack
 
@@ -90,7 +90,7 @@ After the features were built, four checks tested whether the product actually i
 | [U1](docs/research/u1-appsec-workflow-problem-discovery.md) | Is there public evidence of an unmet workflow problem this project could address? | Public issues, vendor documentation, surveys | None found. Each observed problem is already covered by an existing tool, a setting, or a paid feature. | Stopped searching for further differentiation candidates |
 | [U1 closeout](docs/research/u1-closeout-defectdojo-upstream-feasibility.md) | Is an upstream contribution to DefectDojo justified? | DefectDojo 3.5.101 source and related issues and PRs | The related bugs are fixed, and the remaining behavior is a trade-off its maintainers already acknowledge. | No pull request proposed |
 
-On the basis of these four results, new feature development was frozen. No advantage of the product was demonstrated.
+On the basis of these four results, new feature expansion was put on hold. No advantage of the product was demonstrated.
 
 Two findings from these experiments hold regardless of this product. Semgrep 1.182.1 with default options exits 0 on most incomplete scans. And comparing findings by location mis-identifies them after a line shift, a rename, or deletion of a duplicate line.
 
@@ -116,11 +116,11 @@ The complete list with evidence links is in [Known limitations](docs/known-limit
 
 - [Documentation index](docs/README.md): where everything is
 - [Getting started](docs/getting-started.md): setup, API, dashboard, exports, troubleshooting
-- [Portfolio overview](docs/portfolio-overview.md): problem, components, security controls
+- [Project overview](docs/project-overview.md): problem, components, security controls
 - [Known limitations](docs/known-limitations.md): the complete list, and what CI checks
-- [Research record](docs/research/README.md): D1, D2, U1, how to recompute, why development stopped
+- [Research record](docs/research/README.md): D1, D2, U1, how to recompute, why feature expansion was put on hold
 - [Baseline rule scope and limits](rules/README.md)
 
-This README, the documentation index, getting started, known limitations, and the portfolio overview are in English. Most other records under `docs/` are written in Korean.
+This README, the documentation index, getting started, known limitations, and the project overview are in English. Most other records under `docs/` are written in Korean.
 
-**Project status.** This is a security-engineering portfolio project, and feature development is frozen. The code is kept as it is, with known defects documented and not fixed. It was previously named AI Code Security Analyzer; the Python package (`ai_code_security_analyzer`), the CLI command, the dashboard title, the headings of exported reports, and historical records under `docs/` and `experiments/` still use that name.
+**Project status.** This is a development project in maintenance. Confirmed bugs are fixed and maintenance continues, with security and reproducibility improvements first. New feature expansion needs separate evidence and approval, and multi-engine SAST support is not approved. The D1/D2/U1 research results are preserved as recorded. The project was previously named AI Code Security Analyzer; the Python package (`ai_code_security_analyzer`), the CLI command, the API `service` identifier, and historical records under `docs/` and `experiments/` still use that name.

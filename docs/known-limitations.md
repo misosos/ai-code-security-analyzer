@@ -1,6 +1,6 @@
 # Known limitations
 
-The complete list for the frozen product. None of these will be fixed; feature development has stopped. Details for the items found during the closing review are in [frozen-state limitations](research/frozen-state-known-limitations.md).
+The complete list of current limitations. Not every item is a bug: [Limitation triage](limitations-triage.md) classifies each one and says which are fixable defects, which are design constraints, and which are intended limits. Details for the items found during the 2026-11 closing review are in [frozen-state limitations](research/frozen-state-known-limitations.md).
 
 These are current, verified limitations. A missing finding is never evidence that code is safe or fixed.
 

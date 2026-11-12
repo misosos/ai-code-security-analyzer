@@ -1,6 +1,6 @@
 ---
 name: secure-development
-description: AI Code Security Analyzer의 분석 모듈, 탐지 로직, 데이터 흐름 또는 관련 기능을 설계하고 구현·수정할 때 사용한다. 독립적인 취약점 진단이나 문서 작성은 security-review 또는 security-report로 다룬다.
+description: SAST Review Workspace의 분석 모듈, 탐지 로직, 데이터 흐름 또는 관련 기능을 설계하고 구현·수정할 때 사용한다. 독립적인 취약점 진단이나 문서 작성은 security-review 또는 security-report로 다룬다.
 ---
 
 # Secure Development
