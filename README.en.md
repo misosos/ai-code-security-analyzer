@@ -107,7 +107,6 @@ Two findings from these experiments hold regardless of this product. Semgrep 1.1
 | Review state is in browser memory only | It is lost on reload unless exported as backup JSON, and a backup restores only onto an identical set of finding IDs. |
 | At most 50 findings per API response | Larger results are truncated and blocked from comparison. |
 | No execution sandbox | Semgrep is not isolated from the network or filesystem. An isolated worker exists only as a design. Scan untrusted repositories only inside a separately isolated environment. |
-| CI does not pin uv | The workflow passes an input name that `setup-uv` ignores, so the latest uv is installed. |
 | Synthetic evaluation only | Real-world precision and recall were never measured. |
 
 The complete list with evidence links is in [Known limitations](docs/known-limitations.md).

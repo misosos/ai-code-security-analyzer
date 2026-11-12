@@ -9,7 +9,7 @@ Commands run from the repository root unless noted.
 | Tool | Version | Check |
 | --- | --- | --- |
 | Python | 3.12 (`.python-version`) | `python3 --version` |
-| uv | 0.11.26 was the intended pin. CI does not enforce it and installs the latest release (see [known limitations](known-limitations.md)). | `uv --version` |
+| uv | 0.11.26 (the version CI installs) | `uv --version` |
 | Semgrep CLI | **1.182.1**, on `PATH` | `semgrep --version` |
 | Node.js / npm | Node 24.22.2 (`.nvmrc`; `frontend/package.json` requires `>=24 <25`) | `node --version` |
 
