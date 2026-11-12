@@ -1,0 +1,218 @@
+/* Analyst console: sidebar summary, compact results header, finding table and persistent detail panel.
+   Loaded last. Colors come from the tokens in styles.css; this file only sets layout, type and states. */
+
+.ui-console {
+  --console-body: 16px;
+  --console-meta: 14px;
+  --console-small: 13px;
+  --console-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Review mark: open ring = waiting, half = needs follow-up, filled = reviewed. */
+.ui-console .review-mark { display: inline-block; flex: 0 0 12px; width: 12px; height: 12px; border: 1.5px solid var(--muted-dim); border-radius: 50%; }
+.ui-console .review-mark.needs_followup { border-color: var(--warning); box-shadow: inset 6px 0 0 var(--warning); }
+.ui-console .review-mark.reviewed { border-color: var(--accent); background: var(--accent); }
+
+/* ---------- Sidebar ---------- */
+.app-shell.ui-console .sidebar-scan-summary { display: grid; gap: 8px; margin-top: 24px; padding: 0 12px; min-width: 0; }
+.app-shell.ui-console .sidebar-scan-summary .sidebar-section-label { margin: 0; color: var(--muted-dim); font-size: var(--console-small); font-weight: 400; line-height: 16px; }
+.app-shell.ui-console .sidebar-scan-summary .sidebar-section-label:not(:first-child) { margin-top: 16px; }
+.app-shell.ui-console .sidebar-figure { display: grid; gap: 4px; margin: 0; }
+.app-shell.ui-console .sidebar-figure strong { color: var(--text); font-size: 32px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.app-shell.ui-console .sidebar-figure span, .app-shell.ui-console .sidebar-summary-note { margin: 0; color: var(--muted); font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console .share-bar { display: flex; gap: 2px; height: 8px; }
+.app-shell.ui-console .share-segment { display: block; min-width: 4px; border-radius: 2px; background: var(--surface-2); }
+.app-shell.ui-console .share-segment.critical { background: var(--critical); }
+.app-shell.ui-console .share-segment.high { background: var(--high); }
+.app-shell.ui-console .share-segment.medium { background: var(--medium); }
+.app-shell.ui-console .share-segment.low { background: var(--low); }
+.app-shell.ui-console .share-segment.info { background: var(--info); }
+.app-shell.ui-console .share-segment.review-reviewed { background: var(--accent); }
+.app-shell.ui-console .share-segment.review-needs_followup { background: var(--warning); }
+.app-shell.ui-console .sidebar-legend { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console .sidebar-legend li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.app-shell.ui-console .sidebar-legend li > span { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--muted); }
+.app-shell.ui-console .sidebar-legend b { color: var(--text); font: 400 var(--console-small)/20px var(--console-mono); }
+.app-shell.ui-console .sidebar-is-collapsed .sidebar-scan-summary { display: none; }
+
+@media (min-width: 761px) {
+  .app-shell.ui-console .workspace-shell:not(.sidebar-is-collapsed) { grid-template-columns: 264px minmax(0, 1fr); }
+  .app-shell.ui-console .workspace-sidebar { padding: 16px 12px; overflow-y: auto; }
+  .app-shell.ui-console .sidebar-brand-row { min-height: 48px; margin: 0 8px 16px; }
+  .app-shell.ui-console .sidebar-brand { min-height: 40px; }
+  .app-shell.ui-console .sidebar-brand .brand-emblem { width: 32px; height: 32px; flex: 0 0 32px; }
+  .app-shell.ui-console .sidebar-brand-name { font-size: 17px; line-height: 22px; }
+  .app-shell.ui-console .sidebar-heading { margin: 0 8px 8px; }
+  .app-shell.ui-console .sidebar-heading .sidebar-section-label { color: var(--muted-dim); font-size: var(--console-small); font-weight: 400; }
+  .app-shell.ui-console .nav-item { min-height: 40px; margin-bottom: 4px; padding: 0 12px; gap: 12px; border-color: transparent; border-radius: 8px; font-size: 18px; }
+  .app-shell.ui-console .nav-item .nav-result-count { margin-left: auto; border: 0; background: transparent; color: var(--muted); font: 400 var(--console-small)/20px var(--console-mono); }
+}
+
+/* ---------- Results view ---------- */
+.app-shell.ui-console #main-content.d2-view-results { padding: 0 24px 48px; font-size: var(--console-body); line-height: 1.5; }
+.app-shell.ui-console #main-content.d2-view-results .workspace-title { gap: 4px 16px; min-height: 56px; margin: 0; padding: 12px 0; border-bottom: 1px solid var(--border); }
+@media (min-width: 1101px) {
+  .app-shell.ui-console #main-content.d2-view-results .workspace-title { display: flex; flex-flow: row wrap; align-items: baseline; justify-content: flex-start; }
+  .app-shell.ui-console #main-content.d2-view-results .workspace-title > div { width: auto; align-self: auto; }
+  .app-shell.ui-console #main-content.d2-view-results .workspace-title > p { width: auto; }
+}
+.app-shell.ui-console #main-content.d2-view-results .workspace-title h1 { margin: 0; font-size: 22px; font-weight: 600; line-height: 32px; }
+.app-shell.ui-console #main-content.d2-view-results .workspace-title > p { margin: 0; padding: 0; border: 0; color: var(--muted-dim); font-size: var(--console-meta); line-height: 20px; }
+
+/* Header: what was scanned, how it ended, and the three counts, in two rows. */
+.app-shell.ui-console #main-content .console-results-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.app-shell.ui-console #main-content .console-results-header .scan-context { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.app-shell.ui-console #main-content .console-results-header .context-copy { display: flex; flex-flow: row wrap; align-items: baseline; gap: 4px 16px; min-width: 0; }
+.app-shell.ui-console #main-content .console-results-header .context-copy .eyebrow { display: none; }
+.app-shell.ui-console #main-content .console-results-header .context-primary { gap: 4px 8px; font-size: 18px; line-height: 28px; }
+.app-shell.ui-console #main-content .console-results-header .context-received-at,
+.app-shell.ui-console #main-content .console-results-header .context-identifiers-disclosure,
+.app-shell.ui-console #main-content .console-results-header .context-identifiers,
+.app-shell.ui-console #main-content .console-results-header .context-identifiers code { font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .console-results-header .context-identifiers-disclosure > summary { min-height: 32px; padding-block: 4px; }
+.app-shell.ui-console #main-content .console-results-header .context-actions { flex: 0 0 auto; gap: 8px; }
+.app-shell.ui-console #main-content .console-results-header .context-actions .button { min-height: 40px; padding-inline: 16px; font-size: var(--console-body); }
+.app-shell.ui-console #main-content .console-results-header .scan-banner { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.app-shell.ui-console #main-content .console-results-header .scan-state-copy { display: flex; flex-flow: row wrap; align-items: baseline; gap: 4px 12px; }
+.app-shell.ui-console #main-content .console-results-header .scan-state-copy h2 { order: 1; margin: 0; font-size: 18px; font-weight: 600; line-height: 28px; }
+.app-shell.ui-console #main-content .console-results-header .scan-state-copy .eyebrow { order: 2; margin: 0; color: var(--muted-dim); font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .console-results-header .state-pill { padding: 2px 12px; font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .console-results-header .overview-grid.analyst-overview-core { display: flex; flex-flow: row wrap; gap: 4px 24px; margin: 0; padding: 0; border: 0; }
+.app-shell.ui-console #main-content .console-results-header .overview-grid.analyst-overview-core > .metric { display: flex; align-items: baseline; gap: 8px; min-height: 0; padding: 0; border: 0; }
+.app-shell.ui-console #main-content .console-results-header .metric-label { color: var(--muted); font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .console-results-header .metric strong { color: var(--text); font: 500 18px/28px var(--console-mono); }
+.app-shell.ui-console #main-content .console-results-header .metric small { margin: 0; color: var(--muted-dim); font-size: var(--console-small); line-height: 20px; }
+
+/* Search and filters: one row, labels beside their controls. */
+.app-shell.ui-console #main-content .d2-results-workspace > .findings-section { margin-top: 0; }
+.app-shell.ui-console #main-content .results-heading { display: block; margin: 0; padding: 16px 0; }
+.app-shell.ui-console #main-content .results-title { margin: 0; }
+.app-shell.ui-console #main-content .results-title > p { margin: 0 0 12px; }
+.app-shell.ui-console #main-content .results-title h2 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.app-shell.ui-console #main-content .results-title .count-chip { margin-inline-start: 8px; padding: 0; border: 0; background: transparent; color: var(--muted); font: 400 var(--console-meta)/20px var(--console-mono); }
+.app-shell.ui-console #main-content .results-title > p { color: var(--muted); font-size: var(--console-meta); }
+.app-shell.ui-console #main-content .filter-row { display: flex; flex-flow: row wrap; align-items: center; gap: 12px 16px; margin: 0; }
+.app-shell.ui-console #main-content .filter-row .filter-search-row { flex: 1 1 240px; min-width: 0; }
+.app-shell.ui-console #main-content .filter-row .filter-select-row { display: flex; flex-flow: row wrap; gap: 12px 16px; }
+.app-shell.ui-console #main-content .filter-row .filter-control { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.app-shell.ui-console #main-content .filter-row .filter-control > span:first-child { font-weight: 400; color: var(--muted); font-size: var(--console-meta); line-height: 20px; white-space: nowrap; }
+.app-shell.ui-console #main-content .filter-row .search-field > span:first-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.app-shell.ui-console #main-content .filter-row .filter-input-wrap { width: 100%; height: 40px; min-height: 40px; }
+.app-shell.ui-console #main-content .filter-row select,
+.app-shell.ui-console #main-content .filter-row input { height: 40px; min-height: 40px; font-size: var(--console-body); }
+.app-shell.ui-console #main-content .filter-row select { width: auto; min-width: 112px; }
+
+/* Finding table and detail panel side by side. */
+.app-shell.ui-console #main-content .results-layout { display: grid; grid-template-columns: minmax(0, 1fr) clamp(360px, 38%, 460px); align-items: start; gap: 0; border-top: 1px solid var(--border); }
+.app-shell.ui-console #main-content .finding-list { height: auto; max-height: none; min-height: 0; overflow: visible; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.app-shell.ui-console #main-content .list-caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; margin: 0; padding: 0 16px 0 12px; border: 0; background: transparent; color: var(--muted); font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .finding-table-head,
+.app-shell.ui-console #main-content .finding-row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 136px 24px; align-items: center; column-gap: 16px; padding-inline: 12px 16px; }
+.app-shell.ui-console #main-content .finding-table-head { min-height: 36px; border-block: 1px solid var(--border); color: var(--muted-dim); font-size: var(--console-small); line-height: 20px; }
+.app-shell.ui-console #main-content .finding-row { position: relative; width: 100%; min-height: 64px; row-gap: 0; margin: 0; padding-block: 8px; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; outline: 0; background: transparent; box-shadow: none; color: var(--text); font-size: var(--console-body); line-height: 24px; text-align: left; cursor: pointer; }
+.app-shell.ui-console #main-content .finding-row:hover { background: var(--surface); }
+.app-shell.ui-console #main-content .finding-row.selected,
+.app-shell.ui-console #main-content .finding-row[aria-pressed="true"] { outline: 0; background: var(--surface); box-shadow: inset 3px 0 var(--accent); }
+.app-shell.ui-console #main-content .finding-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.app-shell.ui-console #main-content .finding-row .severity-rail { display: none; }
+.app-shell.ui-console #main-content .finding-row .severity-label { padding: 0; border: 0; background: transparent; font-size: var(--console-meta); font-weight: 500; line-height: 20px; }
+.app-shell.ui-console #main-content .finding-row .row-main { display: grid; gap: 0; min-width: 0; grid-column: 2; grid-row: 1; }
+.app-shell.ui-console #main-content .finding-row .row-severity { grid-column: 1; grid-row: 1 / span 2; align-self: start; padding-top: 2px; }
+.app-shell.ui-console #main-content .finding-row .row-review { grid-column: 3; grid-row: 1 / span 2; }
+.app-shell.ui-console #main-content .finding-row .validation-icon { grid-column: 4; grid-row: 1 / span 2; }
+.app-shell.ui-console #main-content .finding-row .row-review-prefix { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.app-shell.ui-console #main-content .finding-row .row-main-heading { display: block; min-width: 0; }
+.app-shell.ui-console #main-content .finding-row .row-main-heading > strong { display: block; overflow: hidden; color: var(--text); font-size: var(--console-body); font-weight: 500; line-height: 24px; text-overflow: ellipsis; white-space: nowrap; }
+.app-shell.ui-console #main-content .finding-row .row-rule-id { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: normal; }
+.app-shell.ui-console #main-content .finding-row .row-location { grid-column: 2; grid-row: 2; min-width: 0; margin: 0; color: var(--muted); font: 400 var(--console-meta)/20px var(--console-mono); overflow-wrap: anywhere; }
+.app-shell.ui-console #main-content .finding-row .row-review { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--muted); font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .finding-row .analyst-review-badge { padding: 0; border: 0; background: transparent; color: inherit; font-size: var(--console-meta); font-weight: 400; }
+.app-shell.ui-console #main-content .finding-row .row-secondary-meta { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.app-shell.ui-console #main-content .finding-row .validation-icon { position: static; justify-self: end; }
+.app-shell.ui-console #main-content .no-filter-results { margin: 0; padding: 24px 12px; color: var(--muted); font-size: var(--console-body); }
+
+.app-shell.ui-console #main-content .results-layout > .detail-panel { position: sticky; top: 0; align-self: start; width: auto; height: auto; min-height: 0; max-height: 100vh; margin: 0; padding: 20px 24px 24px; overflow: auto; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: var(--surface); font-size: var(--console-body); line-height: 1.5; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-back { display: none; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel :where(p, li, label, summary, dt, dd, small, select, textarea) { font-size: var(--console-body); line-height: 1.5; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-top h2 { margin: 0; font-size: 22px; font-weight: 600; line-height: 30px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel :where(h3) { font-size: 17px; font-weight: 600; line-height: 24px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel :where(h4) { font-size: var(--console-body); font-weight: 600; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel :where(.eyebrow, .severity-label, .unverified-badge, .detail-badges > span, .detail-location > span, .analyst-note-count, .triage-recommendation, .decision, code) { font-size: var(--console-meta); line-height: 20px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-location strong { font: 500 var(--console-body)/24px var(--console-mono); overflow-wrap: anywhere; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor select,
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor textarea { font-size: var(--console-body); }
+
+@media (max-width: 1099px) {
+  .app-shell.ui-console #main-content .results-layout { grid-template-columns: minmax(0, 1fr); }
+  .app-shell.ui-console #main-content .results-layout > .detail-panel { position: static; max-height: none; margin-top: 24px; overflow: visible; border-left: 0; border-top: 1px solid var(--border); border-radius: 12px; }
+  .app-shell.ui-console #main-content .results-layout > .detail-panel .detail-back { display: inline-flex; min-height: 44px; margin: 0 0 12px -12px; font-size: var(--console-body); }
+}
+
+@media (max-width: 760px) {
+  .app-shell.ui-console #main-content.d2-view-results { padding-inline: 16px; }
+  .app-shell.ui-console #main-content .console-results-header { grid-template-columns: minmax(0, 1fr); }
+  .app-shell.ui-console #main-content .console-results-header .scan-context { flex-flow: column; align-items: stretch; }
+  .app-shell.ui-console #main-content .console-results-header .context-actions { flex-wrap: wrap; }
+  .app-shell.ui-console #main-content .filter-row .filter-select-row { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell.ui-console #main-content .filter-row .filter-control { grid-column: auto; flex-flow: column; align-items: stretch; gap: 4px; }
+  .app-shell.ui-console #main-content .console-results-header { padding: 12px 0; }
+  .app-shell.ui-console #main-content .console-results-header .metric small { display: none; }
+  .app-shell.ui-console #main-content .filter-row select { width: 100%; min-width: 0; }
+  .app-shell.ui-console #main-content .finding-table-head { display: none; }
+  .app-shell.ui-console #main-content .list-caption { padding-inline: 0; border-bottom: 1px solid var(--border); }
+  .app-shell.ui-console #main-content .finding-row { grid-template-columns: minmax(0, 1fr) auto 24px; grid-template-areas: "severity review icon" "main main main" "location location location"; row-gap: 4px; padding: 12px 8px 12px 12px; }
+  .app-shell.ui-console #main-content .finding-row > * { grid-column: auto; grid-row: auto; }
+  .app-shell.ui-console #main-content .finding-row .row-severity { grid-area: severity; }
+  .app-shell.ui-console #main-content .finding-row .row-main { grid-area: main; }
+  .app-shell.ui-console #main-content .finding-row .row-main-heading > strong,
+  .app-shell.ui-console #main-content .finding-row .row-rule-id { white-space: normal; overflow-wrap: anywhere; }
+  .app-shell.ui-console #main-content .finding-row .row-location { grid-area: location; }
+  .app-shell.ui-console #main-content .finding-row .row-review { grid-area: review; }
+  .app-shell.ui-console #main-content .finding-row .validation-icon { grid-area: icon; }
+  .app-shell.ui-console #main-content .results-layout > .detail-panel { padding: 16px; }
+}
+
+/* Quiet the containers that the header and detail reuse. */
+.app-shell.ui-console #main-content .console-results-header .scan-context::before,
+.app-shell.ui-console #main-content .console-results-header .scan-context::after,
+.app-shell.ui-console #main-content .console-results-header .scan-banner::before,
+.app-shell.ui-console #main-content .console-results-header .scan-banner::after,
+.app-shell.ui-console #main-content .console-results-header .overview-grid::before { display: none; }
+.app-shell.ui-console #main-content .console-results-header .scan-context,
+.app-shell.ui-console #main-content .console-results-header .scan-banner,
+.app-shell.ui-console #main-content .console-results-header .overview-grid.analyst-overview-core,
+.app-shell.ui-console #main-content .console-results-header .overview-grid.analyst-overview-core > .metric { border-width: 0; box-shadow: none; }
+.app-shell.ui-console .nav-item.active { border-color: transparent; background: var(--surface); }
+.app-shell.ui-console .sidebar-legend .severity-dot { display: inline-block; flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--muted-dim); }
+.app-shell.ui-console .sidebar-legend .severity-dot.critical { background: var(--critical); }
+.app-shell.ui-console .sidebar-legend .severity-dot.high { background: var(--high); }
+.app-shell.ui-console .sidebar-legend .severity-dot.medium { background: var(--medium); }
+.app-shell.ui-console .sidebar-legend .severity-dot.low { background: var(--low); }
+.app-shell.ui-console .sidebar-legend .severity-dot.info { background: var(--info); }
+
+/* Detail panel rhythm: one gap between blocks, review inputs near the top. */
+.app-shell.ui-console #main-content .results-layout > .detail-panel > article { display: grid; gap: 20px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel > article > * { margin: 0; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 0; border: 0; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-top .eyebrow { margin: 0 0 4px; color: var(--muted-dim); }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; border: 0; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-location { display: grid; gap: 4px; padding: 12px 16px; border: 0; border-radius: 8px; background: var(--bg); }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-location > span { color: var(--muted-dim); }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .detail-location small { color: var(--muted); }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor { display: grid; gap: 12px; padding: 0; border: 0; background: transparent; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor > * { margin: 0; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor label { display: grid; gap: 4px; color: var(--muted); font-size: var(--console-meta); font-weight: 400; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor select { height: 40px; min-height: 40px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor textarea { min-height: 88px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-note-help,
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-note-count { color: var(--muted-dim); font-size: var(--console-meta); line-height: 20px; }
+
+@media (max-width: 1099px) {
+  .app-shell.ui-console #main-content .filter-row .filter-search-row { flex-basis: 100%; }
+  .app-shell.ui-console #main-content .filter-row .filter-select-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; min-width: 0; }
+  .app-shell.ui-console #main-content .filter-row .filter-control { grid-column: auto; flex-flow: column; align-items: stretch; gap: 4px; min-width: 0; }
+  .app-shell.ui-console #main-content .filter-row select { width: 100%; min-width: 0; }
+}
+@media (max-width: 760px) {
+  .app-shell.ui-console #main-content .filter-row .filter-select-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
