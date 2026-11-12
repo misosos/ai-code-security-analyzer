@@ -34,7 +34,7 @@ uv run --locked python -m ai_code_security_analyzer --help
 The repository ships small positive fixtures. Copy them to a neutral directory first: scanning them in place under `tests/` returns `partial` with `no_files_scanned` (see [Troubleshooting](#troubleshooting)).
 
 ```sh
-SAMPLE="$(mktemp -d)"
+SAMPLE="$(cd "$(mktemp -d)" && pwd -P)"
 cp tests/fixtures/security_baseline/positive/* "$SAMPLE"/
 uv run --locked python -m ai_code_security_analyzer scan \
   --path "$SAMPLE" --rules rules/security-baseline.yml
