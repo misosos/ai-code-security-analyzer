@@ -61,7 +61,7 @@ function validateGeneratedSarif(scan: ScanResponse, context: ScanContext, value:
     || !Array.isArray(value.runs) || value.runs.length !== 1) return false;
   const run = value.runs[0];
   if (!isPlainRecord(run) || !isPlainRecord(run.tool) || !isPlainRecord(run.tool.driver)
-    || run.tool.driver.name !== 'AI Code Security Analyzer'
+    || run.tool.driver.name !== 'SAST Review Workspace'
     || !Array.isArray(run.tool.driver.rules) || !Array.isArray(run.results)
     || !Array.isArray(run.invocations) || run.invocations.length !== 1
     || !isPlainRecord(run.properties)) return false;

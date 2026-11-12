@@ -73,7 +73,7 @@ def test_markdown_taint_report_uses_consumer_claims_and_preserves_limits(tmp_pat
     output = markdown_report.render_markdown_review(
         scan, evidence, rules_file=TAINT_RULE, trusted_rules_directory=RULES
     )
-    assert "# AI Code Security Analyzer — Analyst Review Report" in output
+    assert "# SAST Review Workspace — Analyst Review Report" in output
     assert "취약점 확정 보고서가 아니며" in output
     assert "Semgrep이 신뢰된 taint 규칙에 따른 매치를 보고했습니다." in output
     assert "실제 Source 위치" in output and "현재 자료에서 확인 불가" in output

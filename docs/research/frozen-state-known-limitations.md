@@ -1,5 +1,7 @@
 # Frozen-state known limitations
 
+> **Update, 2026-11-12.** The policy recorded below ("documented and not fixed") no longer applies. The project is in maintenance and confirmed defects are fixed. The text below is kept as it was recorded. Current classification and status of each item: [Limitation triage](../limitations-triage.md).
+
 Recorded 2026-11-12 against tree `19e9548` (remote `main` at `801f03b`). Feature development is frozen, so these are documented and **not fixed**. The README lists further limitations; this file holds the ones found or re-confirmed during the closing review.
 
 ## CI: the uv version pin is silently ignored

@@ -53,7 +53,7 @@ test('D5A desktop shell removes full-width header and moves brand into top-align
       expect(metrics.sidebar.height).toBe(viewport.height);
       expect(metrics.main.x).toBe(metrics.sidebar.width);
       await expect(page.locator('.sidebar-brand')).toBeVisible();
-      await expect(page.getByRole('link', { name: 'AI Code Security Analyzer' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'SAST Review Workspace' })).toBeVisible();
       expect(Number.parseFloat(metrics.navSize)).toBeGreaterThanOrEqual(18);
     } else {
       await expect(page.locator('.mobile-topbar')).toBeVisible();
@@ -84,7 +84,7 @@ test('D5A desktop shell removes full-width header and moves brand into top-align
   await expect(page.getByRole('heading', { name: '정상 완료' })).toBeVisible();
   await expect(page.getByLabel('Finding 목록')).toContainText('src/review.ts:12');
   await page.screenshot({ path: resolve(screenshots, 'finding-results-1440x900.png'), fullPage: true, animations: 'disabled' });
-  await expect(page.getByRole('link', { name: 'AI Code Security Analyzer' })).toHaveAttribute('href', '#main-content');
+  await expect(page.getByRole('link', { name: 'SAST Review Workspace' })).toHaveAttribute('href', '#main-content');
   await page.getByRole('navigation', { name: '화면 이동' }).getByRole('button', { name: '사용 안내' }).click();
   await expect(page.getByRole('heading', { name: '검사 방법' })).toBeVisible();
   await page.screenshot({ path: resolve(screenshots, 'guide-1440x900.png'), fullPage: true, animations: 'disabled' });

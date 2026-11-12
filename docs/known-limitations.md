@@ -1,6 +1,6 @@
 # Known limitations
 
-The complete list for the frozen product. None of these will be fixed; feature development has stopped. Details for the items found during the closing review are in [frozen-state limitations](research/frozen-state-known-limitations.md).
+The complete list of current limitations. Not every item is a bug: [Limitation triage](limitations-triage.md) classifies each one and says which are fixable defects, which are design constraints, and which are intended limits. Details for the items found during the 2026-11 closing review are in [frozen-state limitations](research/frozen-state-known-limitations.md).
 
 These are current, verified limitations. A missing finding is never evidence that code is safe or fixed.
 
@@ -20,7 +20,6 @@ These are current, verified limitations. A missing finding is never evidence tha
 | SARIF upload compatibility unverified | SARIF output validates against the official 2.1.0 schema, but upload to GitHub Code Scanning has not been tested. | [Phase 8M](phase8m-sarif-export.md), [Phase 8N](phase8n-github-code-scanning-preflight.md) |
 | No improvement over Semgrep CLI + Git, and two comparisons went the other way | No study shows better detection, faster triage, or better decisions than using Semgrep with Git directly. In two synthetic comparisons a short script matched or beat the product. | [ER-D9 differentiation](er-d9-differentiation-assessment.md), [D1](../experiments/d1-finding-disappearance/RESULTS.md), [D2](../experiments/d2-scanner-integrity/RESULTS.md) |
 | Findings are identified by line and column | A line shift or file rename changes a finding's ID, so comparison reports it as disappeared and review state does not carry over. | [Frozen-state limitations](research/frozen-state-known-limitations.md) |
-| CI does not pin uv | The workflow passes `uv-version`, which `setup-uv` ignores; CI installs the latest uv instead of 0.11.26. Documented, not fixed. | [Frozen-state limitations](research/frozen-state-known-limitations.md) |
 | No execution sandbox | Semgrep runs with local rules, metrics off and a temporary `HOME`, but without OS-level network or filesystem isolation. Scan untrusted repositories only inside a separately isolated environment. | [Phase 7C-1B design](phase7c1b-verifiable-worker-design.md) |
 | Synthetic evaluation only | Benchmarks use small, author-written synthetic corpora. Real-world precision and recall are not measured. | [Phase 6E](phase6e-heldout-sast-evaluation.md) |
 
@@ -32,7 +31,7 @@ CI (`.github/workflows/ci.yml`) runs three required jobs on every push and pull 
 - **Semgrep 1.182.1 integration**: real local-rule tests and the synthetic benchmark suites (Phases 6A, 6D, 6E)
 - **React dashboard**: typecheck, Vitest, production build, Playwright browser smoke test, and a real Chromium–FastAPI–Semgrep end-to-end test (`npm run test:e2e:real`)
 
-CI is green on `main`, with one caveat: the uv version is not pinned as intended (see the table above).
+The three jobs install uv 0.11.26 through the `version` input of `astral-sh/setup-uv`. Until 2026-11-12 the workflow passed `uv-version`, which the action ignored, so CI ran the latest uv; see [Limitation triage](limitations-triage.md).
 
 Run the core checks locally:
 

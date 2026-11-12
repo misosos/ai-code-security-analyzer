@@ -26,7 +26,7 @@ EXIT_FAILED = 3
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ai_code_security_analyzer",
-        description="AI Code Security Analyzer",
+        description="SAST Review Workspace",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     scan = commands.add_parser("scan", help="scan a local directory with trusted local Semgrep rules")

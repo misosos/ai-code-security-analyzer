@@ -1,6 +1,6 @@
 ---
 name: security-validation
-description: AI Code Security Analyzer의 단위·회귀 테스트를 설계하거나 탐지의 오탐·미탐·정확도를 검증할 때 사용한다. 기능 구현과 문서 작성은 secure-development 또는 security-report로 다룬다.
+description: SAST Review Workspace의 단위·회귀 테스트를 설계하거나 탐지의 오탐·미탐·정확도를 검증할 때 사용한다. 기능 구현과 문서 작성은 secure-development 또는 security-report로 다룬다.
 ---
 
 # Security Validation

@@ -114,7 +114,7 @@ export function createComparisonMarkdown(baseline: ScanSnapshot | null, current:
   const groups = comparison.groups;
   const followup = createRescanFollowup(comparison, baseline, current, null);
   const sections = [
-    '# AI Code Security Analyzer — 검사 결과 비교 보고서',
+    '# SAST Review Workspace — 검사 결과 비교 보고서',
     '',
     '> 이 문서는 두 정적 분석 검사에서 관찰된 Finding 차이를 비교합니다. Finding의 변화는 실제 취약점의 발생·해결 또는 수정 완료를 증명하지 않습니다.',
     '', '## 검사 문맥',

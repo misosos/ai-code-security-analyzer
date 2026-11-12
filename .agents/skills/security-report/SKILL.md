@@ -1,6 +1,6 @@
 ---
 name: security-report
-description: AI Code Security Analyzer의 보안 진단 결과나 구현·검증 성과를 보고서 또는 기술 포트폴리오로 문서화할 때 사용한다. 분석과 구현 자체는 security-review 또는 secure-development로 다룬다.
+description: SAST Review Workspace의 보안 진단 결과나 구현·검증 성과를 보고서 또는 구현 및 검증 기록으로 문서화할 때 사용한다. 분석과 구현 자체는 security-review 또는 secure-development로 다룬다.
 ---
 
 # Security Report
@@ -10,7 +10,7 @@ description: AI Code Security Analyzer의 보안 진단 결과나 구현·검증
 ## 절차
 
 1. 독자, 문서 목적, 대상 범위, 기준 시점과 근거 자료를 확인한다.
-2. 진단 보고서는 발견 사항별 판정과 근거를 중심으로, 포트폴리오는 문제·설계 선택·본인 기여·검증 결과를 중심으로 구성한다. 필요한 필드는 [보고서 형식](references/report-formats.md)을 읽는다.
+2. 진단 보고서는 발견 사항별 판정과 근거를 중심으로, 구현 및 검증 기록은 문제·설계 선택·본인 기여·검증 결과를 중심으로 구성한다. 필요한 필드는 [보고서 형식](references/report-formats.md)을 읽는다.
 3. 코드 위치, 테스트 로그, 버전 등 근거를 독자가 추적할 수 있게 연결한다. 측정되지 않은 성능이나 검증되지 않은 효과는 성과로 쓰지 않는다.
 4. 심각도·확신도·제약을 분리해 표시하고 비밀정보와 악용에 불필요한 민감 세부사항을 제거한다.
 5. 주장과 출처의 일치, 재현 명령의 정확성, 용어와 형식을 검토한다.

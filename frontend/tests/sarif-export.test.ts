@@ -68,7 +68,7 @@ describe('SARIF 2.1.0 export', () => {
 
   it('identifies the converter and detection engine without inventing an analyzer version', () => {
     const run = createSarifReport(context, scan()).runs[0];
-    expect(run.tool.driver.name).toBe('AI Code Security Analyzer');
+    expect(run.tool.driver.name).toBe('SAST Review Workspace');
     expect(run.tool.driver).not.toHaveProperty('version');
     expect(run.tool.driver).not.toHaveProperty('semanticVersion');
     expect(run.tool.driver.properties).toMatchObject({ detectionEngine: 'Semgrep', semgrepVersion: '1.182.1' });

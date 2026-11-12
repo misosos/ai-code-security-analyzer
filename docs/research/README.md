@@ -1,6 +1,6 @@
 # Research record: what was tested, and what it showed
 
-Status: **feature development is frozen.** This directory is the entry point for a reviewer who wants to check the evidence behind that decision.
+Status: after the results below, **new feature expansion was put on hold.** Since 2026-11-12 the project is in maintenance: confirmed defects are fixed, and the research results here are preserved as recorded. This directory is the entry point for a reviewer who wants to check the evidence behind that decision.
 
 The short version: four successive checks looked for a reason to keep building this product. None found one. Two experiments showed that a small script on top of Semgrep and Git did as well as or better than the product on the tasks the product was built for. Two rounds of public-source research found real workflow problems, but each was already addressed by existing tools, configuration, or a paid feature.
 
@@ -14,7 +14,7 @@ The detailed records are written in Korean. This index is in English.
 | Does the product catch incomplete scans better than existing approaches? | [D2 results](../../experiments/d2-scanner-integrity/RESULTS.md), [protocol](../../experiments/d2-scanner-integrity/PROTOCOL.md) | `EVIDENCE_INSUFFICIENT` |
 | Is there public evidence of an unmet AppSec workflow problem this project could address? | [U1](u1-appsec-workflow-problem-discovery.md) | `NO_PRODUCT_EVIDENCE` |
 | Is there a justified upstream contribution to DefectDojo for finding identity across re-imports? | [U1 closeout](u1-closeout-defectdojo-upstream-feasibility.md) | `EVIDENCE_INSUFFICIENT` |
-| What is known to be wrong with the frozen product? | [Frozen-state limitations](frozen-state-known-limitations.md) | — |
+| What was known to be wrong with the product when expansion stopped? | [Frozen-state limitations](frozen-state-known-limitations.md) | — |
 
 ## Results in one table
 

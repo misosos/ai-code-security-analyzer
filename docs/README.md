@@ -1,6 +1,6 @@
 # Documentation index
 
-Feature development is frozen. This page is the map of what is documented and where. For what the project is and whether it works, start with the [README](../README.en.md).
+The project is in maintenance: confirmed defects are fixed, and feature expansion is on hold. This page is the map of what is documented and where. For what the project is and whether it works, start with the [README](../README.en.md).
 
 Language: the pages under "Start here" are in English. Research records and the historical development records are in Korean.
 
@@ -10,12 +10,12 @@ Language: the pages under "Start here" are in English. Research records and the 
 | --- | --- |
 | [README](../README.en.md) | One-page summary: what it is, status, results, main limitations |
 | [Getting started](getting-started.md) | Setup, CLI, API configuration, dashboard, exports, troubleshooting |
-| [Portfolio overview](portfolio-overview.md) | The problem, components, analyst workflow, security controls |
+| [Project overview](project-overview.md) | The problem, components, analyst workflow, security controls |
 | [Known limitations](known-limitations.md) | Complete limitation list with evidence links, and what CI checks |
 
 ## Architecture and implementation
 
-- [Portfolio overview](portfolio-overview.md): component table, architecture diagram, security controls
+- [Project overview](project-overview.md): component table, architecture diagram, security controls
 - [Local API](phase5a-local-api.md) and [React dashboard](phase5b-react-dashboard.md): the contracts the code implements
 - [Baseline rule scope and limits](../rules/README.md): what each rule detects and misses
 - [Investigation evidence lifecycle](er-c3a-investigation-evidence-lifecycle.md) and [secure investigation API](er-c3c-secure-investigation-api.md): design of the `/api/v2` investigation mode
@@ -23,7 +23,8 @@ Language: the pages under "Start here" are in English. Research records and the 
 ## Validation and security limits
 
 - [Known limitations](known-limitations.md)
-- [Frozen-state limitations](research/frozen-state-known-limitations.md): defects confirmed during the closing review, including the CI uv pin
+- [Limitation triage](limitations-triage.md): each known limitation classified as defect, rule gap, design constraint, intended limit, validation gap, or out of scope
+- [Frozen-state limitations](research/frozen-state-known-limitations.md): defects recorded during the 2026-11 closing review, with a note on what has since been fixed
 - Synthetic detection benchmarks: [6A](phase6a-independent-detection-benchmark.md), [6D](phase6d-sast-generalization-evaluation.md), [6E](phase6e-heldout-sast-evaluation.md)
 - [Browser security validation](phase5d-browser-security-validation.md)
 - Isolation design, not built: [Phase 7C-1B](phase7c1b-verifiable-worker-design.md)
@@ -34,7 +35,7 @@ The [research record](research/README.md) is the entry point: verdicts, limits, 
 
 ## Historical development and QA records
 
-These are the working records written while the product was built, kept as they were. They describe decisions and checks at the time and are **not** updated for the freeze. Where one of them conflicts with the README or the research record, the README and the research record are current.
+These are the working records written while the product was built, kept as they were. They describe decisions and checks at the time and are **not** updated for later changes. Where one of them conflicts with the README or the research record, the README and the research record are current.
 
 Screenshots under `assets/` belong to these records. Several directories there are also written by the Playwright browser tests, so they are not safe to delete without changing those tests.
 
@@ -146,7 +147,7 @@ The evidence contract, registry, `/api/v2` flow, and evaluations behind the inve
 - [ER-C3F Safari 조사 수동 QA](er-c3f-safari-investigation-manual-qa.md)
 - [ER-C3F 사용자 수용 기록](er-c3f-user-acceptance-record.md)
 - [ER-C3G Safari 핵심 조사 흐름 사용자 수용](er-c3g-safari-core-user-acceptance-final.md)
-- [Finding 消失の調査を支援する](er-d1-portfolio-investigation-overview.md)
+- [Finding 消失の調査を支援する](er-d1-investigation-overview.md)
 - [ER-D1 재현성 기록](er-d1-reproducibility-record.md)
 - [ER-D10 분석가 수동 수용 결과 기록](er-d10-analyst-acceptance-results.md)
 - [ER-D10 후속: 증거 해제 검증과 부분 검사 안내 정합성](er-d10-evidence-revocation-followup.md)
