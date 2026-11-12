@@ -1,6 +1,6 @@
 # Getting started
 
-Full setup and usage guide. The [README](../README.md) has the shortest path to a first scan.
+Full setup and usage guide. The [README](../README.en.md) has the shortest path to a first scan.
 
 Commands run from the repository root unless noted.
 
