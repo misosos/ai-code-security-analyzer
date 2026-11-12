@@ -236,7 +236,7 @@ def test_markdown_output_is_opt_in_and_uses_single_evidence_scan(
     assert len(calls) == 1
     assert captured.out == ""
     assert captured.err == ""
-    assert output.read_text().startswith("# AI Code Security Analyzer — Analyst Review Report")
+    assert output.read_text().startswith("# SAST Review Workspace — Analyst Review Report")
     assert os.stat(output).st_mode & 0o777 == 0o600
 
 
@@ -250,7 +250,7 @@ def test_markdown_stdout_and_existing_formats_keep_output_policy(
     from ai_code_security_analyzer.semgrep_adapter import _ScanOutput
     monkeypatch.setattr(cli.SemgrepAdapter, "_scan_with_evidence", lambda *_args, **_kwargs: _ScanOutput(scan))
     assert cli.main(argv(target, rules, "--format", "review-md")) == cli.EXIT_COMPLETE
-    assert capsys.readouterr().out.startswith("# AI Code Security Analyzer — Analyst Review Report")
+    assert capsys.readouterr().out.startswith("# SAST Review Workspace — Analyst Review Report")
     for format_name in ("text", "review"):
         assert cli.main(argv(target, rules, "--format", format_name, "--output", str(tmp_path / "bad"))) == cli.EXIT_INVALID_INPUT
     assert "requires --format json or review-md" in capsys.readouterr().err

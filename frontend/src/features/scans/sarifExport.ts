@@ -38,7 +38,7 @@ export interface SarifReport {
   version: '2.1.0';
   runs: [{
     tool: { driver: {
-      name: 'AI Code Security Analyzer';
+      name: 'SAST Review Workspace';
       informationUri: string;
       rules: SarifRule[];
       properties: SarifPropertyBag;
@@ -151,8 +151,8 @@ export function createSarifReport(context: ScanContext, input: ScanResponse): Sa
     version: '2.1.0',
     runs: [{
       tool: { driver: {
-        name: 'AI Code Security Analyzer',
-        informationUri: 'https://github.com/misosos/ai-code-security-analyzer',
+        name: 'SAST Review Workspace',
+        informationUri: 'https://github.com/misosos/sast-review-workspace',
         rules,
         properties: {
           detectionEngine: 'Semgrep',

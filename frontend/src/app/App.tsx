@@ -641,7 +641,7 @@ export function App() {
   return <div className="app-shell ui-d2 ui-d5a">
     <header className="topbar mobile-topbar">
       <button ref={mobileMenuButton} className="sidebar-toggle mobile-menu-toggle" type="button" aria-label="내비게이션 열기" aria-expanded={mobileNavOpen} aria-controls="workspace-sidebar" onClick={() => setMobileNavOpen((open) => !open)}><Icon name="menu"/></button>
-      <a className="brand" href="#main-content" aria-label="AI Code Security Analyzer">
+      <a className="brand" href="#main-content" aria-label="SAST Review Workspace">
         <span className="brand-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 35 11v18l-15 9L5 29V11z"/><path d="m20 9 9 5v12l-9 5-9-5V14z"/><circle cx="20" cy="20" r="3"/></svg></span>
       </a>
     </header>
@@ -649,9 +649,9 @@ export function App() {
     <div className={`workspace-shell ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''} ${mobileNavOpen ? 'mobile-nav-open' : ''}`}>
       <aside id="workspace-sidebar" className="workspace-sidebar" role={mobileNavOpen ? 'dialog' : 'complementary'} aria-modal={mobileNavOpen || undefined} aria-label="주 메뉴">
         <div className="sidebar-brand-row">
-          <a className="brand sidebar-brand" href="#main-content" aria-label="AI Code Security Analyzer">
+          <a className="brand sidebar-brand" href="#main-content" aria-label="SAST Review Workspace">
             <span className="brand-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 35 11v18l-15 9L5 29V11z"/><path d="m20 9 9 5v12l-9 5-9-5V14z"/><circle cx="20" cy="20" r="3"/></svg></span>
-            <span className="sidebar-brand-name">AI Code Security</span>
+            <span className="sidebar-brand-name">SAST Review Workspace</span>
           </a>
         </div>
         <div className="sidebar-heading"><span className="sidebar-section-label">작업 공간</span><button className="sidebar-toggle collapse-toggle" type="button" aria-label={sidebarCollapsed ? '사이드바 펼치기' : '사이드바 접기'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}><Icon name="collapse"/></button></div>

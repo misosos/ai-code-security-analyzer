@@ -11,5 +11,5 @@ def test_module_help() -> None:
     )
 
     assert result.returncode == 0
-    assert "AI Code Security Analyzer" in result.stdout
+    assert "SAST Review Workspace" in result.stdout
     assert "--help" in result.stdout

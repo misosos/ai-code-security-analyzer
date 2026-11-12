@@ -197,11 +197,11 @@ def render_markdown_review(
 ) -> str:
     """Render a bounded Markdown review using the same Gate/Consumer policy as Review View."""
     if not isinstance(scan, ScanResult):
-        return "# AI Code Security Analyzer — Analyst Review Report\n\n검사 상태: 확인 불가\n\n보고서를 생성할 수 없습니다."
+        return "# SAST Review Workspace — Analyst Review Report\n\n검사 상태: 확인 불가\n\n보고서를 생성할 수 없습니다."
 
     findings = tuple(item for item in scan.findings if isinstance(item, Finding))
     base = [
-        "# AI Code Security Analyzer — Analyst Review Report",
+        "# SAST Review Workspace — Analyst Review Report",
         "",
         "> 정적 분석 검토용 문서입니다. 취약점 확정 보고서가 아니며 Finding은 별도 확인이 필요한 후보입니다.",
         "",
@@ -268,7 +268,7 @@ def _omission_section(count: int, total: int) -> list[str]:
 def _compact_fallback(scan: ScanResult, finding_count: int) -> str:
     status = review._STATUS_LABEL.get(scan.status, "확인 불가")
     return (
-        "# AI Code Security Analyzer — Analyst Review Report\n\n"
+        "# SAST Review Workspace — Analyst Review Report\n\n"
         "> 정적 분석 검토용 문서입니다. 취약점 확정 보고서가 아닙니다.\n\n"
         f"- 검사 상태: {status}\n"
         f"- 전체 Finding 수: {finding_count}건 (취약점 확정 수가 아님)\n"

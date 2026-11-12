@@ -37,7 +37,7 @@ def create_app(
     investigation_api_enabled: bool = False,
 ) -> SecurityHeadersMiddleware:
     app = FastAPI(
-        title="AI Code Security Analyzer Local API",
+        title="SAST Review Workspace Local API",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,

@@ -261,7 +261,7 @@ export function createReviewMarkdown(context: ScanContext, input: ScanResponse):
   const ruleIds = [...new Set(findings.map((item) => item.rule_id))].sort((left, right) => left.localeCompare(right));
   const linkedEvidenceCount = findings.filter((finding) => finding.evidence_validation_status === 'validated').length;
   const sections = [
-    '# AI Code Security Analyzer — 보안 분석 검토 보고서',
+    '# SAST Review Workspace — 보안 분석 검토 보고서',
     '', '> 이 문서는 UI에서 받은 정적 분석 결과를 실무 검토용으로 정리합니다. Finding의 변화나 검토 제안은 취약점의 발생·확정·수정을 증명하지 않으며 CLI의 정식 `review-md` 보고서를 대체하지 않습니다.',
     '', '## 1. 검사 개요',
     `- 검사 대상: ${prose(context.targetLabel)} (${codeSpan(context.targetId)})`,

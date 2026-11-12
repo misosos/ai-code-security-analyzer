@@ -87,7 +87,7 @@ export function createAnalystReviewMarkdown(context: ScanContext, input: ScanRes
   const sorted = [...scan.findings].sort((left, right) => left.finding_id < right.finding_id ? -1 : left.finding_id > right.finding_id ? 1 : 0);
   for (const finding of sorted) counts[reviews.get(finding.finding_id)?.status ?? 'pending'] += 1;
   const sections = [
-    '# AI Code Security Analyzer — 분석가 검토 기록',
+    '# SAST Review Workspace — 분석가 검토 기록',
     '',
     '> 이 문서는 정적 분석 결과와 분석가의 수동 작업 기록을 함께 정리합니다. 분석가 작업 상태는 취약점 판정이 아닙니다. 검토 완료는 수정 완료나 취약점 해결을 의미하지 않습니다.',
     '', '## 검사 문맥',
