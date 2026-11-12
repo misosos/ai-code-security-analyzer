@@ -20,5 +20,5 @@ frontend/*.tsbuildinfo
 .serena/
 .playwright-cli/
 .taste-skill/
-output/
+/output/
 .DS_Store
