@@ -1,6 +1,6 @@
 # Documentation index
 
-Feature development is frozen. This page is the map of what is documented and where. For what the project is and whether it works, start with the [README](../README.md).
+Feature development is frozen. This page is the map of what is documented and where. For what the project is and whether it works, start with the [README](../README.en.md).
 
 Language: the pages under "Start here" are in English. Research records and the historical development records are in Korean.
 
@@ -8,7 +8,7 @@ Language: the pages under "Start here" are in English. Research records and the 
 
 | Page | Use it for |
 | --- | --- |
-| [README](../README.md) | One-page summary: what it is, status, results, main limitations |
+| [README](../README.en.md) | One-page summary: what it is, status, results, main limitations |
 | [Getting started](getting-started.md) | Setup, CLI, API configuration, dashboard, exports, troubleshooting |
 | [Portfolio overview](portfolio-overview.md) | The problem, components, analyst workflow, security controls |
 | [Known limitations](known-limitations.md) | Complete limitation list with evidence links, and what CI checks |

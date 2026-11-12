@@ -1,62 +1,64 @@
+[한국어] | [English](README.en.md)
+
 # SAST Review Workspace
 
-A local review workspace built **on top of the Semgrep CLI**: it runs trusted local Semgrep rules on a registered directory, turns the results into unverified candidate findings, and gives an analyst a loopback-only API and React dashboard to triage, compare, and export them.
+**Semgrep CLI 위에서 동작하는** 로컬 검토 작업 공간입니다. 등록한 디렉터리를 신뢰할 수 있는 로컬 Semgrep 규칙으로 검사하고, 그 결과를 미검증 후보 탐지 결과(Finding)로 정리합니다. 분석가는 로컬 전용 API와 React 대시보드에서 이 결과를 검토(Triage)하고, 재검사 결과와 비교하고, 내보낼 수 있습니다.
 
-> **Status: feature development is frozen.** Two experiments and two rounds of research found no evidence that this product improves on Semgrep plus a short script. The code is kept as it is, with known defects documented and not fixed. See [Validation results](#validation-results).
+> **현재 상태: 기능 개발 동결.** 두 번의 실험과 두 차례의 조사에서, 이 제품이 "Semgrep과 짧은 스크립트" 조합보다 낫다는 증거를 찾지 못했습니다. 코드는 현재 상태로 보존하며, 알려진 결함은 고치지 않고 문서로 남겼습니다. [검증 결과](#검증-결과)를 참고하세요.
 
-What this project is not:
+이 프로젝트가 아닌 것:
 
-- **Not an AI analyzer.** No shipped scan path calls a language model. The AI review modules are unconnected research code.
-- **Not a detection engine.** All detection is done by Semgrep OSS 1.182.1 with three local rules.
-- **Not a multi-engine tool.** Semgrep is the only SAST engine supported. The name describes the kind of results reviewed, not the number of scanners.
-- **Not proof of anything.** Every finding is an unverified candidate, and a finding that disappears is not evidence of a fix.
+- **AI 분석기가 아닙니다.** 출하된 검사 경로 어디에서도 언어 모델을 호출하지 않습니다. AI 검토 모듈은 제품에 연결되지 않은 연구 코드입니다.
+- **탐지 엔진이 아닙니다.** 탐지는 모두 Semgrep OSS 1.182.1과 로컬 규칙 세 개가 수행합니다.
+- **다중 엔진 도구가 아닙니다.** 지원하는 정적 애플리케이션 보안 테스트(SAST) 엔진은 Semgrep 하나입니다. 이름의 SAST는 검토 대상 결과의 종류를 뜻하며, 스캐너의 수를 뜻하지 않습니다.
+- **무엇도 증명하지 않습니다.** 모든 탐지 결과는 취약점으로 확정되지 않은 미검증 후보입니다. 탐지 결과가 사라졌다는 사실은 취약점이 수정됐다는 증거가 아닙니다.
 
-It is a security-engineering portfolio project. Its most useful output is the record of how its own claims were tested and where they failed.
+보안 엔지니어링 포트폴리오 프로젝트입니다. 가장 쓸모 있는 산출물은 이 프로젝트의 주장을 스스로 검증하고, 어디에서 성립하지 않았는지를 남긴 기록입니다.
 
-Previously named AI Code Security Analyzer. Because the code is frozen, the Python package (`ai_code_security_analyzer`), the CLI command, the dashboard title, and the headings of exported reports still use that name. Historical records under `docs/` and `experiments/` also keep it.
+이전 이름은 AI Code Security Analyzer입니다. 코드가 동결돼 있어 Python 패키지(`ai_code_security_analyzer`), CLI 명령, 대시보드 제목, 내보낸 보고서의 제목에는 이전 이름이 그대로 남아 있습니다. `docs/`와 `experiments/` 아래의 과거 기록도 이전 이름을 유지합니다.
 
-## What is implemented
+## 구현한 기능
 
-| Area | Status | Notes |
+| 영역 | 상태 | 비고 |
 | --- | --- | --- |
-| CLI `scan` (text, JSON, analyst review, Markdown review) | Implemented | Wraps Semgrep 1.182.1 with trusted local rules |
-| Local FastAPI backend (`127.0.0.1:8765`) | Implemented | Token, Host and Origin checks; fixed rule-profile allowlist |
-| React dashboard | Implemented | Triage, review status and notes, scan comparison, exports |
-| Exports: Markdown, review backup JSON, comparison Markdown, SARIF 2.1.0 | Implemented | Generated in the browser from data already received |
-| Finding-disappearance investigation mode (`/api/v2`) | Implemented, bounded | Usually answers `UNDETERMINED`; evidence expires after 15 minutes |
-| Baseline rules (`rules/security-baseline.yml`) | Implemented | Dynamic eval, React `dangerouslySetInnerHTML`, Firestore unconditional write |
-| Experimental taint rule profiles | Experimental | Selectable in the API and dashboard, labeled experimental |
-| AI review modules | Research only | Not called by the CLI, API, or dashboard |
-| Isolated Semgrep worker / container sandbox | Design only | No worker is built or executed |
+| CLI `scan` (텍스트, JSON, 분석가 검토, Markdown 검토 출력) | 구현 | 신뢰할 수 있는 로컬 규칙으로 Semgrep 1.182.1을 실행 |
+| 로컬 FastAPI 백엔드 (`127.0.0.1:8765`) | 구현 | 토큰, Host, Origin 검사. 규칙 프로필은 고정된 허용 목록에서만 선택 |
+| React 대시보드 | 구현 | 검토(Triage), 검토 상태와 메모, 검사 결과 비교, 내보내기 |
+| 내보내기: Markdown, 검토 백업 JSON, 비교 Markdown, SARIF 2.1.0 | 구현 | 이미 받은 데이터로 브라우저에서 생성 |
+| 탐지 결과 소실 조사 모드 (`/api/v2`) | 구현, 범위 제한 | 대부분 `UNDETERMINED`를 반환. 증거는 15분 뒤 만료 |
+| 기본 규칙 (`rules/security-baseline.yml`) | 구현 | 동적 eval, React `dangerouslySetInnerHTML`, Firestore 무조건 쓰기 허용 |
+| 실험용 taint 규칙 프로필 | 실험 | API와 대시보드에서 선택 가능하며 실험용으로 표시 |
+| AI 검토 모듈 | 연구 전용 | CLI, API, 대시보드 어디에서도 호출하지 않음 |
+| 격리된 Semgrep 워커 / 컨테이너 샌드박스 | 설계만 | 워커를 빌드하거나 실행한 적 없음 |
 
-"Implemented" means the feature exists and is covered by tests. It does not mean the feature was shown to help an analyst.
+"구현"은 기능이 존재하고 테스트로 검증된다는 뜻입니다. 그 기능이 분석가에게 도움이 된다고 확인됐다는 뜻은 아닙니다.
 
-## Architecture
+## 시스템 아키텍처
 
 ```mermaid
 flowchart TD
-    B["Analyst browser<br/>React dashboard<br/>review state in memory only<br/>exports built in the browser"]
-    A["FastAPI 127.0.0.1:8765<br/>Host / Origin / token / size checks<br/>fixed rule profiles, registered targets"]
+    B["분석가 브라우저<br/>React 대시보드<br/>검토 상태는 메모리에만 보관<br/>내보내기는 브라우저에서 생성"]
+    A["FastAPI 127.0.0.1:8765<br/>Host / Origin / 토큰 / 크기 검사<br/>고정된 규칙 프로필, 등록된 대상"]
     CLI["CLI<br/>python -m ai_code_security_analyzer scan"]
     S["ScanService"]
     AD["SemgrepAdapter"]
-    SG["semgrep 1.182.1<br/>local rules"]
+    SG["semgrep 1.182.1<br/>로컬 규칙"]
     J["Semgrep JSON"]
     P["Parser"]
-    N["Normalized findings<br/>unverified candidates"]
-    E["In-memory evidence registry<br/>+ disappearance evaluator"]
+    N["정규화된 탐지 결과<br/>미검증 후보"]
+    E["메모리 내 증거 저장소<br/>+ 소실 평가기"]
 
-    B -->|"token, exact Origin"| A
+    B -->|"토큰, 정확히 일치하는 Origin"| A
     A --> S --> AD --> SG --> J --> P --> N
-    CLI -->|"same adapter, parser and report renderers"| AD
-    N -.->|"investigation mode only"| E
+    CLI -->|"같은 어댑터, 파서, 보고서 렌더러 사용"| AD
+    N -.->|"조사 모드에서만"| E
 ```
 
-Semgrep runs with local rules, metrics off, and a temporary `HOME`, but with no OS-level sandbox. Scan untrusted repositories only inside a separately isolated environment. Components and security controls are described in the [portfolio overview](docs/portfolio-overview.md).
+Semgrep은 로컬 규칙만 사용하고, 사용 통계 전송을 끄고, 임시 `HOME`에서 실행합니다. 그러나 운영체제 수준의 샌드박스는 없습니다. 신뢰할 수 없는 저장소는 별도로 격리된 환경에서만 검사하세요. 구성 요소와 보안 통제는 [포트폴리오 개요](docs/portfolio-overview.md)(영어)에 있습니다.
 
-## Try it
+## 실행 예제
 
-Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and Semgrep **1.182.1** on `PATH`.
+Python 3.12, [uv](https://docs.astral.sh/uv/), 그리고 `PATH`에 Semgrep **1.182.1**이 필요합니다.
 
 ```sh
 uv tool install --python 3.12 'semgrep==1.182.1'
@@ -68,47 +70,47 @@ uv run --locked python -m ai_code_security_analyzer scan \
   --path "$SAMPLE" --rules rules/security-baseline.yml
 ```
 
-Expected: `Status: completed` and `Findings: 7 unverified candidate(s)` (5 high, 2 medium). The fixtures are copied first because scanning them in place under `tests/` returns a partial result.
+기대 결과는 `Status: completed`와 `Findings: 7 unverified candidate(s)`(high 5개, medium 2개)입니다. 픽스처를 먼저 복사하는 이유는 `tests/` 아래에서 그대로 검사하면 부분 결과가 반환되기 때문입니다.
 
-The API, dashboard, exports, exit codes, environment variables, and troubleshooting are in [Getting started](docs/getting-started.md).
+API, 대시보드, 내보내기, 종료 코드, 환경변수, 문제 해결은 [시작하기](docs/getting-started.md)(영어)에 있습니다.
 
-## Validation results
+## 검증 결과
 
-Four checks looked for a reason to keep building. None found one.
+개발을 계속할 근거를 네 번 찾아봤고, 한 번도 찾지 못했습니다.
 
-| Study | Question | Result |
+| 연구 | 질문 | 결과 |
 | --- | --- | --- |
-| [D1](experiments/d1-finding-disappearance/RESULTS.md) | Does the product explain a disappeared finding better than Semgrep + Git? | No. On 30 tracked findings a 227-line script identified the cause for 30, the product for 15, with 4 wrong. |
-| [D2](experiments/d2-scanner-integrity/RESULTS.md) | Does the product catch incomplete scans better than existing approaches? | No. Of 13 incomplete scans, default Semgrep missed 11, a 152-line script 2, the product 4 to 8. The product flagged nothing the script missed. |
-| [U1](docs/research/u1-appsec-workflow-problem-discovery.md) | Is there public evidence of an unmet workflow problem this project could address? | None found. Each observed problem is already covered by an existing tool, a setting, or a paid feature. |
-| [U1 closeout](docs/research/u1-closeout-defectdojo-upstream-feasibility.md) | Is an upstream contribution to DefectDojo justified? | No. The related bugs are fixed and the remaining behavior is a trade-off its maintainers already acknowledge. |
+| [D1](experiments/d1-finding-disappearance/RESULTS.md) | 사라진 탐지 결과의 원인을 Semgrep + Git보다 잘 설명하는가? | 아니오. 추적한 탐지 결과 30개 중 227줄 스크립트는 30개의 원인을 맞혔고, 제품은 15개를 맞히고 4개를 틀렸습니다. |
+| [D2](experiments/d2-scanner-integrity/RESULTS.md) | 불완전한 검사를 기존 방법보다 잘 잡아내는가? | 아니오. 불완전한 검사 13건 중 기본 옵션의 Semgrep은 11건, 152줄 스크립트는 2건, 제품은 모드에 따라 4~8건을 놓쳤습니다. 스크립트가 놓친 것을 제품이 잡아낸 경우는 없습니다. |
+| [U1](docs/research/u1-appsec-workflow-problem-discovery.md) | 이 프로젝트가 다룰 수 있는, 해결되지 않은 실무 문제의 공개 증거가 있는가? | 찾지 못했습니다. 관찰한 문제는 모두 기존 도구, 설정, 또는 유료 기능으로 이미 다뤄지고 있습니다. |
+| [U1 마무리](docs/research/u1-closeout-defectdojo-upstream-feasibility.md) | DefectDojo에 업스트림 기여를 할 근거가 있는가? | 아니오. 관련 버그는 이미 수정됐고, 남은 동작은 메인테이너가 이미 인정한 트레이드오프입니다. |
 
-Two findings from these experiments hold regardless of this product. Semgrep 1.182.1 with default options exits 0 on most incomplete scans. And comparing findings by location mis-identifies them after a line shift, a rename, or deletion of a duplicate line.
+이 실험에서 나온 두 가지 관찰은 이 제품과 무관하게 성립합니다. 첫째, Semgrep 1.182.1은 기본 옵션에서 대부분의 불완전한 검사에 종료 코드 0을 반환합니다. 둘째, 탐지 결과를 위치로 비교하면 줄이 밀리거나, 파일 이름이 바뀌거나, 중복된 줄이 삭제된 뒤에 탐지 결과를 잘못 식별합니다.
 
-**How far these results go.** The experiments used small, synthetic, author-written cases, and were designed, run, and scored without an independent party. They support "no evidence the product is better", not "a script is always enough". No person was measured and no user was interviewed, so whether the dashboard helps a human analyst is unknown. U1 is a search of public sources, not a survey. The [research record](docs/research/README.md) states these limits in full and explains how to recompute the scores. Its detailed records are in Korean.
+**이 결과의 적용 범위.** 실험은 작성자가 직접 만든 소규모 합성 사례를 사용했고, 설계·실행·채점에 독립된 제3자가 참여하지 않았습니다. 따라서 이 결과가 뒷받침하는 것은 "제품이 더 낫다는 증거가 없다"이며, "스크립트면 항상 충분하다"가 아닙니다. 사람을 대상으로 측정하지 않았고 사용자 인터뷰도 하지 않았으므로, 대시보드가 실제 분석가에게 도움이 되는지는 알 수 없습니다. U1은 공개 자료 검색이지 설문 조사가 아닙니다. 즉 실무 수요가 없다는 것을 증명한 것이 아니라, 수요의 증거를 확보하지 못한 것입니다. 이 한계의 전체 내용과 점수를 다시 계산하는 방법은 [연구 기록](docs/research/README.md)(영어 색인, 상세 기록은 한국어)에 있습니다.
 
-## Main limitations
+## 주요 한계
 
-| Limitation | Detail |
+| 한계 | 설명 |
 | --- | --- |
-| Findings are identified by line and column | Inserting a line or renaming a file changes a finding's ID. Comparison then reports it as disappeared, and review notes do not carry over. |
-| Comparison cannot explain a disappearance | No source snapshot or Git diff is collected, so the investigation mode usually returns `UNDETERMINED`. |
-| Review state is in browser memory only | Statuses and notes are lost on reload unless exported as backup JSON, and a backup restores only onto an identical set of finding IDs. |
-| At most 50 findings per API response | Larger results are truncated and blocked from comparison. Very large Semgrep output is rejected. |
-| Known false negatives | The dynamic-eval rule misses `globalThis.eval`, aliases, and several other forms. See the [rules README](rules/README.md). |
-| No execution sandbox | Semgrep is not isolated from the network or filesystem. |
-| CI does not pin uv | The workflow passes an input name that `setup-uv` ignores, so CI installs the latest uv instead of the intended version. |
-| Synthetic evaluation only | Real-world precision and recall were never measured. |
+| 탐지 결과를 줄과 열로 식별 | 줄을 하나 추가하거나 파일 이름을 바꾸면 탐지 결과의 ID가 달라집니다. 비교 기능은 이를 사라진 것으로 보고하고, 검토 메모도 이어지지 않습니다. |
+| 비교 기능은 소실의 원인을 설명하지 못함 | 소스 스냅샷이나 Git diff를 수집하지 않으므로, 조사 모드는 대부분 `UNDETERMINED`를 반환합니다. |
+| 검토 상태는 브라우저 메모리에만 존재 | 백업 JSON으로 내보내지 않으면 새로고침할 때 상태와 메모가 사라집니다. 백업은 탐지 결과 ID 집합이 완전히 같은 경우에만 복원됩니다. |
+| API 응답당 탐지 결과 최대 50개 | 그보다 많은 결과는 잘리고 비교가 차단됩니다. 매우 큰 Semgrep 출력은 거부됩니다. |
+| 알려진 미탐(False Negative) | 동적 eval 규칙은 `globalThis.eval`, 별칭, 그 밖의 여러 형태를 놓칩니다. [규칙 README](rules/README.md)를 참고하세요. |
+| 실행 샌드박스 없음 | Semgrep은 네트워크나 파일시스템으로부터 격리되지 않습니다. |
+| CI가 uv 버전을 고정하지 못함 | 워크플로가 `setup-uv`가 무시하는 입력 이름을 전달해, 의도한 버전이 아닌 최신 uv가 설치됩니다. |
+| 합성 사례로만 평가 | 실제 저장소에서의 정밀도(Precision)와 재현율(Recall)은 측정한 적이 없습니다. |
 
-The complete list with evidence links is in [Known limitations](docs/known-limitations.md).
+근거 링크가 포함된 전체 목록은 [알려진 한계](docs/known-limitations.md)(영어)에 있습니다.
 
-## Documentation
+## 문서 안내
 
-- [Documentation index](docs/README.md): where everything is
-- [Getting started](docs/getting-started.md): setup, API, dashboard, exports, troubleshooting
-- [Portfolio overview](docs/portfolio-overview.md): problem, components, security controls
-- [Known limitations](docs/known-limitations.md): the complete list, and what CI checks
-- [Research record](docs/research/README.md): D1, D2, U1, how to recompute, why development stopped
-- [Baseline rule scope and limits](rules/README.md)
+- [문서 색인](docs/README.md): 어떤 문서가 어디에 있는지
+- [시작하기](docs/getting-started.md): 설치, API, 대시보드, 내보내기, 문제 해결
+- [포트폴리오 개요](docs/portfolio-overview.md): 문제 정의, 구성 요소, 보안 통제
+- [알려진 한계](docs/known-limitations.md): 전체 목록과 CI가 검사하는 항목
+- [연구 기록](docs/research/README.md): D1, D2, U1, 점수 재계산 방법, 개발을 멈춘 이유
+- [기본 규칙의 범위와 한계](rules/README.md)
 
-Most records under `docs/` are written in Korean. This README, the documentation index, getting started, known limitations, and the portfolio overview are in English.
+위 문서 중 문서 색인, 시작하기, 포트폴리오 개요, 알려진 한계는 영어로 작성돼 있습니다. `docs/` 아래의 연구 기록과 과거 개발 기록은 대부분 한국어입니다.
