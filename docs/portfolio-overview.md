@@ -28,22 +28,23 @@ Research modules for AI-assisted review (`ai_review.py`, `ollama_provider.py`, c
 
 ## Architecture
 
-```text
- Analyst browser ──(token, exact Origin)──▶  FastAPI  127.0.0.1:8765
-   React dashboard                            │  Host / Origin / token / size checks
-   - review state (memory only)               │  fixed rule profiles, registered targets
-   - exports built in the browser             ▼
-                                         ScanService ──▶ SemgrepAdapter ──▶ semgrep 1.182.1 (local rules)
-                                              │                                  │
-                                              ▼                                  ▼
-                                   Normalized findings  ◀──── parser ◀──── Semgrep JSON
-                                   + evidence gate/consumer
-                                              │
-                                              ▼ (investigation mode only)
-                                   In-memory evidence registry (TTL 15 min)
-                                   + finding-disappearance evaluator
+```mermaid
+flowchart TD
+    B["Analyst browser<br/>React dashboard<br/>review state in memory only<br/>exports built in the browser"]
+    A["FastAPI 127.0.0.1:8765<br/>Host / Origin / token / size checks<br/>fixed rule profiles, registered targets"]
+    CLI["CLI<br/>python -m ai_code_security_analyzer scan"]
+    S["ScanService"]
+    AD["SemgrepAdapter"]
+    SG["semgrep 1.182.1<br/>local rules"]
+    J["Semgrep JSON"]
+    P["Parser"]
+    N["Normalized findings<br/>+ evidence gate/consumer"]
+    E["In-memory evidence registry, TTL 15 min<br/>+ finding-disappearance evaluator"]
 
- CLI: python -m ai_code_security_analyzer scan ──▶ same adapter, parser and report renderers
+    B -->|"token, exact Origin"| A
+    A --> S --> AD --> SG --> J --> P --> N
+    CLI -->|"same adapter, parser and report renderers"| AD
+    N -.->|"investigation mode only"| E
 ```
 
 ## Core analyst workflow
