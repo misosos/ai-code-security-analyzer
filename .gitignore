@@ -8,3 +8,17 @@ frontend/dist/
 frontend/test-results/
 frontend/playwright-report/
 frontend/*.tsbuildinfo
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local tool state and scratch output
+.serena/
+.playwright-cli/
+.taste-skill/
+output/
+.DS_Store
