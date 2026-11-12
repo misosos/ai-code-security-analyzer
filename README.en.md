@@ -2,38 +2,33 @@
 
 # SAST Review Workspace
 
-A local review workspace built **on top of the Semgrep CLI**: it runs trusted local Semgrep rules on a registered directory, turns the results into unverified candidate findings, and gives an analyst a loopback-only API and React dashboard to triage, compare, and export them.
+A local workspace that lets a security analyst **review, annotate, compare across rescans, and export** the static-analysis results of Semgrep OSS. It consists of a Python CLI, a loopback-only FastAPI backend, and a React dashboard.
 
-> **Status: feature development is frozen.** Two experiments and two rounds of research found no evidence that this product improves on Semgrep plus a short script. The code is kept as it is, with known defects documented and not fixed. See [Validation results](#validation-results).
+A static application security testing (SAST) tool reports candidate vulnerabilities. This project covers the step after that: the analyst triages the candidates, records decisions, and checks them against the next scan. Detection itself is done by Semgrep OSS 1.182.1, and every finding is treated as an unverified candidate, not a confirmed vulnerability.
 
-What this project is not:
+**Status:** feature development is complete and frozen. Whether the implemented features improve on existing approaches was tested directly, and the results are published under [Validation and research](#validation-and-research).
 
-- **Not an AI analyzer.** No shipped scan path calls a language model. The AI review modules are unconnected research code.
-- **Not a detection engine.** All detection is done by Semgrep OSS 1.182.1 with three local rules.
-- **Not a multi-engine tool.** Semgrep is the only SAST engine supported. The name describes the kind of results reviewed, not the number of scanners.
-- **Not proof of anything.** Every finding is an unverified candidate, and a finding that disappears is not evidence of a fix.
+## Key features
 
-It is a security-engineering portfolio project. Its most useful output is the record of how its own claims were tested and where they failed.
+| Feature | What is implemented |
+| --- | --- |
+| Semgrep result normalization | Converts Semgrep JSON into findings with an ID, severity, and relative location. Reports omit source snippets and raw scanner JSON. |
+| Python CLI | `scan` with text, JSON, analyst review, and Markdown output. Report files are created new and never overwritten. |
+| FastAPI access control | Binds to `127.0.0.1` only, with a Host allowlist, exact-match Origins, a 43–256 character token, and request and response size limits. Targets are limited to directories registered at startup, and rules to a fixed profile list. |
+| React finding review | Filter by severity, detection type, and review status; see triage guidance and the scope of evidence for each finding. |
+| Review status and notes | Record a review status and a note per finding, and export or restore them as backup JSON. |
+| Rescan comparison | Compares a second scan of the same target and rules by finding ID. A disappeared finding is never marked "fixed". |
+| Exports | Markdown report, SARIF 2.1.0, review records, and comparison report, generated in the browser. |
+| Partial-scan and error handling | Partial, timed-out, and failed scans and conversion loss are reported as states, not hidden. Incomplete scans are excluded from comparison (`INCOMPARABLE`). |
+| Evidence-based disappearance investigation | The `/api/v2` investigation mode records per-run evidence (scan manifest, processed paths, rule-file bytes) and evaluates why a finding was not observed. When evidence is insufficient it answers `UNDETERMINED` and names the missing evidence. |
 
-Previously named AI Code Security Analyzer. Because the code is frozen, the Python package (`ai_code_security_analyzer`), the CLI command, the dashboard title, and the headings of exported reports still use that name. Historical records under `docs/` and `experiments/` also keep it.
+The baseline rules cover three patterns (dynamic eval, React `dangerouslySetInnerHTML`, Firestore unconditional write), and experimental taint rule profiles can be selected separately. All of the above is covered by tests, and CI runs Python tests, a Semgrep 1.182.1 integration test, and a real Chromium–FastAPI–Semgrep end-to-end test. "Implemented" and "shown to help an analyst" are different claims; the second is addressed under [Validation and research](#validation-and-research).
 
-## What is implemented
+## Dashboard and architecture
 
-| Area | Status | Notes |
-| --- | --- | --- |
-| CLI `scan` (text, JSON, analyst review, Markdown review) | Implemented | Wraps Semgrep 1.182.1 with trusted local rules |
-| Local FastAPI backend (`127.0.0.1:8765`) | Implemented | Token, Host and Origin checks; fixed rule-profile allowlist |
-| React dashboard | Implemented | Triage, review status and notes, scan comparison, exports |
-| Exports: Markdown, review backup JSON, comparison Markdown, SARIF 2.1.0 | Implemented | Generated in the browser from data already received |
-| Finding-disappearance investigation mode (`/api/v2`) | Implemented, bounded | Usually answers `UNDETERMINED`; evidence expires after 15 minutes |
-| Baseline rules (`rules/security-baseline.yml`) | Implemented | Dynamic eval, React `dangerouslySetInnerHTML`, Firestore unconditional write |
-| Experimental taint rule profiles | Experimental | Selectable in the API and dashboard, labeled experimental |
-| AI review modules | Research only | Not called by the CLI, API, or dashboard |
-| Isolated Semgrep worker / container sandbox | Design only | No worker is built or executed |
+![Scan results view: a completed scan with 7 unverified candidates](docs/assets/readme/dashboard-results.png)
 
-"Implemented" means the feature exists and is covered by tests. It does not mean the feature was shown to help an analyst.
-
-## Architecture
+This is the result view of a real scan of the fixtures shipped in the repository (commit `b4f973d`, Semgrep 1.182.1). The dashboard text is Korean, and the product name on screen is the former name.
 
 ```mermaid
 flowchart TD
@@ -54,9 +49,19 @@ flowchart TD
     N -.->|"investigation mode only"| E
 ```
 
-Semgrep runs with local rules, metrics off, and a temporary `HOME`, but with no OS-level sandbox. Scan untrusted repositories only inside a separately isolated environment. Components and security controls are described in the [portfolio overview](docs/portfolio-overview.md).
+Components and security controls are described in the [portfolio overview](docs/portfolio-overview.md).
 
-## Try it
+## Tech stack
+
+| Area | Technology |
+| --- | --- |
+| Detection | Semgrep OSS 1.182.1, local YAML rules |
+| Backend | Python 3.12, FastAPI, Pydantic, Uvicorn, uv |
+| Frontend | React 19, TypeScript, Vite |
+| Tests | pytest, Vitest, Playwright |
+| CI | GitHub Actions (third-party actions pinned by commit SHA, read-only `contents` permission) |
+
+## Quick start
 
 Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and Semgrep **1.182.1** on `PATH`.
 
@@ -72,39 +77,42 @@ uv run --locked python -m ai_code_security_analyzer scan \
 
 Expected: `Status: completed` and `Findings: 7 unverified candidate(s)` (5 high, 2 medium). The fixtures are copied first because scanning them in place under `tests/` returns a partial result.
 
-The API, dashboard, exports, exit codes, environment variables, and troubleshooting are in [Getting started](docs/getting-started.md).
+Running the API and dashboard, exports, exit codes, environment variables, and troubleshooting are in [Getting started](docs/getting-started.md).
 
-## Validation results
+## Validation and research
 
-Four checks looked for a reason to keep building. None found one.
+After the features were built, four checks tested whether the product actually improves on existing approaches.
 
-| Study | Question | Result |
-| --- | --- | --- |
-| [D1](experiments/d1-finding-disappearance/RESULTS.md) | Does the product explain a disappeared finding better than Semgrep + Git? | No. On 30 tracked findings a 227-line script identified the cause for 30, the product for 15, with 4 wrong. |
-| [D2](experiments/d2-scanner-integrity/RESULTS.md) | Does the product catch incomplete scans better than existing approaches? | No. Of 13 incomplete scans, default Semgrep missed 11, a 152-line script 2, the product 4 to 8. The product flagged nothing the script missed. |
-| [U1](docs/research/u1-appsec-workflow-problem-discovery.md) | Is there public evidence of an unmet workflow problem this project could address? | None found. Each observed problem is already covered by an existing tool, a setting, or a paid feature. |
-| [U1 closeout](docs/research/u1-closeout-defectdojo-upstream-feasibility.md) | Is an upstream contribution to DefectDojo justified? | No. The related bugs are fixed and the remaining behavior is a trade-off its maintainers already acknowledge. |
+| Study | What was tested | Compared against | Result | Decision |
+| --- | --- | --- | --- | --- |
+| [D1](experiments/d1-finding-disappearance/RESULTS.md) | Does it explain a disappeared finding better? | Semgrep + Git, and a 227-line script that reads `git diff` | On 30 tracked findings the script identified the cause for 30; the product for 15, with 4 wrong. | Stopped expanding the disappearance evaluator and investigation API |
+| [D2](experiments/d2-scanner-integrity/RESULTS.md) | Does it catch incomplete scans better? | Default Semgrep, and a 152-line script | Of 13 incomplete scans, default Semgrep missed 11, the script 2, and the product 4 to 8 depending on mode. The product flagged nothing the script missed. | Scan-integrity verdicts dropped as a differentiator |
+| [U1](docs/research/u1-appsec-workflow-problem-discovery.md) | Is there public evidence of an unmet workflow problem this project could address? | Public issues, vendor documentation, surveys | None found. Each observed problem is already covered by an existing tool, a setting, or a paid feature. | Stopped searching for further differentiation candidates |
+| [U1 closeout](docs/research/u1-closeout-defectdojo-upstream-feasibility.md) | Is an upstream contribution to DefectDojo justified? | DefectDojo 3.5.101 source and related issues and PRs | The related bugs are fixed, and the remaining behavior is a trade-off its maintainers already acknowledge. | No pull request proposed |
+
+On the basis of these four results, new feature development was frozen. No advantage of the product was demonstrated.
 
 Two findings from these experiments hold regardless of this product. Semgrep 1.182.1 with default options exits 0 on most incomplete scans. And comparing findings by location mis-identifies them after a line shift, a rename, or deletion of a duplicate line.
 
-**How far these results go.** The experiments used small, synthetic, author-written cases, and were designed, run, and scored without an independent party. They support "no evidence the product is better", not "a script is always enough". No person was measured and no user was interviewed, so whether the dashboard helps a human analyst is unknown. U1 is a search of public sources, not a survey. The [research record](docs/research/README.md) states these limits in full and explains how to recompute the scores. Its detailed records are in Korean.
+**How far these results go.** The experiments used small, synthetic, author-written cases, and were designed, run, and scored without an independent party. They support "no evidence the product is better", not "a script is always enough". No person was measured and no user was interviewed, so whether the dashboard helps a human analyst is unknown. U1 is a search of public sources, not a survey: it did not show that demand is absent, only that no evidence of demand was found. The [research record](docs/research/README.md) states these limits in full and explains how to recompute the scores. Its detailed records are in Korean.
 
-## Main limitations
+## Known limitations
 
 | Limitation | Detail |
 | --- | --- |
-| Findings are identified by line and column | Inserting a line or renaming a file changes a finding's ID. Comparison then reports it as disappeared, and review notes do not carry over. |
-| Comparison cannot explain a disappearance | No source snapshot or Git diff is collected, so the investigation mode usually returns `UNDETERMINED`. |
-| Review state is in browser memory only | Statuses and notes are lost on reload unless exported as backup JSON, and a backup restores only onto an identical set of finding IDs. |
-| At most 50 findings per API response | Larger results are truncated and blocked from comparison. Very large Semgrep output is rejected. |
-| Known false negatives | The dynamic-eval rule misses `globalThis.eval`, aliases, and several other forms. See the [rules README](rules/README.md). |
-| No execution sandbox | Semgrep is not isolated from the network or filesystem. |
-| CI does not pin uv | The workflow passes an input name that `setup-uv` ignores, so CI installs the latest uv instead of the intended version. |
+| No AI analysis | No shipped scan path calls a language model. The AI review modules are unconnected research code. |
+| One engine, limited rules | Semgrep is the only SAST engine supported, and there is no detection engine of its own. The dynamic-eval rule misses `globalThis.eval`, aliases, and several other forms ([rules README](rules/README.md)). |
+| Findings are identified by line and column | Inserting a line or renaming a file changes a finding's ID, so comparison reports it as disappeared and review notes do not carry over. |
+| Cannot explain a disappearance | No source snapshot or Git diff is collected, so the investigation mode usually returns `UNDETERMINED`. A finding that disappears is not evidence of a fix. |
+| Review state is in browser memory only | It is lost on reload unless exported as backup JSON, and a backup restores only onto an identical set of finding IDs. |
+| At most 50 findings per API response | Larger results are truncated and blocked from comparison. |
+| No execution sandbox | Semgrep is not isolated from the network or filesystem. An isolated worker exists only as a design. Scan untrusted repositories only inside a separately isolated environment. |
+| CI does not pin uv | The workflow passes an input name that `setup-uv` ignores, so the latest uv is installed. |
 | Synthetic evaluation only | Real-world precision and recall were never measured. |
 
 The complete list with evidence links is in [Known limitations](docs/known-limitations.md).
 
-## Documentation
+## Documentation and project status
 
 - [Documentation index](docs/README.md): where everything is
 - [Getting started](docs/getting-started.md): setup, API, dashboard, exports, troubleshooting
@@ -113,4 +121,6 @@ The complete list with evidence links is in [Known limitations](docs/known-limit
 - [Research record](docs/research/README.md): D1, D2, U1, how to recompute, why development stopped
 - [Baseline rule scope and limits](rules/README.md)
 
-Most records under `docs/` are written in Korean. This README, the documentation index, getting started, known limitations, and the portfolio overview are in English.
+This README, the documentation index, getting started, known limitations, and the portfolio overview are in English. Most other records under `docs/` are written in Korean.
+
+**Project status.** This is a security-engineering portfolio project, and feature development is frozen. The code is kept as it is, with known defects documented and not fixed. It was previously named AI Code Security Analyzer; the Python package (`ai_code_security_analyzer`), the CLI command, the dashboard title, the headings of exported reports, and historical records under `docs/` and `experiments/` still use that name.
