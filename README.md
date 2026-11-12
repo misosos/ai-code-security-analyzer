@@ -1,4 +1,4 @@
-# AI Code Security Analyzer
+# SAST Review Workspace
 
 A local review workspace built **on top of the Semgrep CLI**: it runs trusted local Semgrep rules on a registered directory, turns the results into unverified candidate findings, and gives an analyst a loopback-only API and React dashboard to triage, compare, and export them.
 
@@ -6,11 +6,14 @@ A local review workspace built **on top of the Semgrep CLI**: it runs trusted lo
 
 What this project is not:
 
-- **Not an AI analyzer.** Despite the name, no shipped scan path calls a language model. The AI review modules are unconnected research code.
-- **Not a detection engine.** All detection is done by Semgrep 1.182.1 with three local rules.
+- **Not an AI analyzer.** No shipped scan path calls a language model. The AI review modules are unconnected research code.
+- **Not a detection engine.** All detection is done by Semgrep OSS 1.182.1 with three local rules.
+- **Not a multi-engine tool.** Semgrep is the only SAST engine supported. The name describes the kind of results reviewed, not the number of scanners.
 - **Not proof of anything.** Every finding is an unverified candidate, and a finding that disappears is not evidence of a fix.
 
 It is a security-engineering portfolio project. Its most useful output is the record of how its own claims were tested and where they failed.
+
+Previously named AI Code Security Analyzer. Because the code is frozen, the Python package (`ai_code_security_analyzer`), the CLI command, the dashboard title, and the headings of exported reports still use that name. Historical records under `docs/` and `experiments/` also keep it.
 
 ## What is implemented
 

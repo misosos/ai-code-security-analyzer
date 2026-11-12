@@ -1,4 +1,4 @@
-# Portfolio Overview: AI Code Security Analyzer
+# Portfolio Overview: SAST Review Workspace
 
 This page explains what the project does today, how it is built, how it was validated, and where its limits are. Setup steps are in [Getting started](getting-started.md).
 
@@ -24,7 +24,7 @@ The product does keep that distinction: in the D1 experiment it never claimed a 
 | React dashboard | Scan, triage guidance, per-finding review status and notes, comparison of two complete scans, and browser-side exports (Markdown, SARIF 2.1.0, review backup JSON, comparison Markdown). |
 | Investigation mode | A bounded `/api/v2` flow that records per-run evidence (scan manifest, processed paths, selected rule-file bytes) and evaluates why a finding ID was not observed in a later scan. The usual answer is `UNDETERMINED`, together with the specific missing evidence. |
 
-Research modules for AI-assisted review (`ai_review.py`, `ollama_provider.py`, code-context extraction) are **not** connected to the CLI, API or dashboard. Despite the repository name, no shipped analysis path calls a language model.
+Research modules for AI-assisted review (`ai_review.py`, `ollama_provider.py`, code-context extraction) are **not** connected to the CLI, API or dashboard. No shipped analysis path calls a language model.
 
 ## Architecture
 
