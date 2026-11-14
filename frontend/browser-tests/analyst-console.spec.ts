@@ -82,3 +82,83 @@ test('on a narrow screen selecting a finding moves focus to the detail area and 
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${width}px overflow`).toBeLessThanOrEqual(0);
   }
 });
+
+for (const width of [1440, 390, 320]) {
+  test(`token storage note opens in the document flow without covering the content below at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
+    await page.route('**/api/v1/options', (route) => route.fulfill({ json: options }));
+    await page.goto('/');
+    const disclosure = page.locator('.token-security-help');
+    const runButtonTopClosed = await page.getByRole('button', { name: '검사 실행' }).evaluate((el) => el.getBoundingClientRect().top + scrollY);
+    await disclosure.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(disclosure).toHaveAttribute('open', '');
+    await expect(disclosure.locator('p')).toContainText('토큰은 브라우저 메모리에만 보관되고 요청 헤더로 전송됩니다.');
+    const layout = await page.evaluate(() => {
+      const note = document.querySelector('.token-security-help > p')!;
+      const box = note.getBoundingClientRect();
+      const covered = [...document.querySelectorAll('body *')].filter((el) => {
+        if (el === note || el.contains(note) || note.contains(el)) return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.left < box.right - 1 && r.right > box.left + 1 && r.top < box.bottom - 1 && r.bottom > box.top + 1;
+      }).map((el) => el.className);
+      return { position: getComputedStyle(note).position, covered, clipped: note.scrollHeight - note.clientHeight, overflow: document.documentElement.scrollWidth - innerWidth };
+    });
+    expect(layout.position).toBe('static');
+    expect(layout.covered).toEqual([]);
+    expect(layout.clipped).toBeLessThanOrEqual(0);
+    expect(layout.overflow).toBeLessThanOrEqual(0);
+    if (width < 1100) {
+      // In the stacked layout the run button sits below the note and must move down when it opens.
+      const runButtonTopOpen = await page.getByRole('button', { name: '검사 실행' }).evaluate((el) => el.getBoundingClientRect().top + scrollY);
+      expect(runButtonTopOpen).toBeGreaterThan(runButtonTopClosed);
+    }
+    await page.keyboard.press('Enter');
+    await expect(disclosure).not.toHaveAttribute('open', '');
+  });
+}
+
+test('evidence linkage is shown apart from analyst review and never as a green check', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openResults(page);
+  await expect(page.locator('.finding-table-head')).toContainText('근거');
+  const row = page.getByLabel('Finding 목록').getByRole('button').first();
+  await expect(row).toContainText('분석가: 검토 대기');
+  await expect(row).toContainText('근거 연결 구조 확인');
+  const icon = row.locator('.validation-icon.validated');
+  await expect(icon).toHaveAttribute('title', '근거 연결 구조 확인');
+  await expect(icon).toHaveAttribute('aria-hidden', 'true');
+  await expect(icon.locator('path[d="m5 12 4 4L19 6"]')).toHaveCount(0);
+  const colors = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--success)';
+    document.querySelector('.app-shell')!.append(probe);
+    const success = getComputedStyle(probe).color;
+    probe.style.color = 'var(--accent)';
+    const accent = getComputedStyle(probe).color;
+    probe.remove();
+    const evidence = getComputedStyle(document.querySelector('.finding-row .validation-icon.validated')!).color;
+    return { success, accent, evidence };
+  });
+  expect(colors.evidence).not.toBe(colors.success);
+  expect(colors.evidence).not.toBe(colors.accent);
+});
+
+test('choosing another finding shows the top of its detail even after the panel was scrolled', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openResults(page);
+  const rows = page.getByLabel('Finding 목록').getByRole('button');
+  const panel = page.locator('.results-layout > .detail-panel');
+  await panel.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  expect(await panel.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await rows.nth(2).click();
+  await expect(panel).toContainText('src/module2/handler.ts:12');
+  expect(await panel.evaluate((el) => el.scrollTop)).toBe(0);
+  const top = await panel.locator('.detail-top').evaluate((el) => el.getBoundingClientRect().top);
+  expect(top).toBeGreaterThanOrEqual(0);
+  // The panel still scrolls so the evidence and review inputs stay reachable.
+  await panel.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  expect(await panel.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await expect(page.locator('#analyst-note')).toBeVisible();
+});

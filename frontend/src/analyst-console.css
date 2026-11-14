@@ -129,6 +129,9 @@
 .app-shell.ui-console #main-content .finding-row .analyst-review-badge { padding: 0; border: 0; background: transparent; color: inherit; font-size: var(--console-meta); font-weight: 400; }
 .app-shell.ui-console #main-content .finding-row .row-secondary-meta { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .app-shell.ui-console #main-content .finding-row .validation-icon { position: static; justify-self: end; }
+/* Evidence column: a linked structure is a neutral link mark, never a green check, so it cannot read as "reviewed". */
+.app-shell.ui-console #main-content .finding-row .validation-icon.validated { border-color: var(--border-strong); color: var(--muted); }
+.app-shell.ui-console #main-content .finding-table-head > span:last-child { justify-self: end; white-space: nowrap; }
 .app-shell.ui-console #main-content .no-filter-results { margin: 0; padding: 24px 12px; color: var(--muted); font-size: var(--console-body); }
 
 .app-shell.ui-console #main-content .results-layout > .detail-panel { position: sticky; top: 0; align-self: start; width: auto; height: auto; min-height: 0; max-height: 100vh; margin: 0; padding: 20px 24px 24px; overflow: auto; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: var(--surface); font-size: var(--console-body); line-height: 1.5; }

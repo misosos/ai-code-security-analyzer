@@ -810,7 +810,7 @@ footer { margin-top: 20px; padding-top: 12px; border-top-color: var(--border); f
 .token-input-control .clear-token { min-width: 64px; height: 44px; min-height: 44px; border-radius: 12px; color: var(--muted); font-size: 13px; }
 .token-security-help { min-width: 0; }
 .token-security-help > summary { min-height: 20px; color: var(--text); font-size: 12px; cursor: pointer; }
-.token-security-help > p { position: absolute; z-index: 5; max-width: min(390px, 90vw); margin: 8px 0 0; padding: 12px 12px; border-left: 2px solid var(--border-strong); background: var(--surface); color: var(--text); font-size: 13px; line-height: 1.5; box-shadow: none; }
+.token-security-help > p { max-width: min(390px, 100%); margin: 8px 0 0; padding: 12px 12px; border-left: 2px solid var(--border-strong); background: var(--surface); color: var(--text); font-size: 13px; line-height: 1.5; box-shadow: none; }
 .launch-action { align-self: center; justify-self: stretch; min-width: 0; min-height: 50px; margin-left: 16px; padding-inline: 12px; border-radius: 8px; font-size: 15px; }
 .connection-alert { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 8px 0 8px; padding: 8px 12px; border: 0; border-left: 3px solid var(--danger); border-bottom: 1px solid var(--danger-line); border-radius: 0 7px 0 6px; background: var(--danger-soft); }
 .connection-alert > span { min-width: 0; }
