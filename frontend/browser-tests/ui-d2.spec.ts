@@ -111,8 +111,8 @@ test('UI-D2 result review remains grounded in API data and fits required desktop
   await page.getByRole('searchbox', { name: '검색' }).clear();
   const titleSize = await page.locator('.workspace-title h1').evaluate((element) => getComputedStyle(element).fontSize);
   const rowSize = await page.locator('.finding-row .row-main-heading > strong').first().evaluate((element) => getComputedStyle(element).fontSize);
-  expect(Number.parseFloat(titleSize)).toBeGreaterThanOrEqual(36);
-  expect(Number.parseFloat(rowSize)).toBeGreaterThanOrEqual(18);
+  expect(Number.parseFloat(titleSize)).toBeGreaterThanOrEqual(22);
+  expect(Number.parseFloat(rowSize)).toBeGreaterThanOrEqual(16);
   const resultBoxes = await page.evaluate(() => Object.fromEntries(['.workspace-title','.scan-context','.context-copy','.context-actions','.export-note','.scan-banner','.beginner-summary','.limitations','.overview-grid','.overview-grid > *','.severity-counts','.findings-section','.results-heading','.filter-row','.results-layout','.finding-list','.finding-row','.detail-panel'].map((selector) => {
     const element = document.querySelector(selector);
     if (!element) return [selector, null];

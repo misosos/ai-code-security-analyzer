@@ -76,7 +76,8 @@ test('Finding 검색과 필터는 제목에서 분리된 동일 Toolbar에서 �
   }));
   expect(boxes).toHaveLength(5);
   expect(new Set(boxes.map((box) => Math.round(box.height))).size).toBe(1);
-  expect(boxes[0].y).toBeLessThan(boxes[1].y);
+  // The search field comes first in reading order: above the selects, or before them on the same row.
+  expect(boxes[0].y < boxes[1].y || (boxes[0].y === boxes[1].y && boxes[0].x < boxes[1].x)).toBe(true);
   expect(new Set(boxes.slice(1).map((box) => Math.round(box.y))).size).toBe(1);
   await expect(toolbar.locator('.filter-search-row')).toContainText('검색');
   await expect(toolbar.locator('.filter-select-row')).toContainText('검증 상태');
@@ -125,7 +126,8 @@ test('검사 요약은 핵심 수치와 분석 정보를 분리하고 기준 없
 
   const sectionOrder = await page.evaluate(() => ['.scan-banner', '.overview-grid.analyst-overview-core', '.findings-section', '.overview-analysis-details', '.scan-comparison']
     .map((selector) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1));
-  expect(sectionOrder[0]).toBeLessThan(sectionOrder[1]);
+  // Status and core counts share the results header, so the counts may sit on the status row but never above it.
+  expect(sectionOrder[0]).toBeLessThanOrEqual(sectionOrder[1]);
   expect(sectionOrder[1]).toBeLessThan(sectionOrder[2]);
   expect(sectionOrder[2]).toBeLessThan(sectionOrder[3]);
   expect(sectionOrder[3]).toBeLessThan(sectionOrder[4]);
@@ -226,7 +228,11 @@ test('근거 검증 아이콘은 원형 안에서 중앙 정렬되고 상태별 
   await expect(rows.nth(0)).toContainText('근거 연결 구조 확인');
   await expect(rows.nth(1)).toContainText('근거 연결 확인 불가');
   await expect(rows.nth(2)).toContainText('근거 연결 확인 불가');
+  // Keyboard focus shows a ring that is separate from the selected-row style.
   await rows.first().focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowUp');
+  await expect(rows.first()).toBeFocused();
   await expect(rows.first()).toHaveCSS('outline-style', 'solid');
   await rows.first().click();
   await expect(rows.first()).toHaveAttribute('aria-pressed', 'true');

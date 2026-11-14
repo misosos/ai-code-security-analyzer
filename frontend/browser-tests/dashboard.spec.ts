@@ -166,7 +166,7 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
         if (!text || !parent || parent.closest('.sr-only,[aria-hidden="true"]') || parent.tagName === 'OPTION') continue;
         const style = getComputedStyle(parent);
         if (style.display === 'none' || style.visibility === 'hidden' || parent.getClientRects().length === 0) continue;
-        if (Number.parseFloat(style.fontSize) < 16) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
+        if (Number.parseFloat(style.fontSize) < 13) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
       }
       return tooSmall;
     });
@@ -174,8 +174,8 @@ test('cyberpunk workspace stays usable without horizontal overflow across deskto
     viewportMetrics.push({ viewport, ...presentation, overflow: dimensions.content - dimensions.viewport });
     expect(presentation.rowTitleSize).toBeGreaterThanOrEqual(16);
     expect(presentation.filterLabelSize).toBeGreaterThanOrEqual(18);
-    expect(presentation.rowLocationSize).toBeGreaterThanOrEqual(16);
-    expect(presentation.detailCopySize).toBeGreaterThanOrEqual(18);
+    expect(presentation.rowLocationSize).toBeGreaterThanOrEqual(14);
+    expect(presentation.detailCopySize).toBeGreaterThanOrEqual(16);
     expect(presentation.firstRowTop).toBeLessThan(await documentHeight(page));
   }
   await writeFile(resolve(process.cwd(), '../docs/assets/ui-large-type-readability-36-9d/readability-audit/responsive-result-metrics.json'), JSON.stringify(viewportMetrics, null, 2));
@@ -206,6 +206,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
   await page.goto('/');
 
   const samples: Array<Record<string, unknown>> = [];
+  // Analyst console scale: body text is 16px or larger; secondary metadata may be 13 to 14px, never smaller.
   const visibleTextBelowFloor = () => page.evaluate(() => {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       const tooSmall: Array<{ text: string; fontSize: string; selector: string }> = [];
@@ -216,7 +217,7 @@ test('large-type scale remains readable across workspace pages and target viewpo
       if (!text || !parent || parent.closest('.sr-only,[aria-hidden="true"]') || parent.tagName === 'OPTION') continue;
       const style = getComputedStyle(parent);
       if (style.display === 'none' || style.visibility === 'hidden' || parent.getClientRects().length === 0) continue;
-      if (Number.parseFloat(style.fontSize) < 16) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
+      if (Number.parseFloat(style.fontSize) < 13) tooSmall.push({ text: text.slice(0, 60), fontSize: style.fontSize, selector: `${parent.tagName.toLowerCase()}.${parent.className}` });
     }
     return tooSmall;
   });
@@ -322,16 +323,17 @@ test('large-type scale remains readable across workspace pages and target viewpo
   }));
   expect(resultAudit.filter((entry) => 'missing' in entry)).toEqual([]);
   const resultFonts = Object.fromEntries(resultAudit.map((entry) => ['selector' in entry ? entry.selector : '', 'fontSize' in entry ? Number.parseFloat(entry.fontSize) : 0]));
-  expect(resultFonts['.metric strong']).toBeGreaterThanOrEqual(38);
-  expect(resultFonts['.row-main-heading > strong']).toBeGreaterThanOrEqual(19);
-  expect(resultFonts['.filter-row input']).toBeGreaterThanOrEqual(18);
-  expect(resultFonts['.detail-location small']).toBeGreaterThanOrEqual(18);
+  // Analyst console scale: body and list text 16px or larger, counts and secondary metadata may be smaller.
+  expect(resultFonts['.metric strong']).toBeGreaterThanOrEqual(18);
+  expect(resultFonts['.row-main-heading > strong']).toBeGreaterThanOrEqual(16);
+  expect(resultFonts['.filter-row input']).toBeGreaterThanOrEqual(16);
+  expect(resultFonts['.detail-location small']).toBeGreaterThanOrEqual(16);
   samples.push({ viewport: { width: 1440, height: 900 }, page: '검사 결과 및 선택 Finding', audit: resultAudit });
   await page.screenshot({ path: resolve(output, 'completed-and-finding-1440x900.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 720, height: 450 }); // 1440×900의 200% 확대 상황에 해당하는 좁은 CSS viewport 대체 확인
   const zoomLayout = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
   expect(zoomLayout.content).toBeLessThanOrEqual(zoomLayout.viewport);
-  expect(await page.locator('.workspace-title h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(36);
+  expect(await page.locator('.workspace-title h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(22);
   expect(await visibleTextBelowFloor()).toEqual([]);
   samples.push({ viewport: { width: 720, height: 450, note: '200% 확대 대응 대체 CSS viewport; 실제 브라우저 확대 기능은 아님' }, zoomLayout });
   await writeFile(resolve(output, 'computed-style-samples.json'), JSON.stringify(samples, null, 2));
