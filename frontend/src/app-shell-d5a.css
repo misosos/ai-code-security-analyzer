@@ -298,7 +298,13 @@
 #main-content .analyst-backup-controls > label:not(.backup-file-label) { display: flex; align-items: center; gap: 12px; font-size: 17px; }
 #main-content .analyst-backup-controls input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
 #main-content .backup-file-label { margin-top: 4px; font-size: 17px; font-weight: 600; }
-#main-content .backup-file-input { max-width: min(100%, 540px); min-height: 44px; color: var(--text); font-size: 17px; }
+/* The native file input stays in the page, focusable and labelled; the button-styled label opens it. */
+#main-content .backup-file-picker { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; width: 100%; min-width: 0; }
+#main-content .backup-file-input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; opacity: 0; overflow: hidden; }
+#main-content .backup-file-button { flex: 0 0 auto; cursor: pointer; }
+#main-content .backup-file-input:focus-visible + .backup-file-button { outline: 2px solid var(--accent); outline-offset: 2px; }
+#main-content .backup-file-input:disabled + .backup-file-button { opacity: .5; cursor: not-allowed; }
+#main-content .backup-file-name { flex: 1 1 12rem; min-width: 0; color: var(--muted); font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
 #main-content .analyst-backup-controls > small { color: var(--muted); font-size: 17px; line-height: 1.5; }
 #main-content .backup-preview { display: grid; gap: 12px; width: min(100%, 760px); margin-top: 8px; padding: 16px; border-left: 2px solid var(--border-strong); background: var(--surface); }
 #main-content .backup-preview h3 { margin: 0; font-size: 20px; }

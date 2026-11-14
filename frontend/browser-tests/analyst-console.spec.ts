@@ -17,10 +17,10 @@ const scan = {
   findings: [finding(0, 'high'), finding(1, 'high'), finding(2, 'medium')],
 };
 
-async function openResults(page: Page) {
+async function openResults(page: Page, body: object = scan) {
   await page.route('**/api/v1/health', (route) => route.fulfill({ json: { status: 'ok', service: 'ai-code-security-analyzer' } }));
   await page.route('**/api/v1/options', (route) => route.fulfill({ json: options }));
-  await page.route('**/api/v1/scans', (route) => route.fulfill({ json: scan }));
+  await page.route('**/api/v1/scans', (route) => route.fulfill({ json: body }));
   await page.goto('/');
   await page.getByLabel('로컬 API 토큰').fill('synthetic-console-token');
   await page.getByRole('button', { name: '검사 실행' }).click();
@@ -162,3 +162,174 @@ test('choosing another finding shows the top of its detail even after the panel 
   expect(await panel.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   await expect(page.locator('#analyst-note')).toBeVisible();
 });
+
+const mixedEvidenceScan = {
+  ...scan,
+  findings: [scan.findings[0], { ...scan.findings[1], evidence_validation_status: 'rejected', supported_claims: [], restricted_claims: [], validation_error_code: 'evidence_unavailable' }, scan.findings[2]],
+};
+
+/** Where the last block of the open detail sits, against both the panel's visible box and the window. */
+async function detailEnd(page: Page) {
+  return page.locator('.results-layout > .detail-panel').evaluate((panel) => {
+    const last = panel.querySelector('article')!.lastElementChild!.getBoundingClientRect();
+    const box = panel.getBoundingClientRect();
+    const visibleTop = Math.max(0, box.top);
+    const visibleBottom = Math.min(innerHeight, box.bottom);
+    return {
+      scrollHeight: panel.scrollHeight, clientHeight: panel.clientHeight, scrollTop: panel.scrollTop,
+      atMax: panel.scrollTop >= panel.scrollHeight - panel.clientHeight - 1,
+      lastVisible: last.height > 0 && last.top >= visibleTop - 1 && last.bottom <= visibleBottom + 1,
+    };
+  });
+}
+
+for (const [width, height] of [[1440, 900], [1280, 800]] as const) {
+  test(`detail panel can be read to its last block with the mouse wheel at ${width}x${height}`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await openResults(page);
+    const panel = page.locator('.results-layout > .detail-panel');
+    const start = await detailEnd(page);
+    expect(start.scrollHeight).toBeGreaterThan(start.clientHeight);
+    const box = (await panel.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + 40);
+    for (let step = 0; step < 30; step++) await page.mouse.wheel(0, 300);
+    await expect.poll(async () => (await detailEnd(page)).atMax).toBe(true);
+    await expect.poll(async () => (await detailEnd(page)).lastVisible).toBe(true);
+  });
+}
+
+test('detail panel can be read to its last block with the keyboard', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openResults(page);
+  const panel = page.locator('.results-layout > .detail-panel');
+  await panel.focus();
+  for (let step = 0; step < 12; step++) await page.keyboard.press('PageDown');
+  await expect.poll(async () => (await detailEnd(page)).atMax).toBe(true);
+  await expect.poll(async () => (await detailEnd(page)).lastVisible).toBe(true);
+});
+
+test('after reading to the end, a new selection or a filter change opens the next detail at its title', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openResults(page);
+  const panel = page.locator('.results-layout > .detail-panel');
+  const titleInView = () => panel.locator('.detail-top h2').evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
+  const box = (await panel.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + 40);
+  for (let step = 0; step < 30; step++) await page.mouse.wheel(0, 300);
+  await expect.poll(async () => (await detailEnd(page)).lastVisible).toBe(true);
+
+  await page.getByLabel('Finding 목록').getByRole('button').nth(1).click();
+  await expect(panel).toContainText('src/module1/handler.ts:11');
+  expect(await panel.evaluate((el) => el.scrollTop)).toBe(0);
+  expect(await titleInView()).toBe(true);
+
+  // A filter that hides the selected finding says so in view; picking a remaining finding opens it at its title.
+  await panel.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  await page.getByLabel('심각도', { exact: true }).selectOption('medium');
+  await expect(panel.locator('.select-prompt')).toBeInViewport();
+  await page.getByLabel('Finding 목록').getByRole('button').first().click();
+  await expect(panel).toContainText('src/module2/handler.ts:12');
+  expect(await panel.evaluate((el) => el.scrollTop)).toBe(0);
+  expect(await titleInView()).toBe(true);
+});
+
+for (const [width, height] of [[1440, 900], [1280, 800], [1024, 768], [768, 1024], [390, 844], [320, 640]] as const) {
+  test(`filter values and labels are not cut off at ${width}x${height}`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await openResults(page);
+    for (const [name, value] of [['탐지 유형', 'pattern'], ['탐지 유형', 'taint'], ['탐지 유형', 'unclassified'], ['분석가 검토', 'needs_followup'], ['검증 상태', 'unverified']] as const) {
+      await page.getByLabel(name, { exact: true }).selectOption(value);
+      const fit = await page.getByLabel(name, { exact: true }).evaluate((select: HTMLSelectElement) => {
+        const style = getComputedStyle(select);
+        const context = document.createElement('canvas').getContext('2d')!;
+        context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        const text = select.options[select.selectedIndex].text;
+        const room = select.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        const label = select.closest('label')!.querySelector('span')!;
+        return { text, textWidth: context.measureText(text).width, room, fontSize: parseFloat(style.fontSize), labelCut: label.scrollWidth > label.clientWidth + 1 };
+      });
+      expect(fit.textWidth, `${name}=${fit.text}`).toBeLessThanOrEqual(fit.room);
+      expect(fit.fontSize).toBeGreaterThanOrEqual(16);
+      expect(fit.labelCut, `${name} label`).toBe(false);
+    }
+    await page.getByLabel('탐지 유형', { exact: true }).selectOption('all');
+    await page.getByLabel('분석가 검토', { exact: true }).selectOption('all');
+    await page.getByLabel('검증 상태', { exact: true }).selectOption('all');
+    await expect(page.getByLabel('Finding 목록').getByRole('button')).toHaveCount(3);
+    await page.getByLabel('탐지 유형', { exact: true }).selectOption('taint');
+    await expect(page.getByLabel('Finding 목록').getByRole('button')).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  });
+}
+
+for (const width of [1440, 390, 320]) {
+  test(`evidence linkage state is written out next to the review state at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openResults(page, mixedEvidenceScan);
+    const rows = page.getByLabel('Finding 목록').getByRole('button');
+    await expect(rows.nth(0).locator('.evidence-validation-label')).toBeVisible();
+    await expect(rows.nth(0).locator('.evidence-validation-label')).toHaveText('근거 연결 구조 확인');
+    await expect(rows.nth(1).locator('.evidence-validation-label')).toBeVisible();
+    await expect(rows.nth(1).locator('.evidence-validation-label')).toHaveText('근거 연결 확인 불가');
+    // Visible on screen, not only to screen readers: no ancestor up to the row collapses or clips the label.
+    for (const index of [0, 1]) {
+      const shown = await rows.nth(index).locator('.evidence-validation-label').evaluate((label) => {
+        for (let node: Element | null = label; node && !node.classList.contains('finding-row'); node = node.parentElement) {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          if (rect.width <= 1 || rect.height <= 1 || style.clip !== 'auto' || style.opacity === '0') return false;
+        }
+        return true;
+      });
+      expect(shown, `row ${index} evidence label is drawn`).toBe(true);
+    }
+    // One accessible name holds the review state, the evidence state and that the finding is unconfirmed, each once.
+    const name = await rows.nth(0).evaluate((row) => row.textContent ?? '');
+    expect(name).toContain('분석가: 검토 대기');
+    expect(name).toContain('미확인 후보');
+    expect(name.split('근거 연결 구조 확인').length - 1).toBe(1);
+    await expect(rows.nth(0).locator('.validation-icon')).toHaveAttribute('aria-hidden', 'true');
+    const review = await rows.nth(0).locator('.analyst-review-badge').boundingBox();
+    const evidence = await rows.nth(0).locator('.evidence-validation-label').boundingBox();
+    // Desktop: one status column, labels on one start line. Phone: evidence gets its own line below the location.
+    if (width > 760) expect(Math.abs(review!.x - evidence!.x), 'labels share one start line').toBeLessThanOrEqual(1);
+    expect(evidence!.y).toBeGreaterThan(review!.y);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  });
+}
+
+for (const width of [1440, 390, 320]) {
+  test(`backup file picker matches the console and shows the chosen file at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openResults(page);
+    await page.locator('details.analyst-backup-tool > summary').click();
+    const input = page.getByLabel('검토 기록 불러오기(JSON)');
+    const button = page.locator('.backup-file-button');
+    const status = page.locator('#backup-file-status');
+    await expect(button).toBeVisible();
+    await expect(button).toHaveText('JSON 파일 선택');
+    await expect(status).toHaveText('선택한 파일 없음');
+    await expect(input).toHaveAttribute('type', 'file');
+    await expect(input).toHaveAttribute('aria-describedby', /backup-file-status/);
+    // Tab from the download button reaches the real input, and the visible button shows the focus.
+    await page.getByRole('button', { name: '검토 기록 백업 JSON 다운로드' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(input).toBeFocused();
+    await expect(button).toHaveCSS('outline-style', 'solid');
+    // Clicking the visible button opens the real file chooser.
+    const chooser = page.waitForEvent('filechooser');
+    await button.click();
+    const longName = `analyst-review-backup-${'very-long-file-name-segment-'.repeat(4)}final.json`;
+    await (await chooser).setFiles({ name: longName, mimeType: 'application/json', buffer: Buffer.from('{broken') });
+    // The existing sanitizer keeps at most 128 characters of the name.
+    await expect(status).toHaveText(`선택한 파일: ${longName.slice(0, 128)}`);
+    await expect(page.locator('.analyst-backup-controls [role="status"]')).toBeVisible();
+    const fit = await page.evaluate(() => {
+      const name = document.querySelector('#backup-file-status')!.getBoundingClientRect();
+      const box = document.querySelector('.analyst-backup-controls')!.getBoundingClientRect();
+      return { right: name.right, boxRight: box.right, overflow: document.documentElement.scrollWidth - innerWidth };
+    });
+    expect(fit.right).toBeLessThanOrEqual(fit.boxRight + 1);
+    expect(fit.overflow).toBeLessThanOrEqual(0);
+  });
+}
