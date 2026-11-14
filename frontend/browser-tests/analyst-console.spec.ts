@@ -367,12 +367,23 @@ test('analyst review labels read first and their help stays readable', async ({ 
   expect(help.size).toBeGreaterThanOrEqual(16);
   expect(help.ratio).toBeGreaterThanOrEqual(7);
   expect(count.ratio).toBeGreaterThanOrEqual(4.5);
-  // Hierarchy: heading > label > help, by size or weight.
-  expect(heading.size).toBeGreaterThan(statusLabel.size);
-  expect(statusLabel.weight).toBeGreaterThan(help.weight);
+  // Hierarchy: heading clearly larger than labels; labels heavier than values; values heavier than help.
+  expect(heading.size).toBeGreaterThanOrEqual(statusLabel.size + 4);
   expect(help.size).toBeGreaterThan(count.size);
-  // Entered values stay at regular weight; only the labels are emphasised.
-  for (const control of [`${editor} select`, `${editor} textarea`]) expect((await textContrast(page, control)).weight).toBe(400);
+  for (const control of [`${editor} select`, `${editor} textarea`]) {
+    const value = await textContrast(page, control);
+    expect(value.size, `${control} size`).toBeGreaterThanOrEqual(16);
+    expect(value.weight, `${control} weight`).toBeGreaterThanOrEqual(500);
+    expect(value.ratio, `${control} contrast`).toBeGreaterThanOrEqual(7);
+    expect(statusLabel.weight, 'labels heavier than values').toBeGreaterThan(value.weight);
+    expect(value.weight, 'values heavier than help').toBeGreaterThan(help.weight);
+  }
+  // The selected value has room for a full line of text, so it is not shrunk or clipped.
+  const room = await page.locator(`${editor} select`).evaluate((select) => {
+    const style = getComputedStyle(select);
+    return { content: select.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom), line: parseFloat(style.fontSize) * 1.2 };
+  });
+  expect(room.content).toBeGreaterThanOrEqual(room.line);
   // Labels still name their controls.
   await expect(page.getByLabel('수동 검토 상태')).toBeVisible();
   await expect(page.getByLabel('분석가 메모')).toBeVisible();

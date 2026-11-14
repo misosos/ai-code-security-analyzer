@@ -207,10 +207,13 @@
 .app-shell.ui-console #main-content .results-layout > .detail-panel .detail-location small { color: var(--muted); }
 .app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor { display: grid; gap: 12px; padding: 0; border: 0; background: transparent; }
 .app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor > * { margin: 0; }
-.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor label { display: grid; gap: 8px; color: var(--text); font-size: var(--console-body); font-weight: 500; line-height: 24px; }
-.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor select { height: 40px; min-height: 40px; font-weight: 400; }
-.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor textarea { min-height: 88px; font-weight: 400; }
-/* Label 16/500 text > help 16/400 muted > byte count 14 muted: labels read first, help stays readable. */
+/* Heading 20/600 > label 16/600 > value 16/500 > help 16/400 muted > count 14 muted.
+   Korean falls back to Apple SD Gothic Neo, whose Regular is too thin for white text on charcoal, so values use Medium. */
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor h3 { font-size: 20px; line-height: 28px; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor label { display: grid; gap: 8px; color: var(--text); font-size: var(--console-body); font-weight: 600; line-height: 24px; }
+/* The editor select inherits 12px block padding; at 40px tall that left 14px for 16px text and Chromium clipped the value. */
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor select { height: 40px; min-height: 40px; padding-block: 0; font-weight: 500; }
+.app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-review-editor textarea { min-height: 88px; font-weight: 500; }
 .app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-note-help { color: var(--muted); font-size: var(--console-body); font-weight: 400; line-height: 24px; }
 .app-shell.ui-console #main-content .results-layout > .detail-panel .analyst-note-count { color: var(--muted); font-size: var(--console-meta); font-weight: 400; line-height: 20px; }
 
