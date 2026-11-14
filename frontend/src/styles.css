@@ -241,6 +241,9 @@ select:disabled, input:disabled { opacity: .66; cursor: not-allowed; }
 .claim-section ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .claim-section li { display: grid; gap: 3px; padding: 8px 0; border-top: 1px solid var(--border); }
 .claim-section li:first-child { border-top: 0; }
+/* Claim title and its status are separate items: a real gap on one line, the status on its own line when space runs out. */
+.claim-section li > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
+.claim-section li > div > * { min-width: 0; overflow-wrap: anywhere; }
 .claim-section li strong { color: var(--text); font-size: 12px; }
 .claim-section li code { color: var(--muted-dim); }
 .claim-section li .decision { color: var(--warning); font-size: 11px; }

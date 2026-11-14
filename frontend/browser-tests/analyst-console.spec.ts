@@ -333,3 +333,105 @@ for (const width of [1440, 390, 320]) {
     expect(fit.overflow).toBeLessThanOrEqual(0);
   });
 }
+
+/** WCAG contrast of an element's text against the first opaque background behind it. */
+async function textContrast(page: Page, selector: string) {
+  return page.locator(selector).first().evaluate((element) => {
+    const channels = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
+    const luminance = ([r, g, b]: number[]) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+    let background = [0, 0, 0];
+    for (let node: Element | null = element; node; node = node.parentElement) {
+      const color = channels(getComputedStyle(node).backgroundColor);
+      if (color.length >= 3 && (color[3] ?? 1) > 0) { background = color; break; }
+    }
+    const style = getComputedStyle(element);
+    const [a, b] = [luminance(channels(style.color)), luminance(background)];
+    return { ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), size: parseFloat(style.fontSize), weight: Number(style.fontWeight) };
+  });
+}
+
+test('analyst review labels read first and their help stays readable', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openResults(page);
+  const editor = '.results-layout > .detail-panel .analyst-review-editor';
+  const heading = await textContrast(page, `${editor} h3`);
+  const statusLabel = await textContrast(page, `${editor} label:has(select)`);
+  const noteLabel = await textContrast(page, `${editor} label[for="analyst-note"]`);
+  const help = await textContrast(page, `${editor} .analyst-note-help`);
+  const count = await textContrast(page, `${editor} .analyst-note-count`);
+  for (const [name, label] of [['수동 검토 상태', statusLabel], ['분석가 메모', noteLabel]] as const) {
+    expect(label.size, `${name} size`).toBeGreaterThanOrEqual(16);
+    expect(label.weight, `${name} weight`).toBeGreaterThanOrEqual(500);
+    expect(label.ratio, `${name} contrast`).toBeGreaterThanOrEqual(7);
+  }
+  expect(help.size).toBeGreaterThanOrEqual(16);
+  expect(help.ratio).toBeGreaterThanOrEqual(7);
+  expect(count.ratio).toBeGreaterThanOrEqual(4.5);
+  // Hierarchy: heading > label > help, by size or weight.
+  expect(heading.size).toBeGreaterThan(statusLabel.size);
+  expect(statusLabel.weight).toBeGreaterThan(help.weight);
+  expect(help.size).toBeGreaterThan(count.size);
+  // Entered values stay at regular weight; only the labels are emphasised.
+  for (const control of [`${editor} select`, `${editor} textarea`]) expect((await textContrast(page, control)).weight).toBe(400);
+  // Labels still name their controls.
+  await expect(page.getByLabel('수동 검토 상태')).toBeVisible();
+  await expect(page.getByLabel('분석가 메모')).toBeVisible();
+});
+
+const allDecisionsScan = {
+  ...scan,
+  findings: [{ ...scan.findings[0], restricted_claims: [
+    { claim_type: 'taint_rule_match_reported', decision: 'unavailable', reason_codes: [] },
+    { claim_type: 'source_location_identified', decision: 'insufficient_evidence', reason_codes: [] },
+    { claim_type: 'flow_trace_available', decision: 'ambiguous', reason_codes: [] },
+    { claim_type: 'vulnerability_confirmed', decision: 'unsupported_claim', reason_codes: ['independent_confirmation_required'] },
+  ] }, scan.findings[1], scan.findings[2]],
+};
+
+for (const width of [1440, 1024, 768, 390, 320]) {
+  test(`each unconfirmed claim keeps a gap between its title and its status at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openResults(page, allDecisionsScan);
+    // The claims live in the technical disclosure; open it the way a user does.
+    const disclosure = page.locator('.detail-panel .technical-details');
+    await disclosure.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(disclosure).toHaveAttribute('open', '');
+    const items = page.locator('.detail-panel .claim-section.restricted li');
+    await expect(items.first()).toBeVisible();
+    await expect(items).toHaveCount(4);
+    await expect(items.nth(0)).toContainText('현재 자료에서 확인 불가');
+    await expect(items.nth(1)).toContainText('근거 부족');
+    await expect(items.nth(2)).toContainText('근거 연결 모호');
+    await expect(items.nth(3)).toContainText('이 분석에서 지원하지 않는 판단');
+    const layout = await items.evaluateAll((list) => list.map((item) => {
+      const title = item.querySelector('strong')!;
+      const status = item.querySelector('.decision')!;
+      // Line boxes of each piece of text, so a wrapped title is measured by its last line.
+      const titleLines = [...title.getClientRects()];
+      const statusLines = [...status.getClientRects()];
+      const lastTitle = titleLines[titleLines.length - 1];
+      const firstStatus = statusLines[0];
+      const box = item.getBoundingClientRect();
+      // Same line when the two line boxes overlap vertically (title and status are baseline-aligned at different sizes).
+      const sameLine = firstStatus.top < lastTitle.bottom && firstStatus.bottom > lastTitle.top;
+      const overlap = titleLines.some((t) => statusLines.some((s) => t.left < s.right - 0.5 && t.right > s.left + 0.5 && t.top < s.bottom - 0.5 && t.bottom > s.top + 0.5));
+      return {
+        text: item.textContent, sameLine, overlap,
+        gap: sameLine ? firstStatus.left - lastTitle.right : firstStatus.top - lastTitle.bottom,
+        inside: [...titleLines, ...statusLines].every((r) => r.left >= box.left - 1 && r.right <= box.right + 1),
+      };
+    }));
+    for (const item of layout) {
+      expect(item.overlap, item.text ?? '').toBe(false);
+      expect(item.inside, item.text ?? '').toBe(true);
+      if (item.sameLine) {
+        expect(item.gap, `${item.text} horizontal gap`).toBeGreaterThanOrEqual(8);
+        expect(item.gap, `${item.text} horizontal gap`).toBeLessThanOrEqual(16);
+      } else {
+        expect(item.gap, `${item.text} wrapped below`).toBeGreaterThanOrEqual(0);
+      }
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  });
+}
